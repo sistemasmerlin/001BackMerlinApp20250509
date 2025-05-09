@@ -8,8 +8,6 @@
         </button>
     </div>
 
-
-
     @if (session()->has('success'))
         <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-800">
             {{ session('success') }}
