@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <h1 class="text-xl font-semibold text-zinc-800 dark:text-white">Usuarios</h1>
 
-            <a href="#" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <a href="#" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 + Nuevo Usuario
             </a>
         </div>
@@ -24,7 +24,7 @@
                         <td class="px-6 py-4 text-sm text-zinc-800 dark:text-zinc-200">juan@example.com</td>
                         <td class="px-6 py-4 text-sm text-zinc-800 dark:text-zinc-200">Administrador</td>
                         <td class="px-6 py-4 text-right">
-                            <a href="#" class="text-indigo-600 hover:underline">Editar</a>
+                            <a href="#" class="text-indigo-600 hover:underline bg-blue-500 hover:bg-blue-700">Editar</a>
                         </td>
                     </tr>
                     <!-- Repite o haz dinámico -->

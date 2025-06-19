@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -49,6 +50,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Usuarios que este usuario (asesor) ha relacionado
+    public function relacionados()
+    {
+        return $this->belongsToMany(User::class, 'relacion_asesores', 'asesor_id', 'relacionado_id');
+    }
+
+    // Usuarios que han relacionado a este usuario
+    public function relacionadoPor()
+    {
+        return $this->belongsToMany(User::class, 'relacion_asesores', 'relacionado_id', 'asesor_id');
     }
 
     /**

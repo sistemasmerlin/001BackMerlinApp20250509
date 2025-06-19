@@ -7,12 +7,26 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
+    //Filtro en la tabla de usuarios
+
+    public $search = '';
+    protected $paginationTheme = 'tailwind';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public $usuarios, $name, $email, $password, $cedula, $codigo_asesor, $codigo_recibos, $usuario_id;
     public $roles = [], $rolesSeleccionados = [];
-
+    public $nuevaPassword;
+    public $mostrarPassword = false;
     public bool $openModal = false;
     public bool $modoEditar = false;
 
@@ -49,6 +63,12 @@ class Index extends Component
             'codigo_recibos' => $this->codigo_recibos,
         ]);
 
+        if (!empty($this->nuevaPassword)) {
+            $usuario->update([
+                'password' => Hash::make($this->nuevaPassword),
+            ]);
+        }
+        
         // ✅ Asegúrate de convertir los IDs a nombres de roles
         $nombresRoles = Role::whereIn('id', $this->rolesSeleccionados)->pluck('name')->toArray();
         $usuario->syncRoles($nombresRoles);
@@ -127,6 +147,24 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.admin.usuarios.index');
+        //return view('livewire.admin.usuarios.index');
+
+        $usuarios = User::with('roles')
+            ->where(function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('cedula', 'like', '%' . $this->search . '%')
+                    ->orWhere('codigo_asesor', 'like', '%' . $this->search . '%')
+                    ->orWhere('codigo_recibos', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('roles', function ($roleQuery) {
+                        $roleQuery->where('name', 'like', '%' . $this->search . '%');
+                    });
+                })
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+
+            return view('livewire.admin.usuarios.index', [
+                'usuarios' => $usuarios,
+            ]);
     }
 }

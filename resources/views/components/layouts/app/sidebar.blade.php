@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
                 <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -12,10 +12,11 @@
                 </a>
 
                 <flux:navlist variant="outline">
-                    <flux:navlist.group :heading="__('Platform')" class="grid">
-                        <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.group :heading="__('Panel de Control')" class="text-zinc-700">
+                        <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Inicio') }}</flux:navlist.item>
                     </flux:navlist.group>
                 </flux:navlist>
+            @can('Usuarios')
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
@@ -37,18 +38,69 @@
                         <flux:navlist.item :href="route('permisos.index')" :current="request()->routeIs('permisos.*')" wire:navigate>
                             {{ __('Permisos') }}
                         </flux:navlist.item>
+                        <flux:navlist.item :href="route('relacion.asesores.index')" :current="request()->routeIs('relacion.asesores.*')" wire:navigate>
+                            {{ __('Relacion Asesores') }}
+                        </flux:navlist.item>
                     </div>
                 </div>
+            @endcan
+            @can('Comercial')
+                <div x-data="{ open: false }" class="px-4">
+                    <button
+                        @click="open = !open"
+                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                    >
+                    <flux:icon name="briefcase" class="h-4 w-4" />
+                        <span>{{ __('Comercial') }}</span>
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                    </button>
+                    @can('Administrar promociones')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('promociones.index')" :current="request()->routeIs('promociones.*')" wire:navigate>
+                            {{ __('Lista de Promociones') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                    @can('Administrar pedidos')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>
+                            {{ __('Listar Pedidos') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                </div>
+            @endcan
+            @can('Logistica')
+                <div x-data="{ open: false }" class="px-4">
+                    <button
+                        @click="open = !open"
+                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                    >
+                    <flux:icon name="truck" class="h-4 w-4" />
+                        <span>{{ __('Fletes') }}</span>
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                    </button>
 
-                <flux:navlist variant="outline">
+                    @can('Administrar fletes')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
+                            {{ __('Lista de ciudades') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                </div>
+            @endcan
+                <!-- <flux:navlist variant="outline">
                     <flux:navlist.item :href="route('terceros.index')" :current="request()->routeIs('terceros.*')" wire:navigate>
                                 {{ __('Terceros') }}
                             </flux:navlist.item>
-                </flux:navlist>
+                </flux:navlist> -->
 
             <flux:spacer />
 
-            <flux:navlist variant="outline">
+           <!--  <flux:navlist variant="outline">
                 <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
                 {{ __('Repository') }}
                 </flux:navlist.item>
@@ -56,7 +108,7 @@
                 <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits" target="_blank">
                 {{ __('Documentation') }}
                 </flux:navlist.item>
-            </flux:navlist>
+            </flux:navlist> -->
 
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">

@@ -6,8 +6,16 @@ use App\Livewire\Admin\Usuarios\Index as UsuariosIndex;
 use App\Livewire\Admin\Roles\Index as RolesIndex;
 use App\Livewire\Admin\Permisos\Index as PermisosIndex;
 use App\Livewire\Admin\Terceros\Index as TercerosIndex;
+use App\Livewire\Admin\Promociones\Index as PromocionesIndex;
+use App\Livewire\Admin\Fletes\Index as FletesIndex;
+use App\Livewire\Admin\Pedidos\Index as PedidosIndex;
+use App\Livewire\Admin\Pedidos\Detalle as PedidosDetalle;
+use App\Livewire\Admin\Promociones\Detalle;
+use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;;
 
 use App\Http\Controllers\Admin\TercerosController;
+use App\Http\Controllers\Admin\PromocionesController;
+use App\Http\Controllers\Admin\PedidoController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,12 +39,29 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/permisos', PermisosIndex::class)->name('permisos.index');
 
     Route::get('/terceros', TercerosIndex::class)->name('terceros.index');
-
-
     Route::get('/terceros/consultar', [TercerosController::class, 'index']);
-
     Route::get('/terceros/todos', [TercerosController::class, 'index']);
+
+
+    Route::get('/promociones', PromocionesIndex::class)->name('promociones.index');
+    Route::get('/promociones/{promocion}/detalle', Detalle::class)->name('admin.promociones.detalle');
+
+    Route::get('/pedidos', PedidosIndex::class)->name('pedidos.index');
+
+    Route::get('/pedidos/{pedido}/detalle', PedidosDetalle::class)->name('admin.pedidos.detalle');
+
+
+    Route::get('/fletes', FletesIndex::class)->name('fletes.index');
+
+    Route::get('/relacion/asesores', RelacionAsesoresIndex::class)->name('relacion.asesores.index');
+
+    Route::get('/enviar-envio/{id}', [PedidoController::class, 'enviarPedido'])->name('pedidos.enviar');
+
+
 });
+
+
+
 
 
 require __DIR__.'/auth.php';

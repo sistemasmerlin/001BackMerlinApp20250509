@@ -196,7 +196,14 @@ class TercerosController extends Controller
 
                 if ($fechaUltimaFactura) {
                     $diasDesdeUltimaVenta = $fechaUltimaFactura->diffInDays(now());
-                    $estadoUltimaVenta = $diasDesdeUltimaVenta > 180 ? 'Venta vencida' : 'Venta corriente';
+                    
+                    if ($diasDesdeUltimaVenta <= 60) {
+                        $estadoUltimaVenta = 'Venta corriente';
+                    } elseif ($diasDesdeUltimaVenta <= 179) {
+                        $estadoUltimaVenta = 'Venta vencida';
+                    } else {
+                        $estadoUltimaVenta = 'Se requiere actualizar documentos';
+                    }
                 }
 
                 $clientes[$terceroId] = [
