@@ -10,6 +10,7 @@ use App\Models\DireccionEnvio;
 use App\Models\Backorder;
 use App\Xml\Pedido as PedidoXml;
 use App\Mail\PedidoConfirmadoMail;
+use App\Models\DetalleBackorder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
@@ -330,8 +331,6 @@ class PedidoController extends Controller
             $pedidoXml = new PedidoXml();
             $resultadoXml = $pedidoXml->generarXml($pedido);
 
-            $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
-            $pedido->save();
 
             if ($resultadoXml['status'] !== 'success') {
                 DB::rollBack();
@@ -358,6 +357,10 @@ class PedidoController extends Controller
                 $prefijo_siesa = $validar->prefijo;
                 $consecutivo_siesa = $validar->consecutivo;
             }
+
+            $pedido_siesa = $prefijo_siesa.'-'.$consecutivo_siesa;
+            $pedido->nota = $resultadoXml['status'] === 'success' ? $pedido_siesa : 'No creado en Siesa';
+            $pedido->save();
 
                 $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
                         ,bi_t430.[f_fecha] as fecha

@@ -13,7 +13,7 @@ class Index extends Component
 
     public function mount()
     {
-        $this->pedidos = Pedido::with('direccionEnvio')->where('id','>', 60)->get();
+        $this->pedidos = Pedido::with('direccionEnvio')->get();
 
         //dd($this->pedidos );
     }

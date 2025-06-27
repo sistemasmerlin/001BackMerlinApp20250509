@@ -13,12 +13,9 @@
         </div>
     @endif
     
-    <div class="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700">
-        <div class="mb-4">
-            <input wire:model.debounce.300ms="search" type="text" placeholder="Buscar por cualquier campo..." class="w-full p-2 border rounded dark:bg-zinc-800 dark:text-white">
-        </div>
-        <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-            <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700  ">
+    <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
+        <table id="tabla" class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
+            <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700">
                 <tr>
                     <th class="px-4 py-3">Id Asesor</th>
                     <th class="px-4 py-3">Id Recibos</th>
@@ -68,9 +65,6 @@
                     @endforeach
             </tbody>
         </table>
-        <div class="mt-4">
-            {{ $usuarios->links() }}
-        </div>
     </div>
 
     <!-- Modal -->
@@ -179,5 +173,42 @@
             </div>
         </div>
     @endif
+
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#tabla')) {
+                    $('#tabla').DataTable().destroy();
+                }
+
+                $('#tabla').DataTable({
+                    responsive: false,
+                    "lengthMenu": [10, 50, 100],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+
+        </script>
+        @endpush
 
 </div>

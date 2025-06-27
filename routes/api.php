@@ -46,6 +46,8 @@ Route::middleware('auth:sanctum')->get('/facturas/erp/cliente/{nit}', [FacturasC
 
 Route::middleware('auth:sanctum')->get('/facturas/consultar/{prefijo}/{consecutivo}', [FacturasController::class, 'consultarFactura']);
 
+Route::middleware('auth:sanctum')->get('/facturas/consultar/erp/fecha/cliente/{codico_asesor}/{nit}/{desde}/{hasta}', [FacturasController::class, 'cargarFacturasFechaCliente']);
+
 Route::middleware('auth:sanctum')->get('/cartera/cliente/{nit}', [CarteraController::class, 'cargarFacturasCliente']);
 
 Route::middleware('auth:sanctum')->get('/noticias', [NoticiasController::class, 'index']);

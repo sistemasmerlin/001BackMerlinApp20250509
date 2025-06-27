@@ -1,6 +1,6 @@
 
 
-<div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700 shadow">
+<div class="overflow-x-auto rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 shadow">
     <table class="min-w-full table-auto text-sm text-left text-zinc-800 dark:text-zinc-100">
         <thead class="bg-neutral-900 dark:bg-zinc-800">
             <tr>

@@ -2,6 +2,12 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
+        @livewireStyles
+
+        <!-- DataTables CSS -->
+        <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
@@ -87,6 +93,27 @@
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
                             {{ __('Lista de ciudades') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                </div>
+            @endcan
+            @can('Cartera')
+                <div x-data="{ open: false }" class="px-4">
+                    <button
+                        @click="open = !open"
+                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                    >
+                    <flux:icon name="wallet" class="h-4 w-4" />
+                        <span>{{ __('Cartera') }}</span>
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                    </button>
+
+                    @can('Intereses por mora')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('intereses.cartera.index')" :current="request()->routeIs('intereses.cartera.*')" wire:navigate>
+                            {{ __('Intereses por mora') }}
                         </flux:navlist.item>
                     </div>
                     @endcan
@@ -207,7 +234,17 @@
         </flux:header>
 
         {{ $slot }}
-
+        
         @fluxScripts
+        <!-- Livewire scripts -->
+
+        @livewireScripts
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
+
+        <!-- Aquí irán los scripts personalizados de cada vista -->
+        @stack('scripts')
+
     </body>
 </html>

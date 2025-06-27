@@ -12,7 +12,7 @@
         </div>
     @endif
 
-    <div class="w-2/4 mx-auto overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700">
+    <div class="w-2/4 mx-auto overflow-x-auto shadow-lg rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
             <thead class="bg-zinc-100 dark:bg-zinc-700 text-xs uppercase text-zinc-700 dark:text-zinc-300">
                 <tr>

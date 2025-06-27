@@ -11,18 +11,7 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
-
-    //Filtro en la tabla de usuarios
-
-    public $search = '';
-    protected $paginationTheme = 'tailwind';
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
+    
     public $usuarios, $name, $email, $password, $cedula, $codigo_asesor, $codigo_recibos, $usuario_id;
     public $roles = [], $rolesSeleccionados = [];
     public $nuevaPassword;
@@ -34,6 +23,7 @@ class Index extends Component
     {
         $this->usuarios = User::with('roles')->get();
         $this->roles = Role::all();
+
     }
 
     public function abrirModal()
@@ -147,24 +137,9 @@ class Index extends Component
 
     public function render()
     {
-        //return view('livewire.admin.usuarios.index');
 
-        $usuarios = User::with('roles')
-            ->where(function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
-                    ->orWhere('cedula', 'like', '%' . $this->search . '%')
-                    ->orWhere('codigo_asesor', 'like', '%' . $this->search . '%')
-                    ->orWhere('codigo_recibos', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('roles', function ($roleQuery) {
-                        $roleQuery->where('name', 'like', '%' . $this->search . '%');
-                    });
-                })
-                ->orderBy('id', 'desc')
-                ->paginate(10);
+        return view('livewire.admin.usuarios.index');
 
-            return view('livewire.admin.usuarios.index', [
-                'usuarios' => $usuarios,
-            ]);
     }
+    
 }

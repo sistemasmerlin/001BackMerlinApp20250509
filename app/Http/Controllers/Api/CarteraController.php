@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use App\Models\InteresesCartera;
 
 
 class CarteraController extends Controller
 {
     public function cargarFacturasCliente($nit){
         
-$facturas = DB::connection('sqlsrv')
-->select("SELECT f200_nit as nit
+        $facturas = DB::connection('sqlsrv')
+        ->select("SELECT f200_nit as nit
             ,[f200_razon_social] as razon_social
             ,[f353_id_tipo_docto_cruce] as prefijo
             ,CASE 
@@ -56,6 +57,17 @@ $facturas = DB::connection('sqlsrv')
             AND t200.f200_nit  = '$nit'
             --AND (f353_total_db - f353_total_cr) > 0
             ORDER BY [f353_id_tipo_docto_cruce], dias_transcurrido DESC");
+
+        $consecutivos = collect($facturas)->pluck('consecutivo')->toArray();
+
+        $intereses = InteresesCartera::whereIn('consecutivo', $consecutivos)->get();
+
+
+        foreach ($facturas as &$factura) {
+            $interes = $intereses->firstWhere('consecutivo', $factura->consecutivo);
+
+            $factura->interes_acumulado = $interes ? $interes->valor_acumulado_interes : 0;
+        }
 
         return response()->json([
             'facturas' => $facturas,
