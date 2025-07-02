@@ -38,7 +38,7 @@ class PedidoController extends Controller
 
     public function pedidosErp($codigo_asesor){
 
-       // return $codigo_asesor;
+        // return $codigo_asesor;
 
         $pedidos = DB::connection('sqlsrv')
         ->select("SELECT TOP (50)
@@ -55,7 +55,7 @@ class PedidoController extends Controller
                 WHEN [f430_ind_facturado] = 0 THEN 'Si'
             ELSE 'No' END as facturado
             ,[f430_rowid_tercero_fact]
-        FROM [Prototipos].[dbo].[t430_cm_pv_docto]
+        FROM [t430_cm_pv_docto]
         LEFT JOIN [t210_mm_vendedores] as t210
         ON t210.f210_rowid_tercero = f430_rowid_tercero_vendedor
         AND f430_id_cia = 3
@@ -65,7 +65,7 @@ class PedidoController extends Controller
         WHERE [f430_id_cia] = 3
         AND [f430_id_concepto] = 501
         AND [f430_id_grupo_clase_docto] = 502
-        AND t210.[f210_id] = 112
+        AND t210.[f210_id] = $codigo_asesor
         ORDER BY f430_fecha_ts_creacion desc");
 
             return response()->json([
@@ -333,10 +333,15 @@ class PedidoController extends Controller
 
 
             if ($resultadoXml['status'] !== 'success') {
+
+            $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;
+            $xmlObject = simplexml_load_string($xmlResponse, "SimpleXMLElement", LIBXML_NOCDATA);
+            $f_detalle = (string) $xmlObject->NewDataSet->Table->f_detalle;
+
                 DB::rollBack();
                 return response()->json([
                     'error' => 'Error al generar XML',
-                    'mensaje' => $resultadoXml['mensaje'] ?? 'Error no especificado'
+                    'mensaje' => 'Error al procesar el pedido en el ERP: '.$f_detalle,
                 ], 500);
             }
 

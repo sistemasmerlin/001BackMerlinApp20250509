@@ -18,13 +18,13 @@ class Pedido {
         $nombreConexion = env('SIESA_NOMBRE_CONEXION');
         $usuario = env('SIESA_USUARIO');
         $clave = env('SIESA_CLAVE');
-        $url = env('SIESA_WSDL_URL');
+        //$url = env('SIESA_WSDL_URL');
 
     try {
             $opts = array('ssl' => array('ciphers'=>'RC4-SHA', 'verify_peer'=>false, 'verify_peer_name'=>false));
             $params = array ('encoding' => 'UTF-8', 'verifypeer' => false, 'verifyhost' => false, 'soap_version' => SOAP_1_2,'trace' => 1, 'exceptions' => 1, "connection_timeout" => 180, 'stream_context' => stream_context_create($opts));
             //$url = 'http://192.168.140.249/WSUNOEE/WSUNOEE.asmx?WSDL';
-            //$url = 'http://192.168.140.236/WSUNOEE/WSUNOEE.asmx?WSDL';
+            $url = 'http://192.168.140.236/WSUNOEE/WSUNOEE.asmx?WSDL';
             $client = new \SoapClient($url, $params);
 
             $prefijo = $pedido->prefijo ?? 'PAM';
@@ -43,8 +43,11 @@ class Pedido {
             $id_punto_envio = $pedido->direccionEnvio['id_punto_envio'];
             $id_sucursal = str_pad(substr($pedido->id_sucursal, 0, 7), 7);
             $orden_compra = str_pad(substr($pedido->orden_compra, 0, 35), 35);
-            //$id_estado_pedido = $pedido->id_estado_pedido ?? '001';
-            $id_estado_pedido = 2;
+            $id_estado_pedido = $pedido->id_estado_pedido ?? '1';
+            //$id_estado_pedido = 8;
+
+            //comprometido = 1 o 2;
+            //comprometido = 0;
 
             $ulimoDatoFila2 = str_repeat(' ', 15) . $id_punto_envio . str_repeat(' ', 333) . '200000000';
             //$ulimoDatoFila2 = str_repeat(' ', 15) . '000' . str_repeat(' ', 333) . '200000000';
@@ -147,7 +150,8 @@ class Pedido {
             $importacionXML = $client->ImportarXML(['pvstrDatos'=>$importar,'printTipoError'=>0]);
 
             $xmlResult = $importacionXML;
-            if($xmlResult->printTipoError == 0){
+            
+             if($xmlResult->printTipoError == 0){
                 $mensaje = "Xml enviado con exito!";
                 $status = "success";
             }

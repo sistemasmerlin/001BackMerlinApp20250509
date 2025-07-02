@@ -7,6 +7,7 @@
         <!-- DataTables CSS -->
         <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
         <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
@@ -72,6 +73,13 @@
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>
                             {{ __('Listar Pedidos') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                    @can('Administrar backorder')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('backOrder.index')" :current="request()->routeIs('backOrder.*')" wire:navigate>
+                            {{ __('Listar BackOrder') }}
                         </flux:navlist.item>
                     </div>
                     @endcan
@@ -242,6 +250,7 @@
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
         <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
+        <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
 
         <!-- Aquí irán los scripts personalizados de cada vista -->
         @stack('scripts')

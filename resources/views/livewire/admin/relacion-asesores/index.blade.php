@@ -12,7 +12,7 @@
             @foreach ($usuarios as $usuario)
                 @if (in_array($usuario->getRoleNames()->first(), ['Televentas', 'Coordinador Comercial']))
                     <tr>
-                        <td class="px-6 py-4 border border-gray-300">
+                        <td class="px-6 py-4 border border-gray-300 bg-lime-300">
                             <div class="text-base font-medium">{{ $usuario->name }}</div>
                             <div class="text-base text-zinc-500">{{ $usuario->email }}</div>
                         </td>

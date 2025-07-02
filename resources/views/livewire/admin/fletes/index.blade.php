@@ -38,8 +38,8 @@
     @endif
 
     <!-- Tabla de detalles -->
-    <div class="overflow-x-auto rounded border border-gray-200 dark:border-zinc-700 shadow">
-        <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
+    <div class="w-4/5 overflow-x-auto mx-auto rounded border border-gray-200 dark:border-zinc-700 shadow p-6">
+        <table id="tabla" class=" table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px; table-layout: fixed;">
             <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
                 <tr>
                     <th class="px-4 py-1">#</th>
@@ -74,4 +74,44 @@
             </tbody>
         </table>
     </div>
+
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#tabla')) {
+                    $('#tabla').DataTable().destroy();
+                }
+
+                $('#tabla').DataTable({
+                    responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: true, //Evita que encabezado se salga de la tabla
+                    "lengthMenu": [50, 500, 5000],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+        
+
+        </script>
+        @endpush
 </div>

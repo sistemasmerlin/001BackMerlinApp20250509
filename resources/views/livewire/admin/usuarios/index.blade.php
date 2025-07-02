@@ -13,9 +13,9 @@
         </div>
     @endif
     
-    <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
-        <table id="tabla" class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
-            <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700">
+    <div class="w-full overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
+        <table id="tabla"  class="w-4/5 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
+            <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700" >
                 <tr>
                     <th class="px-4 py-3">Id Asesor</th>
                     <th class="px-4 py-3">Id Recibos</th>
@@ -183,6 +183,8 @@
 
                 $('#tabla').DataTable({
                     responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: true, //Evita que encabezado se salga de la tabla
                     "lengthMenu": [10, 50, 100],
                     "language": {
                         "lengthMenu": "Ver _MENU_",
@@ -207,6 +209,7 @@
             document.addEventListener("livewire:navigated", () => {
                 setTimeout(() => iniciarDataTable(), 50);
             });
+        
 
         </script>
         @endpush

@@ -3,9 +3,12 @@
 namespace App\Livewire\Admin\Promociones;
 
 use App\Models\Promocion;
+use App\Models\User;
 use App\Models\PromocionDetalle;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ImportPromociones;
 
 class Detalle extends Component
 {
@@ -19,6 +22,7 @@ class Detalle extends Component
     protected $rules = [
         'archivoCsv' => 'required|file|mimes:csv,txt',
     ];
+
     
     public function importarCsv()
     {

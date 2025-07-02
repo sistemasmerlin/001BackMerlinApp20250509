@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\Backorder;
 use App\Models\DetalleBackorder;
 use App\Xml\PedidoBackOrder as PedidoBackOrder;
+use Carbon\Carbon;
 
 class BackorderController extends Controller
 {
 
     public function index($codigo_asesor)
     {
+
         $backorders = Backorder::with('pedido.direccionEnvio', 'detalles')
             ->whereHas('pedido', function ($query) use ($codigo_asesor) {
                 $query->where('codigo_asesor', $codigo_asesor);
@@ -20,12 +22,14 @@ class BackorderController extends Controller
             ->whereHas('detalles', function ($q) {
                 $q->where('cantidad', '>', 0);
             })
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->orderBy('id', 'desc')
             ->get();
 
-        return response()->json([
-            'backorders' => $backorders,
-        ]);
+
+            return response()->json([
+                'backorders' => $backorders,
+            ]);
     }
 
     public function crearPedido(Request $request){

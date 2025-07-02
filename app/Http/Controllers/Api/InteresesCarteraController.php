@@ -11,7 +11,7 @@ class InteresesCarteraController extends Controller
 {
     public function calcularInteresesDiarios()
     {
-        return  $existe = InteresesCartera::where('id','10')->get();
+        //$existe = InteresesCartera::where('id','10')->get();
         // InteresesCartera::truncate();
 
         $fecha_hoy = date('Y-m-d');

@@ -6,9 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Backorder extends Model
 {
+
     protected $fillable = [
-            'pedido_id', 'fecha_backorder', 'estado','estado_backorder'
-        ];
+        'pedido_id',
+        'fecha_backorder',
+        'estado',
+        'estado_backorder'
+    ];
 
     public function detalles()
     {

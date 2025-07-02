@@ -281,6 +281,8 @@
 
                 $('#promociones').DataTable({
                     responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: true, //Evita que escabezado se salga de la tabla
                     "lengthMenu": [10, 50, 100],
                     "language": {
                         "lengthMenu": "Ver _MENU_",
