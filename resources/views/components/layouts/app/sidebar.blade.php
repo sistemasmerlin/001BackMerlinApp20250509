@@ -23,7 +23,7 @@
                         <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Inicio') }}</flux:navlist.item>
                     </flux:navlist.group>
                 </flux:navlist>
-            @can('Usuarios')
+            <!-- @can('Usuarios') -->
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
@@ -50,7 +50,7 @@
                         </flux:navlist.item>
                     </div>
                 </div>
-            @endcan
+            <!-- @endcan -->
             @can('Comercial')
                 <div x-data="{ open: false }" class="px-4">
                     <button
