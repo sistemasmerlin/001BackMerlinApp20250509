@@ -30,7 +30,7 @@
                     <td class="text-center">{{ $noticia->id }}</td>
                     <td>{{ $noticia->titulo }}</td>
                     <td>{{ $noticia->detalle }}</td>
-                    <td class="flex space-x-2 py-2">{{ $noticia->fecha_activacion }}</td>
+                    <td class="px-1">{{ $noticia->fecha_activacion }}</td>
                     <td class="flex space-x-2 py-2">
                         <button wire:click="editar({{ $noticia->id }})" class="px-3 py-1 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
