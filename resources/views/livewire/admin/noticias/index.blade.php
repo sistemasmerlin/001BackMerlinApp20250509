@@ -54,8 +54,8 @@
 
     <!-- Modal Crear/Editar -->
     @if($modal)
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white p-6 rounded-lg space-y-4 w-full max-w-md shadow-xl">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-4 w-full max-w-md border border-zinc-200 dark:border-zinc-700">
 
             <h2 class="text-xl font-bold mb-4">
                 {{ $modoEditar ? 'Editar Noticia' : 'Nueva Noticia' }}
@@ -87,8 +87,8 @@
 
     <!-- Modal Confirmación Eliminar -->
     @if($confirmarEliminacion)
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white p-6 rounded-lg space-y-4 w-full max-w-sm text-center shadow-xl">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bbg-white dark:bg-zinc-900 rounded-lg shadow-lg p-4 w-full max-w-md border border-zinc-200 dark:border-zinc-700">
 
             <p class="text-lg font-medium">¿Seguro que deseas eliminar esta noticia?</p>
 
