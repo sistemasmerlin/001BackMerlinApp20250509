@@ -83,6 +83,13 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+                    @can('Administrar noticias')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('noticias.index')" :current="request()->routeIs('noticias.*')" wire:navigate>
+                            {{ __('Listar Noticias') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
             @can('Logistica')

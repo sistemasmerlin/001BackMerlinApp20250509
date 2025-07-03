@@ -22,7 +22,7 @@ class InteresesCarteraController extends Controller
         $existe = InteresesCartera::where('fecha_hoy', $fecha_hoy)->exists();
 
         if ($existe) {
-            return response()->json(['mensaje' => 'Esta fecha ya fue procesada'], 200);
+            return redirect()->back()->with('error', 'Esta fecha ya fue procesada');
         }
 
         // Procesar registros de ayer
@@ -132,7 +132,6 @@ class InteresesCarteraController extends Controller
             }
         }
 
-       //return  $exisete = InteresesCartera::get();
-        return response()->json(['mensaje' => 'Proceso de intereses ejecutado'], 200);
+        return redirect()->back()->with('success', 'Proceso de intereses ejecutado correctamente');
     }
 }

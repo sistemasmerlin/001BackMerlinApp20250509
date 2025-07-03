@@ -13,6 +13,7 @@ class ProductosController extends Controller
         $result = DB::connection('sqlsrv')
             ->select("SELECT t120.f120_id item
                 ,rtrim(t120.f120_referencia) referencia
+                ,CONCAT('storage/fichas_tecnicas/', RTRIM(t120.f120_referencia), '.pdf') AS ficha_tecnica
                 ,rtrim(t120.f120_descripcion) descripcion
                 ,REPLACE(REPLACE(REPLACE(REPLACE(t120.f120_descripcion, '/', ' '), '-', ' '), 'X', ' '), '=', ' ') descripcion_sin_espacios
                 ,rtrim(t120.f120_id_unidad_inventario) und_inventario

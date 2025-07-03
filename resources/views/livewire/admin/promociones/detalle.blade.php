@@ -52,7 +52,6 @@
                     <th class="px-4 py-2">Hasta</th>
                     <th class="px-4 py-2">% Descuento</th>
                     <th class="px-4 py-2">Creado por</th>
-
                 </tr>
             </thead>
             <tbody>

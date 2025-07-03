@@ -7,6 +7,8 @@ return [
 
     'allowed_origins' => [
         'http://localhost',
+        'https://localhost',
+        'capacitor://localhost',
         'http://localhost:8100',
         'http://127.0.0.1:8100',
         'https://aplicacion.merlinrod.com',

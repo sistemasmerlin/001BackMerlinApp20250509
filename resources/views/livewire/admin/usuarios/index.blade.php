@@ -49,7 +49,7 @@
                                 </svg>
                                 </button>
                             </td>
-                            <td class="px-3 py-2 flex gap-2 justify-center">
+                            <td class="px-3 py-2">
                                 <button
                                     wire:click="eliminarUsuario({{ $usuario->id }})"
                                     class="px-3 py-1 bg-red-500 hover:bg-red-800 text-white font-semibold rounded-lg"

@@ -7,13 +7,11 @@ use App\Models\InteresesCartera;
 
 class Index extends Component
 {
-        public $facturas;
+    public $facturas;
 
     public function mount()
     {
         $this->facturas = InteresesCartera::get();
-
-       // dd($this->facturas );
     }
 
     public function render()
