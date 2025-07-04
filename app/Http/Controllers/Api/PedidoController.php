@@ -476,7 +476,7 @@ class PedidoController extends Controller
             DB::commit();
 
             try {
-
+// correos
                 $correos = array_map('trim', explode(',', $pedido->correo_cliente));
 
                 Mail::to($correos)
