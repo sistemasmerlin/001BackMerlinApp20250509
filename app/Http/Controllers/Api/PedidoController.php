@@ -274,7 +274,7 @@ class PedidoController extends Controller
                 'prefijo' => 'PAM',
                 'nota' => 'Nota',
                 'orden_compra' => $orden_compra,
-                'correo_cliente' =>  $request->punto_envio['email'] ?? null,
+                'correo_cliente' =>  $request->creadoPor['correo'].','.$request->punto_envio['email'] ?? null,
                 'estado' => '1',
                 'id_sucursal' => '020',
                 'flete' => $request->totales['flete'],
