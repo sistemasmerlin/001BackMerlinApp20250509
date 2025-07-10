@@ -6,25 +6,6 @@
             Detalle de Promoción: {{$promocion->id}} - {{ $promocion->nombre }}
         </h2>
     </div>
-
-    
-    <div class="flex justify-between items-center mb-4">
-        <form wire:submit.prevent="importarCsv" enctype="multipart/form-data">
-            <input type="file" wire:model="archivoCsv" accept=".csv,.xls" class="mb-2">
-            @error('archivoCsv') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-
-            <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                Importar CSV
-            </button>
-        </form>
-    </div>
-
-    <!-- Espacio para subir plano excel -->
-    <div >
-        <h1 class="text-2xl font-bold">Excel Promociones</h1>
-        @livewire('admin.promociones.promocion-detalle')
-    </div>
-    
     
     @if (session()->has('success'))
         <div class="bg-green-100 text-green-800 p-3 rounded">

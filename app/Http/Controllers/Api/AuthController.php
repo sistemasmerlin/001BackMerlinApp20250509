@@ -25,7 +25,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
-        if (! $user->hasRole(['Asesor', 'Televentas', 'Coordinador Comercial'])) {
+        if (! $user->hasRole(['Asesor', 'Televentas', 'Coordinador Comercial', 'Comercial'])) {
             return response()->json(['message' => 'Acceso no autorizado. Solo asesores pueden iniciar sesión.'], 403);
         }    
 

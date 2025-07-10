@@ -1,7 +1,7 @@
 <div class="space-y-6">
 
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-zinc-800 dark:text-white">Roles</h1>
+        <h1 class="text-2xl font-bold text-zinc-800 dark:text-white">Roles y Permisos</h1>
         <button wire:click="abrirModal" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">
             + Crear Rol
         </button>
@@ -19,11 +19,11 @@
         </div>
     @endif
 
-    <div class="w-2/4 mx-auto overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700">
-        <table class="w-full text-sm text-left text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-xl">
+    <div class="w-full overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6">
+        <table id="tabla" class="w-4/5 table-auto text-left text-zinc-600 dark:text-zinc-300 pt-3">
             <thead class="text-xs text-zinc-700 uppercase bg-zinc-100 dark:bg-zinc-700 dark:text-zinc-300">
                 <tr>
-                    <th class="px-6 py-3">Nombre</th>
+                    <th class="px-6 py-3">Nombre Rol</th>
                     <th class="px-6 py-3">Permisos</th>
                     <th class="px-6 py-3">Acciones</th>
                 </tr>
@@ -35,7 +35,7 @@
                         <td class="px-5 py-4">
                             {{ implode(', ', $rol->permissions->pluck('name')->toArray()) }}
                         </td>
-                        <td>
+                        <td class="flex gap-2">
                             <button wire:click="editar({{ $rol->id }})" class="px-3 py-2 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -101,4 +101,44 @@
             </div>
         </div>
     @endif
+
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#tabla')) {
+                    $('#tabla').DataTable().destroy();
+                }
+
+                $('#tabla').DataTable({
+                    responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: true, //Evita que encabezado se salga de la tabla
+                    "lengthMenu": [10, 50, 100],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+        
+
+        </script>
+        @endpush
 </div>

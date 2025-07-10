@@ -6,11 +6,11 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportPromociones;
+use App\Models\PromocionDetalle as PromocionDetalleModel;
 
 
 class PromocionDetalle extends Component
 {
-
     use WithFileUploads;
 
     public $excel_promo;
@@ -22,6 +22,8 @@ class PromocionDetalle extends Component
     public function importarPromo()
     {
         $this->validate();
+
+        PromocionDetalleModel::truncate();
 
         Excel::import(new ImportPromociones, $this->excel_promo->getRealPath());
 

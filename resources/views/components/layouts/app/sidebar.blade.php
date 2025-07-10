@@ -12,22 +12,25 @@
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+            <flux:sidebar.toggle class="lg:hidden text-base" icon="x-mark" />
 
                 <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                     <x-app-logo />
                 </a>
 
                 <flux:navlist variant="outline">
-                    <flux:navlist.group :heading="__('Panel de Control')" class="text-zinc-700">
-                        <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Inicio') }}</flux:navlist.item>
+                    <flux:navlist.group :heading="__('Panel de Control')" class="text-zinc-700 text-base">
+                        <flux:navlist.item  icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate class="!text-base">
+                         {{ __('Inicio') }}
+                        </flux:navlist.item>
                     </flux:navlist.group>
                 </flux:navlist>
+                
             @can('Usuarios')
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-2 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
                     >
                     <flux:icon name="users" class="h-4 w-4" />
                         <span>{{ __('Usuarios') }}</span>
@@ -55,7 +58,7 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-2 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
                     >
                     <flux:icon name="briefcase" class="h-4 w-4" />
                         <span>{{ __('Comercial') }}</span>
@@ -96,7 +99,7 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-2 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
                     >
                     <flux:icon name="truck" class="h-4 w-4" />
                         <span>{{ __('Fletes') }}</span>
@@ -117,7 +120,7 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-2 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
                     >
                     <flux:icon name="wallet" class="h-4 w-4" />
                         <span>{{ __('Cartera') }}</span>
@@ -162,8 +165,8 @@
 
                 <flux:menu class="w-[220px]">
                     <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                        <div class="p-0 text-base font-normal">
+                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                                     <span
                                         class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
@@ -172,7 +175,7 @@
                                     </span>
                                 </span>
 
-                                <div class="grid flex-1 text-start text-sm leading-tight">
+                                <div class="grid flex-1 text-start text-base leading-tight">
                                     <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                     <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>
@@ -212,8 +215,8 @@
 
                 <flux:menu>
                     <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                        <div class="p-0 text-base font-normal">
+                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                                     <span
                                         class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
@@ -222,7 +225,7 @@
                                     </span>
                                 </span>
 
-                                <div class="grid flex-1 text-start text-sm leading-tight">
+                                <div class="grid flex-1 text-start text-base leading-tight">
                                     <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                     <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>

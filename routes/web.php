@@ -38,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/usuarios', UsuariosIndex::class)->name('usuarios.index');
+    Route::get('/usuarios', UsuariosIndex::class)->middleware('can:Usuarios')->name('usuarios.index');
     Route::get('/roles', RolesIndex::class)->name('roles.index');
     Route::get('/permisos', PermisosIndex::class)->name('permisos.index');
 

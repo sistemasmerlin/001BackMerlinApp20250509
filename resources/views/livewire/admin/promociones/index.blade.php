@@ -1,21 +1,33 @@
 <div class="space-y-6">
     <!-- Encabezado y Botón -->
 
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Lista de Promociones</h1>
-        <button wire:click="abrirModal" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">
-            + Agregar promoción
-        </button>
+    <div>
+        <div class="flex flex-col items-center mb-4 relative">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white text-center">Lista de Promociones</h1>
+        </div>
+        <div>
+            <button wire:click="abrirModal" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">
+            + Agregar promoción</button>
+        </div>
     </div>
+    
 
     @if (session()->has('success'))
-        <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-800">
+        <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-600">
             {{ session('success') }}
         </div>
     @endif
     
-    <div class="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-6">
-        <table id="promociones" class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
+    <!-- Espacio para subir plano excel -->
+    <div >
+        <h1 class="text-2xl font-bold">Excel Promociones</h1>
+        @livewire('admin.promociones.promocion-detalle')
+
+        <p><strong>Nota:</strong> Al subir un nuevo plano, este eliminar todos los registros del anterior.</p>
+    </div>
+
+    <div class="w-full mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-6">
+        <table id="promociones" class="w-3/4 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
             <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
                 <tr>
                     <th class="px-4 py-3">Id</th>
@@ -40,7 +52,7 @@
                         <td class="px-4 py-2">{{ $promocion->nombre }}</td>
                         <td class="px-4 py-2">{{ $promocion->descripcion }}</td>
                         <td class="px-4 py-2">{{ $promocion->fecha_inicio }}</td>
-                        <td class="px-4 py-2">{{ $promocion->fecha_fin }}</td>
+                        <td class="px-4 py-2">{{ $promocion->fecha_fin }}</td>                      
                         <td class="px-4 py-2">{{ $promocion->estado }}</td>
                         <td class="px-4 py-2">{{ $promocion->creado_por }}</td>
                         <td class="justify-center items-center">

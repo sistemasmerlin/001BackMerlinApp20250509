@@ -22,6 +22,8 @@ class Index extends Component
     {
         $this->validate();
 
+        FleteCiudad::truncate();
+        
         $path = $this->archivoCsv->getRealPath();
         $handle = fopen($path, 'r');
         $index = 0;
