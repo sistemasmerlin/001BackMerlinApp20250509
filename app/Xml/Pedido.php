@@ -28,7 +28,7 @@ class Pedido {
             $client = new \SoapClient($url, $params);
 
             $prefijo = $pedido->prefijo ?? 'PAM';
-            $lista_precio = $pedido->lista_precio ?? 'PRE';
+            $lista_precio = $pedido->lista_precio ?? '001';
             $nota = str_pad(substr($pedido->observaciones ?? '', 0, 2000), 2000);
             $fechaActual = now()->format('Ymd');
             $fechaEntrega = now()->addDay()->format('Ymd');

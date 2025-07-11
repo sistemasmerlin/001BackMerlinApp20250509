@@ -29,7 +29,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '510011300' THEN '10'
                     WHEN rtrim(t120.f120_referencia) = '510011301' THEN '10'
                     WHEN rtrim(t120.f120_referencia) = '510011700' THEN '10'
-                    WHEN rtrim(t120.f120_referencia) = '510012401' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '510012401' THEN '1'
                     WHEN rtrim(t120.f120_referencia) = '510012501' THEN '10'
                     WHEN rtrim(t120.f120_referencia) = '510022303' THEN '10'
                     WHEN rtrim(t120.f120_referencia) = '511010100' THEN '10'
