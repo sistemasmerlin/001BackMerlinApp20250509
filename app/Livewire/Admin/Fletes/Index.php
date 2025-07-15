@@ -4,6 +4,8 @@ namespace App\Livewire\Admin\Fletes;
 use App\Models\FleteCiudad;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ImportFletes;
 
 class Index extends Component
 {
@@ -12,11 +14,15 @@ class Index extends Component
     public $fletes;
     public $ciudades = [];
     public $archivoCsv;
+    public $excel_fletes;
 
-    protected $rules = [
+    /*protected $rules = [
         'archivoCsv' => 'required|file|mimes:csv,txt',
-    ];
+    ];*/
     
+    protected $rules = [
+        'excel_fletes' => 'required|file|mimes:xls,xlsx|max:2048',
+    ];
 
     public function importarCsv()
     {
@@ -65,6 +71,19 @@ class Index extends Component
     public function mount()
     {
         $this->fletes = FleteCiudad::where('estado','=', '1')->orderBy('depto','asc')->orderBy('ciudad','asc')->get();
+
+    }
+
+    public function importarFlete(){
+
+        $this->validate();
+
+        FleteCiudad::truncate();
+
+        Excel::import(new ImportFletes, $this->excel_fletes->getRealPath());
+
+        session()->flash('success', 'Archivo importado correctamente.');
+        $this->reset('excel_fletes'); // limpia el input
 
     }
 

@@ -52,8 +52,12 @@
                         <td class="px-4 py-2">{{ $promocion->nombre }}</td>
                         <td class="px-4 py-2">{{ $promocion->descripcion }}</td>
                         <td class="px-4 py-2">{{ $promocion->fecha_inicio }}</td>
-                        <td class="px-4 py-2">{{ $promocion->fecha_fin }}</td>                      
-                        <td class="px-4 py-2">{{ $promocion->estado }}</td>
+                        <td class="px-4 py-2">{{ $promocion->fecha_fin }}</td>
+                        @if($promocion->estado = '1')    
+                        <td class="px-4 py-2">ACTIVA</td>     
+                        @else
+                        <td class="px-4 py-2">IANCTIVA</td>  
+                        @endif           
                         <td class="px-4 py-2">{{ $promocion->creado_por }}</td>
                         <td class="justify-center items-center">
                             <button wire:click="abrirModalAsignar({{ $promocion->id }})" class="px-3 py-1 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">

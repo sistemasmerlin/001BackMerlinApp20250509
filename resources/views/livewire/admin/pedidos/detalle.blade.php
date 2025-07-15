@@ -25,9 +25,9 @@
     @endif
 
     <!-- Tabla de detalles -->
-    <div class="overflow-x-auto rounded border border-gray-200 dark:border-zinc-700 shadow">
-        <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-            <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+    <div class="w-full mx-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow p-6">
+        <table id="detalle" class="w-3/4 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
+            <thead class="text-xs text-zinc-50 uppercase bg-zinc-900 dark:bg-zinc-700">
                 <tr>
                     <th class="px-4 py-2">Pedido id</th>
                     <th class="px-4 py-2">Referencia</th>
@@ -35,6 +35,7 @@
                     <th class="px-4 py-2">Cantidad</th>
                     <th class="px-4 py-2">Precio Unitario</th>
                     <th class="px-4 py-2">Descuento</th>
+                    <th class="px-4 py-2">Precio Total</th>
                     <th class="px-4 py-2">Cambiar</th>
                 </tr>
             </thead>
@@ -51,6 +52,8 @@
                                                 <td class="px-4 py-2">
                             <input type="number" step="0.01" wire:model.defer="detalles.{{ $loop->index }}.descuento" class="w-20 rounded border px-2 py-1">
                         </td>
+                        <td class="px-4 py-2">{{ $detalle['subtotal'] }}</td>
+
                         <td class="px-4 py-2">
                             <button wire:click="guardarLinea({{ $loop->index }})" class="text-blue-600 hover:underline">Guardar</button>
                         </td>
@@ -59,4 +62,45 @@
             </tbody>
         </table>
     </div>
+
+    
+
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#detalle')) {
+                    $('#detalle').DataTable().destroy();
+                }
+
+                $('#detalle').DataTable({
+                    responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: false, //Evita que escabezado se salga de la tabla
+                    "lengthMenu": [15, 50, 100],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+
+        </script>
+        @endpush
 </div>

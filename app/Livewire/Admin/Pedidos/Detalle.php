@@ -24,6 +24,7 @@ class Detalle extends Component
                 'cantidad' => $detalle->cantidad,
                 'precio_unitario' => $detalle->precio_unitario,
                 'descuento' => $detalle->descuento,
+                'subtotal' => $detalle->subtotal,
             ];
         })->toArray();
     }
@@ -60,4 +61,30 @@ class Detalle extends Component
 
         session()->flash('success', 'Descuento aplicado a todos los productos');
     }
+
+        public function guardarCambiosGeneral(){
+                $actualizados = 0;
+
+                foreach ($this->detalles as $detalle) {
+                    $registro = DetallePedido::find($detalle['id']);
+
+                    if ($registro) {
+                        $descuentoNuevo = $detalle['descuento'];
+                        $descuentoOriginal = $registro->descuento;
+
+                        // Solo guarda si el descuento ha cambiado
+                        if ($descuentoNuevo != $descuentoOriginal) {
+                            $registro->descuento = $descuentoNuevo;
+                            $registro->save();
+                            $actualizados++;
+                        }
+                    }
+                }
+
+                if ($actualizados > 0) {
+                    session()->flash('success', "Se actualizaron $actualizados producto(s) con nuevo descuento.");
+                } else {
+                    session()->flash('info', "No se detectaron cambios en los descuentos.");
+                }
+            }
 }

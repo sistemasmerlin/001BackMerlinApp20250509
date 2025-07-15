@@ -44,6 +44,7 @@ class Pedido {
             $id_sucursal = str_pad(substr($pedido->id_sucursal, 0, 7), 7);
             $orden_compra = str_pad(substr($pedido->orden_compra, 0, 35), 35);
             $id_estado_pedido = $pedido->id_estado_pedido ?? '1';
+            $condicion_pago = $pedido->condicion_pago ?? 'CON';
             //$id_estado_pedido = 8;
 
             //comprometido = 1 o 2;
@@ -53,7 +54,7 @@ class Pedido {
             //$ulimoDatoFila2 = str_repeat(' ', 15) . '000' . str_repeat(' ', 333) . '200000000';
 
 
-            $linea2 = '<Linea>'.'000000204300003003111003'.$prefijo.'00000001'.$fechaActual.'502'.$id_estado_pedido.'0'.$nit.$id_sucursal_simple.$nit.$id_sucursal.'003'.$fechaEntrega.'001'.$orden_compra.'COPCOP00000001.0000COP00000001.0000'.'30D'.'0'.$nota.$ulimoDatoFila2.'</Linea>';
+            $linea2 = '<Linea>'.'000000204300003003111003'.$prefijo.'00000001'.$fechaActual.'502'.$id_estado_pedido.'0'.$nit.$id_sucursal_simple.$nit.$id_sucursal.'003'.$fechaEntrega.'001'.$orden_compra.'COPCOP00000001.0000COP00000001.0000'.$condicion_pago.'0'.$nota.$ulimoDatoFila2.'</Linea>';
 
 
 

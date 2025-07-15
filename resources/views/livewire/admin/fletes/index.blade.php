@@ -4,25 +4,21 @@
     {{-- Success is as dangerous as failure. --}}
 </div>
  -->
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-white">
-            Flete por ciudad
-        </h2>
-
-        <form wire:submit.prevent="importarCsv" enctype="multipart/form-data">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Flete por ciudad</label>
-                <input type="file" wire:model="archivoCsv" class="mt-1 block w-full text-sm text-gray-500" />
-                @error('archivoCsv') 
-                    <span class="text-red-600 text-xs">{{ $message }}</span> 
-                @enderror
+    <h1 class="text-2xl font-bold">Excel Fletes Ciudades</h1>
+    <div>
+        @if (session()->has('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">
+                {{ session('success') }}
             </div>
+        @endif
 
-            <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">
-                Importar CSV
-            </button>
-            
+        <form wire:submit.prevent="importarFlete" enctype="multipart/form-data">
+            <div class="flex mb-4">
+                <input type="file" wire:model="excel_fletes" accept=".xls,.xlsx" class="mt-2 bg-yellow-100 block  border border-gray-300 rounded-xl shadow mx-2" required>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 font-bold text-white px-4 py-1 rounded">Importar</button>
+            </div>
         </form>
+        
     </div>
 
     @if (session()->has('success'))
@@ -38,7 +34,7 @@
     @endif
 
     <!-- Tabla de detalles -->
-    <div class="w-4/5 overflow-x-auto mx-auto rounded border border-gray-200 dark:border-zinc-700 shadow p-6">
+    <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 shadow p-6">
         <table id="tabla" class=" table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px; table-layout: fixed;">
             <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
                 <tr>
