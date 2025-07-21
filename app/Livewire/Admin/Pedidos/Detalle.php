@@ -45,6 +45,8 @@ class Detalle extends Component
 
             session()->flash('success', 'Producto actualizado');
         }
+
+        return redirect(request()->header('Referer'));
     }
 
     public function aplicarDescuentoGlobal()
@@ -60,31 +62,57 @@ class Detalle extends Component
         }
 
         session()->flash('success', 'Descuento aplicado a todos los productos');
+
+        return redirect(request()->header('Referer'));
     }
 
-        public function guardarCambiosGeneral(){
-                $actualizados = 0;
-
-                foreach ($this->detalles as $detalle) {
-                    $registro = DetallePedido::find($detalle['id']);
-
-                    if ($registro) {
-                        $descuentoNuevo = $detalle['descuento'];
-                        $descuentoOriginal = $registro->descuento;
-
-                        // Solo guarda si el descuento ha cambiado
-                        if ($descuentoNuevo != $descuentoOriginal) {
-                            $registro->descuento = $descuentoNuevo;
-                            $registro->save();
-                            $actualizados++;
-                        }
+    public function guardarCambiosGeneral(){
+        
+            $actualizados = 0;
+        
+            foreach ($this->detalles as $detalle) {
+                $registro = DetallePedido::find($detalle['id']);
+        
+                if ($registro) {
+                    $cantidadNueva = $detalle['cantidad'];
+                    $descuentoNuevo = $detalle['descuento'];
+        
+                    $cantidadOriginal = $registro->cantidad;
+                    $descuentoOriginal = $registro->descuento;
+        
+                    // Solo guarda si alguno cambió
+                    if ($cantidadNueva != $cantidadOriginal || $descuentoNuevo != $descuentoOriginal) {
+                        $registro->cantidad = $cantidadNueva;
+                        $registro->descuento = $descuentoNuevo;
+                        $registro->save();
+                        $actualizados++;
                     }
                 }
-
-                if ($actualizados > 0) {
-                    session()->flash('success', "Se actualizaron $actualizados producto(s) con nuevo descuento.");
-                } else {
-                    session()->flash('info', "No se detectaron cambios en los descuentos.");
-                }
             }
+        
+            if ($actualizados > 0) {
+                session()->flash('success', "Se actualizaron $actualizados producto(s).");
+            } else {
+                session()->flash('success', "No se detectaron cambios.");
+            }
+
+            return redirect(request()->header('Referer'));
+        }
+
+        public function eliminarItem($id){
+
+            $item = DetallePedido::find($id);
+    
+            if (! $item) {
+                session()->flash('error', 'Promoción no encontrada');
+                return;
+            }
+    
+            $item->delete();
+    
+            session()->flash('success', 'Cotizacion eliminada correctamente');
+
+            return redirect(request()->header('Referer')); //Recarga la pagina y asi no se dañan los script con el render
+    
+        }
 }

@@ -34,46 +34,48 @@
     @endif
 
     <div class="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700">
-        <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-            <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
-                <tr>
-                    <th class="px-4 py-3">Id</th>
-                    <th class="px-4 py-3">Nit</th>
-                    <th class="px-4 py-3">Razón Social</th>
-                    <th class="px-4 py-3">Cond Pago</th>
-                    <th class="px-4 py-3">Lista Precio</th>
-                    <th class="px-4 py-3">Sucursal</th>
-                    <th class="px-4 py-3">Nota ERP</th>
-                    <th class="px-4 py-3">Valor Flete</th>
-                    <th class="px-4 py-3">Código Asesor</th>
-                    <th class="px-4 py-3">Nombre Asesor</th>
-                    <th class="px-4 py-3">Detalle</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($backorders as $backorder)
-                <tr>
-                    <td>{{ $backorder->id }}</td>
-                    <td style="text-align:center">{{ $backorder->pedido->nit }}</td>
-                    <td>{{ $backorder->pedido->razon_social }}</td>
-                    <td style="text-align:center">{{ $backorder->pedido->condicion_pago }}</td>
-                    <td style="text-align:center">{{ $backorder->pedido->lista_precio }}</td>
-                    <td style="text-align:center">{{ $backorder->pedido->id_sucursal }}</td>
-                    <td>{{ $backorder->pedido->nota }}</td>
-                    <td style="text-align: right;">{{ number_format($backorder->pedido->flete) }}</td>
-                    <td style="text-align:center">{{ $backorder->pedido->codigo_asesor }}</td>
-                    <td>{{ $backorder->pedido->nombre_asesor }}</td>
-                    <td>
-                        <button
-                            wire:click="mostrarDetalle({{ $backorder->id }})"
-                            class="px-2 py-1 my-4  bg-blue-500 text-white rounded hover:bg-blue-600">
-                            Ver Detalle
-                        </button>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div wire:ignore>
+            <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
+                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                    <tr>
+                        <th class="px-4 py-3">Id</th>
+                        <th class="px-4 py-3">Nit</th>
+                        <th class="px-4 py-3">Razón Social</th>
+                        <th class="px-4 py-3">Cond Pago</th>
+                        <th class="px-4 py-3">Lista Precio</th>
+                        <th class="px-4 py-3">Sucursal</th>
+                        <th class="px-4 py-3">Nota ERP</th>
+                        <th class="px-4 py-3">Valor Flete</th>
+                        <th class="px-4 py-3">Código Asesor</th>
+                        <th class="px-4 py-3">Nombre Asesor</th>
+                        <th class="px-4 py-3">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($backorders as $backorder)
+                    <tr>
+                        <td>{{ $backorder->id }}</td>
+                        <td style="text-align:center">{{ $backorder->pedido->nit }}</td>
+                        <td>{{ $backorder->pedido->razon_social }}</td>
+                        <td style="text-align:center">{{ $backorder->pedido->condicion_pago }}</td>
+                        <td style="text-align:center">{{ $backorder->pedido->lista_precio }}</td>
+                        <td style="text-align:center">{{ $backorder->pedido->id_sucursal }}</td>
+                        <td>{{ $backorder->pedido->nota }}</td>
+                        <td style="text-align: right;">{{ number_format($backorder->pedido->flete) }}</td>
+                        <td style="text-align:center">{{ $backorder->pedido->codigo_asesor }}</td>
+                        <td>{{ $backorder->pedido->nombre_asesor }}</td>
+                        <td>
+                            <button
+                                wire:click="mostrarDetalle({{ $backorder->id }})"
+                                class="px-2 py-1 my-4  bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>   
     </div>
 
 

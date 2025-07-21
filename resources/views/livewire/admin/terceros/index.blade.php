@@ -3,6 +3,7 @@
     <button wire:click="buscar" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-4 py-2 rounded">Buscar</button>
 
     @if (!empty($clientes))
+    <div wire:ignore>
         <table class="table-auto w-full border mt-4">
             <thead class="bg-gray-200">
                 <tr>
@@ -27,6 +28,7 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
     @endif
 
     <!-- Modal fuera del foreach -->

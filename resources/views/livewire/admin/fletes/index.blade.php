@@ -34,41 +34,43 @@
     @endif
 
     <!-- Tabla de detalles -->
-    <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 shadow p-6">
-        <table id="tabla" class=" table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px; table-layout: fixed;">
-            <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
-                <tr>
-                    <th class="px-4 py-1">#</th>
-                    <th class="px-4 py-2">Departamento</th>
-                    <th class="px-4 py-2">Codigo Dep</th>
-                    <th class="px-4 py-2">Ciudad</th>
-                    <th class="px-4 py-2">Con Ciudad</th>
-                    <th class="px-4 py-2">Menor</th>
-                    <th class="px-4 py-2">Mayor</th>
-                    <th class="px-4 py-2">Minimo</th>
-                    <th class="px-4 py-2">Entrega</th>
-                    <th class="px-4 py-2">Monto</th>
-                    <th class="px-4 py-2">Monto Min</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($fletes as $flete)
-                    <tr class="bg-white dark:bg-zinc-800 border-b dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700">
-                        <td class="px-4 py-1">{{ $loop->iteration }}</td>
-                        <td class="px-4 py-2">{{ $flete->depto }}</td>
-                        <td class="px-4 py-2">{{ $flete->cod_depto }}</td>
-                        <td class="px-4 py-2">{{ $flete->ciudad }}</td>
-                        <td class="px-4 py-2">{{ $flete->cod_ciudad }}</td>
-                        <td class="px-4 py-2">{{ $flete->menor }}</td>
-                        <td class="px-4 py-2">{{ $flete->mayor }}</td>
-                        <td class="px-4 py-2">{{ $flete->minimo }}</td>
-                        <td class="px-4 py-2">{{ $flete->entrega }}</td>
-                        <td class="px-4 py-2">{{ $flete->monto }}</td>
-                        <td class="px-4 py-2">{{ $flete->monto_minimo }}</td>
+    <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700  p-6">
+        <div wire:ignore>
+            <table id="tabla" class=" table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px; table-layout: fixed;">
+                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                    <tr>
+                        <th class="px-4 py-1">#</th>
+                        <th class="px-4 py-2">Departamento</th>
+                        <th class="px-4 py-2">Codigo Dep</th>
+                        <th class="px-4 py-2">Ciudad</th>
+                        <th class="px-4 py-2">Con Ciudad</th>
+                        <th class="px-4 py-2">Menor</th>
+                        <th class="px-4 py-2">Mayor</th>
+                        <th class="px-4 py-2">Minimo</th>
+                        <th class="px-4 py-2">Entrega</th>
+                        <th class="px-4 py-2">Monto</th>
+                        <th class="px-4 py-2">Monto Min</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($fletes as $flete)
+                        <tr class="bg-white dark:bg-zinc-800 border-b dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700">
+                            <td class="px-4 py-1">{{ $loop->iteration }}</td>
+                            <td class="px-4 py-2">{{ $flete->depto }}</td>
+                            <td class="px-4 py-2">{{ $flete->cod_depto }}</td>
+                            <td class="px-4 py-2">{{ $flete->ciudad }}</td>
+                            <td class="px-4 py-2">{{ $flete->cod_ciudad }}</td>
+                            <td class="px-4 py-2">{{ $flete->menor }}</td>
+                            <td class="px-4 py-2">{{ $flete->mayor }}</td>
+                            <td class="px-4 py-2">{{ $flete->minimo }}</td>
+                            <td class="px-4 py-2">{{ $flete->entrega }}</td>
+                            <td class="px-4 py-2">{{ $flete->monto }}</td>
+                            <td class="px-4 py-2">{{ $flete->monto_minimo }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
     @push('scripts')

@@ -11,34 +11,39 @@
 
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800 text-base">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky stashable class="border-e text-accent border-zinc-200 bg-neutral-900 dark:border-zinc-700 dark:bg-zinc-900 text-base">
             <flux:sidebar.toggle class="lg:hidden text-base" icon="x-mark" />
 
-                <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+                <a href="{{ route('dashboard') }}" class="me-8 flex items-center space-x-2 rtl:space-x-reverse px-3 " wire:navigate>
                     <x-app-logo />
                 </a>
 
-                <flux:navlist variant="outline">
-                    <flux:navlist.group :heading="__('Panel de Control')" class="text-zinc-700 text-base">
-                        <flux:navlist.item  icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate class="text-lg font-bold">
-                         {{ __('Inicio') }}
-                        </flux:navlist.item>
+                <flux:navlist variant="outline" class="px-4">
+                    <flux:navlist.group :heading="__('Panel de Control')" class="text-base bg-blue-500 rounded-lg text-center">
                     </flux:navlist.group>
                 </flux:navlist>
 
+                <div class="px-4">
+                    <a href="{{ route('dashboard') }}" wire:navigate 
+                    class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium hover:bg-white rounded-lg transition-colors text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue">
+                        <flux:icon name="home" class="h-5 w-5" />
+                        <span>{{ __('Inicio') }}</span>
+                    </a>
+                </div>
+
             @can('Usuarios')
                 <div x-data="{ open: false }" class="px-4">
-                    <button
-                        @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                    <button 
+                        @click="open = !open" variant="outline"
+                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
                     >
-                    <flux:icon name="users" class="h-4 w-4" />
+                    <flux:icon name="users" class="h-5 w-5" />
                         <span>{{ __('Usuarios') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
 
-                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                    <div x-show="open" class="ms-6 mt-1 space-y-1 ">
                         <flux:navlist.item :href="route('usuarios.index')" :current="request()->routeIs('usuarios.*')" wire:navigate>
                             {{ __('Lista de Usuarios') }}
                         </flux:navlist.item>
@@ -58,12 +63,12 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
                     >
-                    <flux:icon name="briefcase" class="h-4 w-4" />
+                    <flux:icon name="briefcase" class="h-5 w-5" />
                         <span>{{ __('Comercial') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
                     @can('Administrar promociones')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
@@ -99,12 +104,12 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
                     >
-                    <flux:icon name="truck" class="h-4 w-4" />
+                    <flux:icon name="truck" class="h-5 w-5" />
                         <span>{{ __('Fletes') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
 
                     @can('Administrar fletes')
@@ -120,12 +125,12 @@
                 <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 text-base font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white"
+                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
                     >
-                    <flux:icon name="wallet" class="h-4 w-4" />
+                    <flux:icon name="wallet" class="h-5 w-5" />
                         <span>{{ __('Cartera') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-4 w-4" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-4 w-4" />
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
 
                     @can('Intereses por mora')

@@ -97,6 +97,7 @@ class Index extends Component
 
         $this->modoEditar = true;
         $this->openModal = true;
+        
     }
 
     public function actualizarPromocion()
@@ -125,6 +126,9 @@ class Index extends Component
         $this->reset(['openModal', 'modoEditar', 'promocion_id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin']);
         session()->flash('success', 'Promoción actualizada correctamente');
         $this->promociones = Promocion::with('relaciones')->where('estado','1')->get(); // recarga
+
+        return redirect(request()->header('Referer'));
+
     }
 
     public function eliminarPromocion($id)
@@ -144,6 +148,9 @@ class Index extends Component
         session()->flash('success', 'Promoción eliminada correctamente');
         //$this->promociones = Promocion::with('relaciones')->where('eliminado', false)->get();
         $this->promociones = Promocion::with('relaciones')->where('estado','1')->get();
+
+        return redirect(request()->header('Referer'));
+
     }
 
     public function asignarPorCiudad()
@@ -255,6 +262,9 @@ class Index extends Component
 
         session()->flash('success', 'Asignación eliminada correctamente.');
         $this->promociones = Promocion::with('relaciones')->get(); // refrescar
+
+        return redirect(request()->header('Referer'));
+
     }
 
     public function asignarPromocion()

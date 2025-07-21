@@ -86,6 +86,8 @@ class Detalle extends Component
         }
 
         $this->detalles = $this->promocion->detalles()->get();
+
+        return redirect()->route('promociones.index');
     }
 
     public function render()
