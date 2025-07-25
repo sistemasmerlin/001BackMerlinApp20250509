@@ -33,12 +33,13 @@
     </div>
     @endif
 
-    <div class="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700">
+    <div class="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-6">
         <div wire:ignore>
-            <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+            <table id="backorder" class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-3">Id</th>
+                        <th class="px-4 py-3">Fecha Creacion</th>
                         <th class="px-4 py-3">Nit</th>
                         <th class="px-4 py-3">Razón Social</th>
                         <th class="px-4 py-3">Cond Pago</th>
@@ -55,6 +56,7 @@
                     @foreach($backorders as $backorder)
                     <tr>
                         <td>{{ $backorder->id }}</td>
+                        <td>{{ $backorder->created_at}}</td>
                         <td style="text-align:center">{{ $backorder->pedido->nit }}</td>
                         <td>{{ $backorder->pedido->razon_social }}</td>
                         <td style="text-align:center">{{ $backorder->pedido->condicion_pago }}</td>
@@ -124,5 +126,44 @@
         </div>
     </div>
     @endif
+
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#backorder')) {
+                    $('#backorder').DataTable().destroy();
+                }
+
+                $('#backorder').DataTable({
+                    responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: true, //Evita que escabezado se salga de la tabla
+                    "lengthMenu": [10, 50, 100],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+
+        </script>
+        @endpush
 
 </div>

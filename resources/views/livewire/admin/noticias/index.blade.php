@@ -16,7 +16,7 @@
     <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-3">
         <div wire:ignore>
             <table class="w-full mx-auto table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-3 text-center">ID</th>
                         <th class="px-4 py-3">Título</th>

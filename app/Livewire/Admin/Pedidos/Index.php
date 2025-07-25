@@ -25,7 +25,7 @@ class Index extends Component
         $this->fecha_inicio = request()->query('fecha_inicio');
         $this->fecha_final = request()->query('fecha_final');
 
-        $query = Pedido::with('direccionEnvio')->orderBy('id', 'desc');
+        $query = Pedido::with('direccionEnvio')->orderBy('id', 'asc');
 
         if ($this->fecha_inicio && $this->fecha_final) {
             $fechaInicio = Carbon::parse($this->fecha_inicio)->startOfDay();
@@ -62,7 +62,8 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.admin.pedidos.index', ['pedidos' => $this->pedidos]);
+      return view('livewire.admin.pedidos.index', ['pedidos' => $this->pedidos]);
+
     }
 
 
@@ -78,8 +79,8 @@ class Index extends Component
             $this->observacion = $pedido->observaciones;
         }
 
-        public function guardarNota()
-        {
+    public function guardarNota(){
+
             $pedido = Pedido::find($this->notaId);
 
             if ($pedido) {
@@ -88,7 +89,6 @@ class Index extends Component
 
                 session()->flash('success', 'Nota actualizada correctamente.');
                 $this->dispatch('cerrarModal');
-
 
             }
 

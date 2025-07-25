@@ -22,7 +22,7 @@
     <div class="w-full mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-6">
         <div wire:ignore>
             <table id="promociones" class="w-3/4 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
-                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase  dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-3">Id</th>
                         <th class="px-4 py-3">Nombre</th>
@@ -259,10 +259,6 @@
 
                 <!-- Botones -->
                 <div class="flex justify-end space-x-3 pt-4">
-                    <button wire:click="$set('openAsignarModal', false)"
-                            class="bg-gray-200 dark:bg-zinc-700 text-black dark:text-white px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-zinc-600">
-                        Cancelar
-                    </button>
                     <form wire:submit.prevent="asignarPromocion">
                         <!-- todos los campos aquí -->
 

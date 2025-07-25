@@ -15,7 +15,7 @@
     <div class="w-2/4 overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6">
         <div wire:ignore>
             <table id="tabla" class="w-4/5 table-auto text-left text-zinc-600 dark:text-zinc-300 pt-3">
-                <thead class="bg-zinc-100 dark:bg-zinc-700 text-xs uppercase text-zinc-700 dark:text-zinc-300" >
+                <thead class="text-zinc-50 bg-zinc-950 dark:bg-zinc-700 text-xs uppercase dark:text-zinc-300" >
                     <tr>
                         <th class="px-6 py-3">Nombre</th>
                         <th class="px-6 py-3" style="text-align: center;">Acciones</th>

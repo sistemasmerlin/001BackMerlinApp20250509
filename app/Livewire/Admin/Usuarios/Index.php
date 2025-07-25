@@ -117,6 +117,7 @@ class Index extends Component
         session()->flash('success', $this->modoEditar ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
 
         $this->usuarios = User::with('roles')->get();
+        
     }
 
     public function eliminarUsuario($id)

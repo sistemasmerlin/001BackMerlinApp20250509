@@ -37,7 +37,7 @@
     <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700  p-6">
         <div wire:ignore>
             <table id="tabla" class=" table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px; table-layout: fixed;">
-                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-1">#</th>
                         <th class="px-4 py-2">Departamento</th>

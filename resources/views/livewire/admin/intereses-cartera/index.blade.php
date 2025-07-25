@@ -6,7 +6,7 @@
 
     <a href="{{ route('cartera.intereses.calcular') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
         Procesar intereses manualmente
-    </a>
+    </a> <br>
 
     <br>
     @if (session()->has('success'))
@@ -24,7 +24,7 @@
     <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6">
         <div wire:ignore>
             <table id="tabla" class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
-                <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 dark:text-zinc-50 uppercase dark:bg-zinc-700">
                     <tr>
                         <th>Factura</th>
                         <th>NIT</th>

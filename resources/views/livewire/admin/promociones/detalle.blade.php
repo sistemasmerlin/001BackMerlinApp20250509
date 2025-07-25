@@ -23,7 +23,7 @@
     <div class="overflow-x-auto rounded border border-gray-200 dark:border-zinc-700 shadow">
         <div wire:ignore>
             <table class="w-full table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-                <thead class="text-xs text-gray-600 uppercase bg-gray-100 dark:bg-zinc-700">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase  dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-2">id_prom</th>
                         <th class="px-4 py-2">Tipo</th>

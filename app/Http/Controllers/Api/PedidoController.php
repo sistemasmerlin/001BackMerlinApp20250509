@@ -10,6 +10,7 @@ use App\Models\DireccionEnvio;
 use App\Models\Backorder;
 use App\Xml\Pedido as PedidoXml;
 use App\Mail\PedidoConfirmadoMail;
+use App\Mail\PedidoEspecialMail;
 use App\Models\DetalleBackorder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
@@ -276,7 +277,7 @@ class PedidoController extends Controller
                 'orden_compra' => $orden_compra,
                 'correo_cliente' =>  $request->creadoPor['correo'].','.$request->punto_envio['email'] ?? null,
                 'estado' => '1',
-                'id_sucursal' => '020',
+                'id_sucursal' => $request->sucursal['id_sucursal'],
                 'flete' => $request->totales['flete'],
                 'observaciones' => $notasLimpias,
                 'condicion_pago' => $request->sucursal['cond_pago'] ?? '',
@@ -643,11 +644,24 @@ class PedidoController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => 'ok full',
-                'mensaje' => 'Se ha enviado el pedido'
-            ], 200);
+            //Correo pedidos especiales
+            try{
 
+                Mail::to(['auxcomercial@merlinrod.com','auxsistemas@merlinrod.com'])
+                    ->send(new PedidoEspecialMail($pedido));
+
+                return response()->json([
+                    'success' => 'ok full',
+                    'mensaje' => 'Se ha enviado el pedido de negociacion especial para ser revisado'
+                ], 200);
+    
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Ocurrió un error al guardar el pedido',
+                    'mensaje' => $e->getMessage()
+                ], 200);
+            }
+            
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

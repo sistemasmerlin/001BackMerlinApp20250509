@@ -43,8 +43,8 @@
                         <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
 
-                    <div x-show="open" class="ms-6 mt-1 space-y-1 ">
-                        <flux:navlist.item :href="route('usuarios.index')" :current="request()->routeIs('usuarios.*')" wire:navigate>
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('usuarios.index')" :current="request()->routeIs('usuarios.*')"  wire:navigate>
                             {{ __('Lista de Usuarios') }}
                         </flux:navlist.item>
                         <flux:navlist.item :href="route('roles.index')" :current="request()->routeIs('roles.*')" wire:navigate>

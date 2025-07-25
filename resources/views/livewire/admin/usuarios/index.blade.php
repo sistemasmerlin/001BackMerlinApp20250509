@@ -16,7 +16,7 @@
     <div class="w-full overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
         <div wire:ignore>
             <table id="tabla"  class="w-4/5 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
-                <thead class="text-xs text-gray-600 dark:text-zinc-50 uppercase bg-gray-100 dark:bg-zinc-700" >
+                <thead class="text-xs text-zinc-50  dark:text-zinc-50 uppercase bg-zinc-950 dark:bg-zinc-700" >
                     <tr>
                         <th class="px-4 py-3">Id Asesor</th>
                         <th class="px-4 py-3">Id Recibos</th>
@@ -73,7 +73,7 @@
     @if ($openModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-4 w-full max-w-md border border-zinc-200 dark:border-zinc-700">
-                <h2 class="text-lg font-bold text-zinc-800 dark:text-white mb-3">
+                <h2 class="text-lg text-center font-bold text-zinc-50 bg-blue-500 dark:text-white mb-3 p-2">
                     {{ $modoEditar ? 'Editar Usuario' : 'Nuevo Usuario' }}
                 </h2>
 
@@ -90,18 +90,18 @@
                     @endif
 
                     <div class="space-y-1">
-                        <label class="block text-zinc-700 dark:text-zinc-300">Nombre</label>
+                        <label class="block text-zinc-950 dark:text-zinc-300">Nombre</label>
                         <input type="text" wire:model="name" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-zinc-700 dark:text-zinc-300">Email</label>
+                        <label class="block text-zinc-950 dark:text-zinc-300">Email</label>
                         <input type="email" wire:model="email" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                     </div>
 
                     @if ($modoEditar)
                         <div class="space-y-1 relative">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Nueva Contraseña</label>
+                            <label class="block text-zinc-950 dark:text-zinc-300">Nueva Contraseña</label>
                             <input :type="$wire.mostrarPassword ? 'text' : 'password'"
                                 wire:model.defer="nuevaPassword"
                                 class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
@@ -113,7 +113,7 @@
                         </div>
                     @else
                         <div class="space-y-1 relative">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Contraseña</label>
+                            <label class="block text-zinc-950 dark:text-zinc-300">Contraseña</label>
                             <input :type="$wire.mostrarPassword ? 'text' : 'password'"
                                 wire:model.defer="password"
                                 class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
@@ -128,31 +128,34 @@
 
                     <div class="grid grid-cols-3 gap-2">
                         <div class="space-y-1">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Cédula</label>
+                            <label class="block text-zinc-950 dark:text-zinc-300">Cédula</label>
                             <input type="text" wire:model="cedula" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Código Asesor</label>
+                            <label class="block text-zinc-950 dark:text-zinc-300">Código Asesor</label>
                             <input type="text" wire:model="codigo_asesor" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Código Recibos</label>
+                            <label class="block text-zinc-950 dark:text-zinc-300">Código Recibos</label>
                             <input type="text" wire:model="codigo_recibos" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                         </div>
+                    </div>
 
-                        <div class="space-y-1">
-                            <label class="block text-zinc-700 dark:text-zinc-300">Roles</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                @foreach($roles as $rol)
-                                    <label class="inline-flex items-center">
-                                        <input type="checkbox" wire:model="rolesSeleccionados" value="{{ $rol->id }}" class="rounded text-indigo-600 border-gray-300 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-600">
-                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $rol->name }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
+                    <div class="space-y-1">
+                                <label class="block text-zinc-950 dark:text-zinc-300">Roles</label>
+                                <div class="grid grid-cols-3 gap-4">
+                                    @foreach($roles as $rol)
+                                        <label class="w-full flex items-center">
+                                            <input type="checkbox" wire:model="rolesSeleccionados" value="{{ $rol->id }}"
+                                                class="rounded text-blue-600 border-gray-300 hover:ring-blue-500 dark:bg-zinc-800 dark:border-zinc-600">
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">
+                                                {{ $rol->name }}
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
                     </div>
                     
                     <div class="flex justify-end pt-4 gap-3">
@@ -166,7 +169,7 @@
 
                         <button
                             type="submit"
-                            class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
                         >
                             {{ $modoEditar ? 'Actualizar' : 'Guardar' }}
                         </button>

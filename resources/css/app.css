@@ -19,13 +19,13 @@
     --color-zinc-500: #e3e3e3; /*Color texto submenu*/
     --color-zinc-600: #525252;
     --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
+    --color-zinc-800: #4A4949; /*Color hover texto submenu y fondo*/
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a; 
 
         --color-accent: var(--color-zinc-50);
-        --color-accent-content: var(--color-blue-600);
-        --color-accent-foreground: var(--color-blue-600);
+        --color-accent-content: var(--color-blue-500);
+        --color-accent-foreground: var(--color-white);
 
 }
 
