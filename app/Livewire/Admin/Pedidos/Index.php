@@ -37,7 +37,7 @@ class Index extends Component
 
         }else{
             
-            $this->pedidos = $query->limit(40)->get();
+            $this->pedidos = $query->limit(40)->get()->sortByDesc('id');
         }
 
             //dd($this->pedidos );

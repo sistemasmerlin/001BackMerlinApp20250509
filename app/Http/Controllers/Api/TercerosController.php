@@ -25,6 +25,7 @@ class TercerosController extends Controller
             MAX(t200.f200_apellido1) AS f200_apellido1,
             MAX(t200.f200_apellido2) AS f200_apellido2,
             MAX(t200.f200_nombres) AS f200_nombres,
+            MAX(t200.f200_nombre_est) AS f200_nombre_est,
             MAX(RTRIM(t201.f201_id_vendedor)) AS f201_id_vendedor,
             MAX(t201.f201_descripcion_sucursal) AS f201_descripcion_sucursal,
 
