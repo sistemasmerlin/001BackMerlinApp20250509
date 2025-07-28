@@ -337,6 +337,7 @@ class TercerosController extends Controller
                     'tercero_id' => $terceroId,
                     'nit' => $row->f200_nit,
                     'razon_social' => $row->f200_razon_social,
+                    'nombre_establecimiento' => $row->f200_nombre_est,
                     'apellido1' => $row->f200_apellido1,
                     'apellido2' => $row->f200_apellido2,
                     'nombres' => $row->f200_nombres,
