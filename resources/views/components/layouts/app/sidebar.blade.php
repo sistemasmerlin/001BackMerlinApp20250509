@@ -84,6 +84,20 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+                    @can('Administrar motivos visita')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('motivosVisita.index')" :current="request()->routeIs('motivosVisita.*')" wire:navigate>
+                            {{ __('Motivos Visita') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+                    @can('Administrar reporte visitas')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('reporte/visitas.index')" :current="request()->routeIs('reporte/visitas.*')" wire:navigate>
+                            {{ __('Reportes de Visita') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                     @can('Administrar backorder')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('backOrder.index')" :current="request()->routeIs('backOrder.*')" wire:navigate>

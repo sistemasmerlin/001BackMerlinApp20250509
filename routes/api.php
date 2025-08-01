@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\FacturasController;
 use App\Http\Controllers\Api\CarteraController;
 use App\Http\Controllers\Api\NoticiasController;
 use App\Http\Controllers\Api\BackorderController;
+use App\Http\Controllers\Api\MotivosVisitaController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -51,6 +52,10 @@ Route::middleware('auth:sanctum')->get('/facturas/consultar/erp/fecha/cliente/{c
 Route::middleware('auth:sanctum')->get('/cartera/cliente/{nit}', [CarteraController::class, 'cargarFacturasCliente']);
 
 Route::middleware('auth:sanctum')->get('/noticias', [NoticiasController::class, 'index']);
+
+Route::middleware('auth:sanctum')->get('/motivos/visita', [MotivosVisitaController::class, 'index']);
+
+Route::middleware('auth:sanctum')->post('/motivos/visita/guardar', [MotivosVisitaController::class, 'store']);
 
 
 

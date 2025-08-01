@@ -13,6 +13,8 @@ use App\Livewire\Admin\Pedidos\Index as PedidosIndex;
 use App\Livewire\Admin\BackOrder\Index as BackOrderIndex;
 use App\Livewire\Admin\Noticias\Index as NoticiasIndex;
 use App\Livewire\Admin\Pedidos\Detalle as PedidosDetalle;
+use App\Livewire\Admin\MotivosVisitas\Index as MotivosVisitasIndex;
+use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
 
@@ -51,6 +53,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/promociones/{promocion}/detalle', Detalle::class)->name('admin.promociones.detalle');
 
     Route::get('/pedidos', PedidosIndex::class)->name('pedidos.index');
+
+    Route::get('/motivosVisita', MotivosVisitasIndex::class)->name('motivosVisita.index');
+
+    Route::get('/reporte/visitas', ReporteVisitasIndex::class)->name('reporte/visitas.index');
 
     Route::get('/backOrder', BackOrderIndex::class)->name('backOrder.index');
 
