@@ -4,11 +4,14 @@ namespace App\Livewire\Admin\ReporteVisitas;
 
 use Livewire\Component;
 use App\Models\ReporteVisita;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class Index extends Component
 {
     public $visitas;
     public $filtroVendedor = '';
+    public $vendedores = [];
     public $filtroFechaInicio;
     public $filtroFechaFin;
     public $mostrarDebug = false;
@@ -16,28 +19,52 @@ class Index extends Component
 
     public function mount()
     {
-        $this->cargarVisitas();
+        //$this->cargarVisitas();
+        $this->visitas = collect();
+
+        $this->vendedores = User::role('asesor')
+            ->select('codigo_asesor', 'name')
+            ->get()
+            ->map(function ($user) {
+                return (object)[
+                    'codigo_asesor' => $user->codigo_asesor,
+                    'nombre' => $user->name
+                ];
+            })
+            ->toArray();
     }
 
-    public function cargarVisitas()
-    {
-        $query = ReporteVisita::with('motivos');
+public function cargarVisitas()
+{
+    $query = ReporteVisita::with('motivos');
 
-        if ($this->filtroVendedor) {
-            $query->where('vendedor', 'like', '%' . $this->filtroVendedor . '%');
-        }
-
-        if ($this->filtroFechaInicio) {
-            $query->whereDate('created_at', '>=', $this->filtroFechaInicio);
-        }
-
-        if ($this->filtroFechaFin) {
-            $query->whereDate('created_at', '<=', $this->filtroFechaFin);
-        }
-
-        $this->visitas = $query->orderBy('created_at', 'desc')->get();
+    if ($this->filtroVendedor) {
+        $query->where('vendedor', '=', $this->filtroVendedor );
     }
 
+    if ($this->filtroFechaInicio) {
+        $query->whereDate('created_at', '>=', $this->filtroFechaInicio);
+    }
+
+    if ($this->filtroFechaFin) {
+        $query->whereDate('created_at', '<=', $this->filtroFechaFin);
+    }
+
+    $resultados = $query->orderBy('created_at', 'desc')->get();
+    $this->visitas = $resultados;
+
+$this->dispatch('visitasActualizadas', $this->visitas->map(function ($visita) {
+    return [
+        'latitud' => $visita->latitud,
+        'longitud' => $visita->longitud,
+        'razon_social' => $visita->razon_social,
+        'vendedor' => $visita->vendedor,
+        'sucursal' => $visita->sucursal,
+        'motivo' => optional($visita->motivos)->pluck('descripcion')->join(', '),
+        'created_at' => $visita->created_at?->format('Y-m-d H:i'),
+    ];
+})->values());
+}
     public function toggleDebug()
     {
         $this->mostrarDebug = !$this->mostrarDebug;
@@ -45,10 +72,6 @@ class Index extends Component
 
     public function render()
     {
-        if (!$this->visitas) {
-            $this->cargarVisitas();
-        }
-
         $ordenadas = $this->visitas ? $this->visitas->sortBy('created_at')->values() : collect();
 
         return view('livewire.admin.reporte-visitas.index', [
