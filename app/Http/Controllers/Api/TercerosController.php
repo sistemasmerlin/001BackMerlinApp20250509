@@ -386,8 +386,6 @@ class TercerosController extends Controller
                 'contacto' => $row->f015_contacto,
                 'celular' => $row->f015_celular,
                 'telefono' => $row->f015_telefono,
-
-
             ];
         }
 
@@ -429,16 +427,12 @@ class TercerosController extends Controller
     public function consultarTercero(Request $request){
 
         $productos = DB::connection('sqlsrv')
-        ->select("SELECT 
-            bi.f_fecha AS fecha,
-            CONCAT(bi.f_id_tipo_docto, bi.f_nrodocto) AS docto,
+        ->select("SELECT  
             bi.f_ref_item AS referencia,
             i.f120_descripcion AS descripcion,
             m.f106_descripcion AS marca,
             CONVERT(decimal(10, 2), SUM(bi.f_cant_base)) AS cantidad,
-            CONVERT(decimal(10, 2), SUM(bi.f_valor_sub_local)) AS subtotal,
-            CONVERT(decimal(10, 2), SUM(bi.f_valor_imp_local)) AS impuestos,
-            CONVERT(decimal(10, 2), SUM(bi.f_valor_neto_local)) AS neto
+            CONVERT(decimal(10, 2), SUM(bi.f_valor_sub_local)) AS subtotal
         FROM 
             [UnoEE].[dbo].[BI_T461_1] bi
         INNER JOIN [t120_mc_items] i 
@@ -464,13 +458,10 @@ class TercerosController extends Controller
             --AND m.f106_descripcion NOT IN ('ZFLETE', 'NO APLICA')
         GROUP BY 
             bi.f_ref_item,
-            m.f106_descripcion,
             i.f120_descripcion,
-            bi.f_fecha,
-            bi.f_id_tipo_docto,
-            bi.f_nrodocto
+            m.f106_descripcion
         ORDER BY 
-            bi.f_fecha DESC;");
+           bi.f_ref_item DESC;");
 
         $ventas = \DB::connection('sqlsrv')
         ->select("SELECT  YEAR(f_fecha) as periodo,                             
