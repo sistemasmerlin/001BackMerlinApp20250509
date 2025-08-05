@@ -2,9 +2,6 @@
     <!-- Encabezado -->
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Motivos visita</h1>
-        <button wire:click="crear" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-            + Nuevo motivo
-        </button>
     </div>
 
     @if (session()->has('success'))
@@ -124,8 +121,6 @@
         }, 100);
     });
 </script>
-
-<div id="map" style="height: 600px;"></div>
 
 <script>
     let mapInstance;

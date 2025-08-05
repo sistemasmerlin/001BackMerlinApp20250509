@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->get('/perfil', function (\Illuminate\Http\Req
 
 Route::middleware('auth:sanctum')->get('/terceros/{id}', [TercerosController::class, 'index']);
 
+Route::middleware('auth:sanctum')->get('/terceros/consulta/{codigo_asesor}/{nit}', [TercerosController::class, 'consultarTercero']);
+
 Route::middleware('auth:sanctum')->get('/productos', [ProductosController::class, 'index']);
 
 Route::middleware('auth:sanctum')->get('/promociones', [PromocionesController::class, 'index']);

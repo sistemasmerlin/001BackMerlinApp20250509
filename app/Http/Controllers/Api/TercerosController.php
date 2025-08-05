@@ -11,7 +11,7 @@ class TercerosController extends Controller
     public function index(Request $request, $id){
 
 
-    $result = DB::connection('sqlsrv')
+        $result = DB::connection('sqlsrv')
         ->select("SELECT TOP 1000
             t200.f200_rowid AS tercero_id,
             t200.f200_nit,
@@ -425,4 +425,74 @@ class TercerosController extends Controller
             'ciudades' => $ciudadesUnicas
         ]);
     }
+
+    public function consultarTercero(Request $request){
+
+        $productos = DB::connection('sqlsrv')
+        ->select("SELECT 
+            bi.f_fecha AS fecha,
+            CONCAT(bi.f_id_tipo_docto, bi.f_nrodocto) AS docto,
+            bi.f_ref_item AS referencia,
+            i.f120_descripcion AS descripcion,
+            m.f106_descripcion AS marca,
+            CONVERT(decimal(10, 2), SUM(bi.f_cant_base)) AS cantidad,
+            CONVERT(decimal(10, 2), SUM(bi.f_valor_sub_local)) AS subtotal,
+            CONVERT(decimal(10, 2), SUM(bi.f_valor_imp_local)) AS impuestos,
+            CONVERT(decimal(10, 2), SUM(bi.f_valor_neto_local)) AS neto
+        FROM 
+            [UnoEE].[dbo].[BI_T461_1] bi
+        INNER JOIN [t120_mc_items] i 
+            ON i.f120_referencia = bi.f_ref_item 
+            AND i.f120_id_cia = bi.f_id_cia
+        INNER JOIN [t125_mc_items_criterios] ic 
+            ON ic.f125_rowid_item = i.f120_rowid 
+            AND ic.f125_id_cia = '3' 
+            AND ic.f125_id_plan = '003'
+        INNER JOIN [t105_mc_criterios_item_planes] p 
+            ON p.f105_id = ic.f125_id_plan 
+            AND p.f105_id_cia = '3'
+        INNER JOIN [t106_mc_criterios_item_mayores] m 
+            ON m.f106_id = ic.f125_id_criterio_mayor 
+            AND m.f106_id_plan = '003' 
+            AND m.f106_id_cia = '3'
+        WHERE 
+            bi.f_parametro_biable = 3
+            AND bi.f_id_cia = 3
+            AND bi.f_id_tipo_docto = 'FVM'
+            AND bi.f_cliente_fact = '$request->nit'
+            AND YEAR(bi.f_fecha) >= YEAR(GETDATE()) - 3
+            --AND m.f106_descripcion NOT IN ('ZFLETE', 'NO APLICA')
+        GROUP BY 
+            bi.f_ref_item,
+            m.f106_descripcion,
+            i.f120_descripcion,
+            bi.f_fecha,
+            bi.f_id_tipo_docto,
+            bi.f_nrodocto
+        ORDER BY 
+            bi.f_fecha DESC;");
+
+        $ventas = \DB::connection('sqlsrv')
+        ->select("SELECT  YEAR(f_fecha) as periodo,                             
+            -- ,[f_periodo] as periodo
+            SUM([f_valor_subtotal]) as subtotal
+            ,SUM([f_valor_imp_local]) as impuestos
+            ,SUM([f_valor_neto_local]) as neto
+            FROM [UnoEE].[dbo].[BI_T461]
+            WHERE f_id_cia = 3
+            AND [f_parametro_biable] = 3
+            AND [f_cliente_fact] = '$request->nit'
+            AND [f_id_tipo_docto] in ('FVM','CNC')
+            --AND f_fecha
+            AND [f_co] = 003
+            AND f_estado1 = 1
+            GROUP BY YEAR(f_fecha)
+            ORDER BY periodo DESC");
+
+        return $data = [
+            'productos' => $productos,
+            'ventas' => $ventas,
+        ];
+    }
+
 }
