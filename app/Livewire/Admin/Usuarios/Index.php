@@ -65,6 +65,8 @@ class Index extends Component
 
         $this->reset(['openModal', 'modoEditar', 'usuario_id', 'rolesSeleccionados']);
         session()->flash('success', 'Usuario actualizado correctamente');
+
+        return redirect(request()->header('Referer'));
     }
 
     public function editarUsuario($id)
@@ -118,6 +120,7 @@ class Index extends Component
 
         $this->usuarios = User::with('roles')->get();
         
+        return redirect(request()->header('Referer'));
     }
 
     public function eliminarUsuario($id)

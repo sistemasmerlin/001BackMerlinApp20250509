@@ -11,23 +11,34 @@
     @endif
 
     <!-- Filtros -->
-    <div class="bg-white dark:bg-zinc-800 shadow p-4 rounded-xl mb-6 space-y-4">
+    <div class="w-3/4 mx-auto bg-white dark:bg-zinc-800 shadow-lg p-4 rounded-xl mb-6 space-y-4">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Filtrar visitas</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- <div>
+                <label class="block text-sm text-gray-600 dark:text-gray-300">Vendedor</label>
+                <input type="text" wire:model="filtroVendedor" class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div> -->
             <div>
                 <label class="block text-sm text-gray-600 dark:text-gray-300">Vendedor</label>
-                <input type="text" wire:model="filtroVendedor"
-                    class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select wire:model="filtroVendedor" 
+                        class="w-full mt-1 rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-6 font-medium py-1">
+                    <option value="">Selecciona un vendedor</option>
+                    @foreach($vendedores as $vendedor)
+                        <option value="{{ $vendedor->codigo_asesor }}">
+                            {{ $vendedor->nombre }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label class="block text-sm text-gray-600 dark:text-gray-300">Fecha Inicio</label>
                 <input type="date" wire:model="filtroFechaInicio"
-                    class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    class="w-full mt-1 rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-medium py-1">
             </div>
             <div>
                 <label class="block text-sm text-gray-600 dark:text-gray-300">Fecha Fin</label>
                 <input type="date" wire:model="filtroFechaFin"
-                    class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    class="w-full mt-1 rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-medium py-1">
             </div>
         </div>
         <div class="text-right">
@@ -36,71 +47,83 @@
         </div>
     </div>
 
-    <!-- Tabla -->
-    <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-3">
-        <table class="w-full mx-auto table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
-            <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
-                <tr>
-                    <th class="px-4 py-3 text-center">ID</th>
-                    <th class="px-4 py-3">Nit</th>
-                    <th class="px-4 py-3">Razón Social</th>
-                    <th class="px-4 py-3">Sucursal</th>
-                    <th class="px-4 py-3">Vendedor</th>
-                    <th class="px-4 py-3">Latitud</th>
-                    <th class="px-4 py-3">Longitud</th>
-                    <th class="px-4 py-3">Ciudad</th>
-                    <th class="px-4 py-3">Notas</th>
-                    <th class="px-4 py-3">Motivos</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($visitas as $visita)
-                <tr class="border-b border-gray-200">
-                    <td class="text-center">{{ $visita->id }}</td>
-                    <td>{{ $visita->nit }}</td>
-                    <td>{{ $visita->razon_social }}</td>
-                    <td>{{ $visita->sucursal }}</td>
-                    <td>{{ $visita->vendedor }}</td>
-                    <td>{{ $visita->latitud }}</td>
-                    <td>{{ $visita->longitud }}</td>
-                    <td>{{ $visita->ciudad }}</td>
-                    <td>{{ $visita->notas }}</td>
-                    <td>
-                        @foreach($visita->motivos as $motivos)
-                        <ul><li>{{ $motivos->motivo }}</li></ul>
-                        @endforeach
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Debug -->
-    @if($mostrarDebug)
-    <div class="bg-gray-100 p-4 rounded-lg">
-        <h3 class="font-bold mb-2">Datos de Debug:</h3>
-        <pre class="text-xs text-gray-500 overflow-auto max-h-60">
-            @if ($visitas)
-                Visitas: {{ $visitas->count() }} registros
-                Última visita: @if($visitas->isNotEmpty()) {{ $visitas->first()->created_at }} @else N/A @endif
-                
-                Primeros 3 registros:
-                @foreach($visitas->take(3) as $visita)
-                    ID: {{ $visita->id }}
-                    Latitud: {{ $visita->latitud }}
-                    Longitud: {{ $visita->longitud }}
-                    ---------------------------------
-                @endforeach
-            @else
-                NO HAY DATOS DE VISITAS
-            @endif
-        </pre>
-    </div>
-    @endif
+    @if($visitas->isNotEmpty())
 
     <!-- Mapa -->
-    <div id="map" style="height: 500px;" class="my-6 rounded-xl overflow-hidden shadow"></div>
+    <div id="map" style="height: 400px; width:800px" class="my-6 rounded-xl overflow-hidden shadow mx-auto"></div>
+
+    <!-- Tabla -->
+        <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-6">
+        <button onclick="exportarTabla('tablas')" class="bg-green-500 hover:bg-green-600 text-zinc-100 px-2 py-1 rounded mb-2">Exportar</button>
+
+            <table id="tablas" class="w-3/4 mx-auto table-auto text-sm text-left text-gray-700 dark:text-zinc-300 pt-2">
+                <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
+                    <tr>
+                        <th class="px-4 py-3 text-center">ID</th>
+                        <th class="px-4 py-3">Fecha</th>
+                        <th class="px-4 py-3">Nit</th>
+                        <th class="px-4 py-3">Razón Social</th>
+                        <th class="px-4 py-3">Sucursal</th>
+                        <th class="px-4 py-3">Vendedor</th>
+                        <th class="px-4 py-3">Latitud</th>
+                        <th class="px-4 py-3">Longitud</th>
+                        <th class="px-4 py-3">Ciudad</th>
+                        <th class="px-4 py-3">Notas</th>
+                        <th class="px-4 py-3">Motivos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($visitas as $visita)
+                    <tr class="border-b border-gray-200">
+                        <td class="text-center">{{ $visita->id }}</td>
+                        <td>{{ $visita->created_at }}</td>
+                        <td>{{ $visita->nit }}</td>
+                        <td>{{ $visita->razon_social }}</td>
+                        <td>{{ $visita->sucursal }}</td>
+                        <td>{{ $visita->vendedor }}</td>
+                        <td>{{ $visita->latitud }}</td>
+                        <td>{{ $visita->longitud }}</td>
+                        <td>{{ $visita->ciudad }}</td>
+                        <td>{{ $visita->notas }}</td>
+                        <td>
+                            @foreach($visita->motivos as $motivos)
+                            <ul><li>{{ $motivos->motivo }}</li></ul>
+                            @endforeach
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Debug -->
+        @if($mostrarDebug)
+        <div class="bg-gray-100 p-4 rounded-lg">
+            <h3 class="font-bold mb-2">Datos de Debug:</h3>
+            <pre class="text-xs text-gray-500 overflow-auto max-h-60">
+                @if ($visitas)
+                    Visitas: {{ $visitas->count() }} registros
+                    Última visita: @if($visitas->isNotEmpty()) {{ $visitas->first()->created_at }} @else N/A @endif
+                    
+                    Primeros 3 registros:
+                    @foreach($visitas->take(3) as $visita)
+                        ID: {{ $visita->id }}
+                        Latitud: {{ $visita->latitud }}
+                        Longitud: {{ $visita->longitud }}
+                        ---------------------------------
+                    @endforeach
+                @else
+                    NO HAY DATOS DE VISITAS
+                @endif
+            </pre>
+        </div>
+        @endif
+    @else
+    @endif
+
+    
+
+    
 </div>
 
 @push('scripts')
@@ -192,6 +215,55 @@
                 .openOn(mapInstance);
         }
     }
+</script>
+
+<script>
+    let dataTableInstance = null;
+
+    function iniciarDataTable() {
+        if (dataTableInstance) {
+            dataTableInstance.destroy();
+        }
+
+        dataTableInstance = $('#tablas').DataTable({
+            responsive: false,
+            fixedHeader: true,
+            scrollX: true,
+            "lengthMenu": [10, 500, 10000],
+            "language": {
+                "lengthMenu": "Ver _MENU_",
+                "zeroRecords": "Sin datos",
+                "info": "Página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay datos disponibles",
+                "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                'search': 'Buscar:',
+                'paginate': {
+                    'next': 'Siguiente',
+                    'previous': 'Anterior'
+                }
+            }
+        });
+    }
+
+    // Inicializar cuando Livewire carga
+    document.addEventListener("livewire:init", () => {
+        Livewire.on('visitasActualizadas', (visitas) => {
+            setTimeout(() => iniciarDataTable(), 50);
+        });
+        
+        iniciarDataTable();
+    });
+
+    // Reiniciar al navegar (para Turbolinks/Livewire Navigation)
+    document.addEventListener("livewire:navigated", () => {
+        setTimeout(() => iniciarDataTable(), 50);
+    });
+
+    function exportarTabla(idTabla) {
+            let tabla = document.getElementById(idTabla);
+            let wb = XLSX.utils.table_to_book(tabla, {sheet: "Sheet JS"});
+            XLSX.writeFile(wb, "ReporteMotivosVentas.xlsx");
+        }
 </script>
 
 @endpush

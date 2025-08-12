@@ -15,7 +15,7 @@
                         <tr>
                             <td class="px-6 py-4 border border-gray-900 bg-sky-200">
                                 <div class="text-base font-medium"><strong>{{ $usuario->name }}</strong></div>
-                                <div class="text-base text-zinc-500"><strong>{{ $usuario->email }}</strong></div>
+                                <div class="text-base text-zinc-900"><strong>{{ $usuario->email }}</strong></div>
                             </td>
                             <td class="px-6 py-4 border border-gray-900">
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-2">

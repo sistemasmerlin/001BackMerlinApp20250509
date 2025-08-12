@@ -28,6 +28,7 @@ class Index extends Component
         $this->resetCampos();
         $this->modoEditar = false;
         $this->modal = true;
+
     }
 
     public function resetCampos()
@@ -56,7 +57,21 @@ class Index extends Component
         }
 
         $this->modal = false;
-        $this->mount();
+       // $this->mount();
+
+        return redirect(request()->header('Referer'));
+    }
+
+    public function confirmarEliminar($id)
+    {
+        $motivo = MotivosVisita::findOrFail($id);
+
+
+        $motivo->delete();
+        $this->motivo = MotivosVisita::all(); // Refrescar lista
+        session()->flash('success', 'Motivo eliminado correctamente.');
+
+        return redirect(request()->header('Referer'));
     }
 
     public function render()

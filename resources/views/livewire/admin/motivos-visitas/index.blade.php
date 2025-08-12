@@ -15,7 +15,7 @@
 
     <div class="w-4/5 overflow-x-auto mx-auto rounded-xl shadow border border-gray-200 dark:border-zinc-700 p-3">
         <div wire:ignore>
-            <table class="w-full mx-auto table-auto text-sm text-left text-gray-700 dark:text-zinc-300">
+            <table id="tabla" class="w-4/5 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
                 <thead class="text-xs text-zinc-50 bg-zinc-950 uppercase dark:bg-zinc-700">
                     <tr>
                         <th class="px-4 py-3 text-center">ID</th>
@@ -29,6 +29,7 @@
                     <tr class="border-b border-gray-200">
                         <td class="text-center">{{ $motivo->id }}</td>
                         <td>{{ $motivo->motivo }}</td>
+                        <td></td>
                         <td class="flex space-x-2 py-2">
                             <button wire:click="editar({{ $motivo->id }})" class="px-3 py-1 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -77,4 +78,43 @@
     </div>
     @endif
 
+    @push('scripts')
+        <script>
+            function iniciarDataTable() {
+                if ($.fn.DataTable.isDataTable('#tabla')) {
+                    $('#tabla').DataTable().destroy();
+                }
+
+                $('#tabla').DataTable({
+                    responsive: false,
+                    fixedHeader: true, //Encabezado fijo
+                    scrollX: false, //Evita que encabezado se salga de la tabla
+                    "lengthMenu": [10, 50, 100],
+                    "language": {
+                        "lengthMenu": "Ver _MENU_",
+                        "zeroRecords": "Sin datos",
+                        "info": "Página _PAGE_ de _PAGES_",
+                        "infoEmpty": "No hay datos disponibles",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        'search': 'Buscar:',
+                        'paginate': {
+                            'next': 'Siguiente',
+                            'previous': 'Anterior'
+                        }
+                    }
+                });
+            }
+
+            //cuando la vista carga por primera vez.
+            document.addEventListener("livewire:load", () => {
+                iniciarDataTable();
+            });
+            //cuando se vuelve a la vista.
+            document.addEventListener("livewire:navigated", () => {
+                setTimeout(() => iniciarDataTable(), 50);
+            });
+        
+
+        </script>
+        @endpush
 </div>

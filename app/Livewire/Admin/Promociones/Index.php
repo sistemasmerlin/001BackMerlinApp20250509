@@ -83,6 +83,8 @@ class Index extends Component
         session()->flash('success', $this->modoEditar ? 'Promoción actualizada correctamente' : 'Promoción creada correctamente');
         $this->promociones = Promocion::with('relaciones')->where('estado','1')->get();
 
+        return redirect(request()->header('Referer'));
+
     }
 
     public function editarPromocion($id)
@@ -173,6 +175,7 @@ class Index extends Component
         $this->reset(['openAsignarModal', 'departamentoSeleccionado', 'ciudadSeleccionada', 'ciudadesFiltradas']);
 
         session()->flash('success', 'Promoción asignada correctamente por ciudad.');
+
     }
 
     public function updatedDepartamentoSeleccionado($value)
@@ -285,6 +288,9 @@ class Index extends Component
                     'estado'       => true,
                     'eliminado'    => false,
                 ]);
+
+                session()->flash('success', 'Promoción asignada correctamente por cliente.');
+
                 break;    
 
             case 'todos':
@@ -302,6 +308,8 @@ class Index extends Component
                     'estado'       => true,
                     'eliminado'    => false,
                 ]);
+
+                session()->flash('success', 'Promoción asignada correctamente por todos.');
 
                 break;
 
@@ -339,6 +347,7 @@ class Index extends Component
                     'estado'       => true,
                     'eliminado'    => false,
                 ]);
+                session()->flash('success', 'Promoción asignada correctamente por asesor.');
 
                 break;
 
@@ -348,6 +357,8 @@ class Index extends Component
 
         // Limpieza
         $this->reset(['tipoAsignacion', 'nitCliente', 'subcanalSeleccionado', 'departamentoSeleccionado', 'ciudadSeleccionada', 'codigoAsesor', 'openAsignarModal']);
+
+        return redirect(request()->header('Referer'));
     }
 
     

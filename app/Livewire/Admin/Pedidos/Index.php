@@ -25,7 +25,7 @@ class Index extends Component
         $this->fecha_inicio = request()->query('fecha_inicio');
         $this->fecha_final = request()->query('fecha_final');
 
-        $query = Pedido::with('direccionEnvio')->orderBy('id', 'asc');
+        $query = Pedido::with('direccionEnvio')->orderBy('id', 'desc');
 
         if ($this->fecha_inicio && $this->fecha_final) {
             $fechaInicio = Carbon::parse($this->fecha_inicio)->startOfDay();
