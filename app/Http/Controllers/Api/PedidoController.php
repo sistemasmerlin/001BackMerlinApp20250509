@@ -588,7 +588,7 @@ class PedidoController extends Controller
                 'orden_compra' => $orden_compra,
                 'correo_cliente' =>  $request->punto_envio['email'] ?? null,
                 'estado' => '1',
-                'id_sucursal' => '020',
+                'id_sucursal' => $request->sucursal['id_sucursal'],
                 'flete' => $request->totales['flete'],
                 'observaciones' => $notasLimpias,
                 'condicion_pago' => $request->sucursal['cond_pago'] ?? '',
@@ -647,7 +647,12 @@ class PedidoController extends Controller
             //Correo pedidos especiales
             try{
 
-                Mail::to(['auxcomercial@merlinrod.com','auxsistemas@merlinrod.com'])
+                $correos = array_map('trim', explode(',', $pedido->correo_cliente));
+
+                // el primer correo es el del asesor
+                $correoAsesor = $correos[0];
+
+                Mail::to(['auxcomercial@merlinrod.com','auxsistemas@merlinrod.com',$correoAsesor])
                     ->send(new PedidoEspecialMail($pedido));
 
                 return response()->json([

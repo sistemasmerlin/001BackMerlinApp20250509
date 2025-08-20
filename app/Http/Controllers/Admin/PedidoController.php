@@ -187,17 +187,25 @@ class PedidoController extends Controller
                     $mail->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
                 }
 
-                return response()->json([
+                /* return response()->json([
                     'success' => 'ok full',
                     'mensaje' => 'Se ha enviado el pedido y fue creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa
-                ], 200);
+                ], 200); */
+
+                return back()->with('success', 'Se ha enviado el pedido y fue creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa);
 
             } catch (\Exception $e) {
-                return response()->json([
+                /* return response()->json([
                     'warning' => 'Pedido creado, pero falló el envío del correo',
                     'error' => $e->getMessage(),
                     'mensaje' => 'Se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se enviaron correos.'
-                ], 200);
+                ], 200); */
+
+                return back()->with([
+                    'warning' => 'Pedido creado, pero falló el envío del correo',
+                    'error' => $e->getMessage(),
+                    'mensaje' => 'Se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se enviaron correos.'
+                ]);
             }
 
         } catch (\Exception $e) {

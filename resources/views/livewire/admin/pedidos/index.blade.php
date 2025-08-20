@@ -9,6 +9,10 @@
         <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-800">
             {{ session('success') }}
         </div>
+    @elseif(session()->has('warning'))
+        <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-red-500">
+            {{ session('success') }}
+        </div>
     @endif
     
     <div class="w-full mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6">

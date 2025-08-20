@@ -53,6 +53,9 @@ class Index extends Component
     
         $this->resetModal();
         session()->flash('success', 'Rol guardado correctamente');
+
+        return redirect(request()->header('Referer'));
+
     }
 
     private function resetModal()

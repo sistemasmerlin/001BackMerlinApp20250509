@@ -11,6 +11,8 @@ class Index extends Component
     public $modal = false;
     public $modoEditar = false;
     public $motivo;
+    public $motivoId;
+
 
     public function cargarMotivos()
     {
@@ -35,6 +37,14 @@ class Index extends Component
     {
         $this->motivoId = null;
         $this->motivo = '';
+    }
+
+    public function editar($id){
+        $motivo = MotivosVisita::findOrFail($id);
+        $this->motivoId = $motivo->id;
+        $this->motivo = $motivo->motivo;
+        $this->modoEditar = true;
+        $this->modal = true;
     }
 
     public function guardar()

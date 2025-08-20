@@ -50,6 +50,56 @@
     <a href="{{ url('https://aplicacion.merlinrod.com/admin/pedidos/' . $pedido->id . '/detalle') }}">
       Mirar pedido
     </a>
+    <div class="seccion">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Referencia</th>
+              <th>Descripción</th>
+              <th>Unidades</th>
+              <th>Precio</th>
+              <th>% Desc</th>
+              <th>Descuento Valor</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($detalles as $item)
+              <tr>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $item->referencia }}</td>
+                <td>{{ $item->descripcion }}</td>
+                <td style="text-align: center">{{ $item->cantidad }}</td>
+                <td style="text-align: right">${{ number_format($item->valor_unitario, 0, ',', '.') }}</td>
+                <td style="text-align: center">{{ number_format($item->descuento, 0, ',', '.') }}%</td>
+                <td style="text-align: right">${{ number_format($item->total_descuento, 0, ',', '.') }}</td>
+                <td style="text-align: right">${{ number_format($item->subtotal, 0, ',', '.') }}</td>
+              </tr>
+            @endforeach
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="7">Unidades Totales</th><td style="text-align: right">10</td>
+            </tr>
+            <tr>
+              <th colspan="7">Subtotal Neto</th><td style="text-align: right">${{ number_format($subtotal_pedido, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+              <th colspan="7">Descuento</th><td style="text-align: right">${{ number_format($subtotal_descuento, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+              <th colspan="7">Subtotal</th><td style="text-align: right">${{ number_format($encabezado->subtotal, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+              <th colspan="7">IVA</th><td style="text-align: right">${{ number_format((($encabezado->subtotal * 1.19) - $encabezado->subtotal), 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+              <th colspan="7">Total</th><td style="text-align: right">${{ number_format(($encabezado->subtotal * 1.19), 0, ',', '.') }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
   </div>
 
   <p><strong>Notas del pedido:</strong> {{ $pedido->observaciones ?? 'Sin notas adicionales.' }}</p>

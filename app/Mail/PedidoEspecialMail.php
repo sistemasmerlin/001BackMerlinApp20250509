@@ -15,13 +15,17 @@ class PedidoEspecialMail extends Mailable
 
     public function __construct($pedido)
     {
-        $this->pedido = $pedido;
+        $this->pedido = $pedido->load('detalles');
 
     }
 
     public function build()
     {
         return $this->subject('🔔 Pedido de Negociación Especial Recibido')
-                    ->view('correos.pedidoNegociacion');
+                    ->view('correos.pedidoNegociacion')
+                    ->with([
+                        'pedido' => $this->pedido,
+                        'detalles' => $this->pedido->detalles,
+                    ]);
     }
 }
