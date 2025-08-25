@@ -8,7 +8,7 @@ class DetallePedido extends Model
 {
     protected $fillable = [
         'pedido_id', 'referencia', 'descripcion', 'cantidad',
-        'precio_unitario', 'descuento', 'subtotal'
+        'precio_unitario', 'descuento', 'subtotal', 'marca'
     ];
 
     public function pedido()

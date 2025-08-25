@@ -41,22 +41,15 @@
                     <tr>
                         <th class="px-4 py-3">Id</th>
                         <th class="px-4 py-3">Prefijo</th>
-                        <th class="px-4 py-3">Nit Clientes</th>
-                        <!-- <th class="px-4 py-3">OC</th> -->
-                        <!-- <th class="px-4 py-3">Código Asesor</th> -->
+                        <th class="px-4 py-3">Nit Cliente</th>
+                        <th class="px-4 py-3">Cambiar Cliente</th>
                         <th class="px-4 py-3">Nombre Asesor</th>
                         <th class="px-4 py-3">Ver</th>
                         <th class="px-4 py-3">Enviar Siesa</th>
-                        <!-- <th class="px-4 py-3">Nit Cliente</th>
-                        <th class="px-4 py-3">Razón Social</th> -->
-                        <!-- <th class="px-4 py-3">Lista Precio</th> -->
                         <th class="px-4 py-3">Sucursal</th>
-                        <th class="px-4 py-3">Ciudad</th>
-                        <!-- <th class="px-4 py-3">Punto de Envío</th> -->
                         <th class="px-4 py-3">Cond Pago</th>
                         <th class="px-4 py-3">Valor Flete</th>
                         <th class="px-4 py-3">Estado Siesa</th>
-                        <!-- <th class="px-4 py-3">Correo Cliente</th> -->
                         <th class="px-4 py-3">Observaciones</th>
                         <th class="px-4 py-3">Estado</th>
                         <th class="px-4 py-3">Fecha Pedido</th>
@@ -75,8 +68,24 @@
                             @endif
 
                             <td class="px-6 py-4  border-t-2"><strong>{{ $pedido->nit }}</strong> - {{ $pedido->razon_social }}</td>
-                            <!-- <td class="px-4 py-2">{{ $pedido->orden_compra }}</td> -->
-                            <!-- <td class="px-4 py-2 border-t-2">{{ $pedido->codigo_asesor }}</td> -->
+                            <td class="px-6 py-4 border-t-2">
+                                <div class="flex items-center gap-2">
+                                @if($pedido->prefijo == 'PES')
+                                    <flux:modal.trigger name="cambiar-nit" wire:click="abrirModalNit({{ $pedido->id }})">
+                                    <button class="px-3 py-1 bg-blue-600 hover:bg-blue-800 text-white font-semibold rounded-lg mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </button>
+                                    </flux:modal.trigger>
+                                @else
+                                    <div>
+                                        N/A
+                                    </div>
+                                @endif
+                                </div>
+                            </td>
+
                             <td class="px-4 py-2 border-t-2">{{ $pedido->nombre_asesor }}</td>
                             <td class="px-4 py-2 border-t-2">
                                 <a href="{{ route('admin.pedidos.detalle', $pedido->id) }}" class="inline-flex px-3 py-1 bg-green-500 hover:bg-green-800 text-white font-semibold rounded-lg">
@@ -85,22 +94,25 @@
                                     </svg>
                                 </a>
                             </td>
+                            @if($pedido->prefijo == 'PES')
                             <td class="px-4 py-2 border-t-2">
                                 <a href="{{ route('pedidos.enviar', $pedido->id) }}"
                                 class="inline-block px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                                 <svg  class="size-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <path d="M440 6.5L24 246.4c-34.4 19.9-31.1 70.8 5.7 85.9L144 379.6V464c0 46.4 59.2 65.5 86.6 28.6l43.8-59.1 111.9 46.2c5.9 2.4 12.1 3.6 18.3 3.6 8.2 0 16.3-2.1 23.6-6.2 12.8-7.2 21.6-20 23.9-34.5l59.4-387.2c6.1-40.1-36.9-68.8-71.5-48.9zM192 464v-64.6l36.6 15.1L192 464zm212.6-28.7l-153.8-63.5L391 169.5c10.7-15.5-9.5-33.5-23.7-21.2L155.8 332.6 48 288 464 48l-59.4 387.3z"/></svg>
                                 </a>
                             </td>
-                            <!-- <td class="px-4 py-2">{{ $pedido->nit }}</td>
-                            <td class="px-4 py-2">{{ $pedido->razon_social }}</td> -->
-                            <!-- <td class="px-4 py-2">{{ $pedido->lista_precio }}</td> -->
+                            @else
+                            <td class="px-4 py-2 border-t-2">
+                                N/A
+                            </td>
+                            @endif
                             <td class="px-4 py-2 border-t-2">{{ $pedido->id_sucursal }}</td>
-                            <td class="px-4 py-2 border-t-2"></td>
-                            <!-- <td class="px-4 py-2">{{ $pedido->direccionEnvio['id_punto_envio'] ?? 'null' }}</td> -->
                             <td class="px-4 py-2 border-t-2">{{ $pedido->condicion_pago }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->flete }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->estado_siesa }}</td>
-                            <!-- <td class="px-4 py-2">{{ $pedido->correo_cliente }}</td> -->
+
+                            @if($pedido->prefijo == 'PES')
+
                             <td class="px-4 py-2  border-t-2">{{ $pedido->observaciones }} 
                                 <br>
                             <flux:modal.trigger name="edit-nota" wire:click="editarNota({{ $pedido->id }})">
@@ -111,6 +123,11 @@
                                     </button>
                                 </flux:modal.trigger>
                             </td>
+                            @else
+                            <td class="px-4 py-2 border-t-2">
+                                N/A
+                            </td>
+                            @endif
 
                             @if($pedido->nota == 'Negociación especial')
                             <td class="px-4 py-2 bg-lime-300 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
@@ -118,6 +135,7 @@
                             <td class="px-4 py-2 bg-gray-200 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
                             @endif
                             <td class="px-4 py-2 border-t-2">{{ $pedido->fecha_pedido }}</td>
+                            @if($pedido->prefijo == 'PES')
                             <td class="px-4 py-2 border-t-2">
                                 <button
                                     wire:click="eliminarCotizacion({{ $pedido->id }})"
@@ -128,7 +146,11 @@
                                     </svg>
                                 </button>
                             </td>
-                            
+                            @else
+                            <td class="px-4 py-2 border-t-2">
+                                N/A
+                            </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody> 
@@ -157,7 +179,95 @@
                         </div>
                     </div>
                 </form>
-         </flux:modal>
+        </flux:modal>
+
+         <flux:modal name="cambiar-nit" class="md:w-96">
+    <form wire:submit.prevent="guardarNuevoNit">
+        <div class="space-y-6">
+            <div class="bg-amber-500 p-3 rounded">
+                <h2 class="text-center text-accent font-bold">CAMBIAR NIT DEL CLIENTE</h2>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-900 font-bold">ID PEDIDO:</label>
+                <input
+                    class="w-full border bg-gray-200 border-gray-300 rounded p-2"
+                    value="{{ $pedidoIdParaNit }}"
+                    readonly>
+            </div>
+
+            <div>
+<label for="nuevoNit" class="block text-sm text-gray-900 font-bold">NIT:</label>
+<input
+    id="nuevoNit"
+    wire:model.defer="nuevoNit"
+    type="text"
+    inputmode="numeric"
+    class="w-full border border-gray-300 rounded p-2"
+    placeholder="Ej: 900123456" required />
+
+<!-- ========================== -->
+<!-- Select de Sucursal -->
+<label for="nuevaSucursal" class="block text-sm text-gray-900 font-bold mt-3">Sucursal:</label>
+<select
+    id="nuevaSucursal"
+    wire:model.defer="nuevaSucursal"
+    class="w-full border border-gray-300 rounded p-2 bg-white" required>
+    <option value="">-- Seleccione Sucursal --</option>
+    @for($i = 20; $i <= 30; $i++)
+        <option value="{{ str_pad($i, 3, '0', STR_PAD_LEFT) }}">
+            {{ str_pad($i, 3, '0', STR_PAD_LEFT) }}
+        </option>
+    @endfor
+</select>
+
+<!-- ========================== -->
+<!-- Select de Lista de precios -->
+<label for="nuevaListaPrecios" class="block text-sm text-gray-900 font-bold mt-3">Lista de precios:</label>
+<select
+    id="nuevaListaPrecios"
+    wire:model.defer="nuevaListaPrecios"
+    class="w-full border border-gray-300 rounded p-2 bg-white" required>
+    <option value="">-- Seleccione Lista --</option>
+    <option value="001">001</option>
+</select>
+
+<!-- ========================== -->
+<!-- Select de Punto de Envío -->
+<label for="nuevoPuntoEnvio" class="block text-sm text-gray-900 font-bold mt-3">Punto de envío:</label>
+<select
+    id="nuevoPuntoEnvio"
+    wire:model.defer="nuevoPuntoEnvio"
+    class="w-full border border-gray-300 rounded p-2 bg-white" required>
+    <option value="">-- Seleccione Punto de envío --</option>
+    @for($i = 0; $i <= 20; $i++)
+        <option value="{{ str_pad($i, 3, '0', STR_PAD_LEFT) }}">
+            {{ str_pad($i, 3, '0', STR_PAD_LEFT) }}
+        </option>
+    @endfor
+</select>
+
+                @error('nuevoNit')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                @if ($mensajeCliente)
+                    <p class="mt-2 text-sm text-gray-600">{{ $mensajeCliente }}</p>
+                @endif
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Cancelar</button>
+                </flux:modal.close>
+
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </form>
+        </flux:modal>
 
 
     </div>

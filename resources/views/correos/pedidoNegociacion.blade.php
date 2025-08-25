@@ -41,6 +41,7 @@
     <p><strong>ID:</strong> {{ $pedido->id }}</p>
     <p><strong>NIT:</strong> {{ $pedido->nit }}</p>
     <p><strong>Cliente:</strong> {{ $pedido->razon_social ?? '-' }}</p>
+    <p><strong>Sucursal:</strong> {{ $pedido->id_sucursal }}</p>
     <p><strong>Condición de pago:</strong> {{ $pedido->condicion_pago ?? '-' }}</p>
     <p><strong>Notas:</strong> {{ $pedido->observaciones ?? 'N/A' }}</p>
   </div>

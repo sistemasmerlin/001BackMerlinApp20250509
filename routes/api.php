@@ -41,6 +41,10 @@ Route::middleware('auth:sanctum')->get('/pedidos/error/{codigo_asesor}', [Pedido
 
 Route::middleware('auth:sanctum')->get('/pedidos/erp/{codigo_asesor}', [PedidoController::class, 'pedidosErp']);
 
+Route::middleware('auth:sanctum')->get('/pedidos/especiales/{codigo_asesor}', [PedidoController::class, 'pedidosEspeciales']);
+
+Route::middleware('auth:sanctum')->get('/pedidos/especial/detalle/{id_pedido}', [PedidoController::class, 'detallePedidoEspecial']);
+
 Route::middleware('auth:sanctum')->get('/pedidos/erp/detalle/{prefijo}/{consecutivo}', [PedidoController::class, 'detallePedidoErp']);
 
 Route::middleware('auth:sanctum')->get('/facturas/erp/asesor/{codigo_asesor}', [FacturasController::class, 'cargarFacturasAsesor']);
@@ -58,7 +62,6 @@ Route::middleware('auth:sanctum')->get('/noticias', [NoticiasController::class, 
 Route::middleware('auth:sanctum')->get('/motivos/visita', [MotivosVisitaController::class, 'index']);
 
 Route::middleware('auth:sanctum')->post('/motivos/visita/guardar', [MotivosVisitaController::class, 'store']);
-
 
 
 

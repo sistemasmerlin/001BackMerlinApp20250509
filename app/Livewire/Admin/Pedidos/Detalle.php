@@ -20,6 +20,7 @@ class Detalle extends Component
                 'id' => $detalle->id,
                 'pedido_id' => $detalle->pedido_id,
                 'referencia' => $detalle->referencia,
+                'marca' => $detalle->marca,
                 'descripcion' => $detalle->descripcion,
                 'cantidad' => $detalle->cantidad,
                 'precio_unitario' => $detalle->precio_unitario,

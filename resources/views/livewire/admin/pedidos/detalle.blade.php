@@ -6,6 +6,12 @@
             Detalle de pedidos: {{ $pedido->id }}
         </h2>
     </div>
+    <div>
+        <a type="button" href="{{ route('pedidos.index') }}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Atrás
+        </a>
+    </div>
+
 
     <div class="mb-6 gap-2">
         <input type="number" step="0.01" wire:model.defer="descuentoGlobal" placeholder="Descuento global" class="rounded border px-3 py-1">
@@ -51,7 +57,7 @@
                             <td class="px-4 py-2 border-t-2">{{ $detalle['pedido_id'] }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $detalle['referencia'] }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $detalle['descripcion'] }}</td>
-                            <td class="px-4 py-2 border-t-2"></td>
+                            <td class="px-4 py-2 border-t-2">{{ $detalle['marca'] }}</td>
                             <td class="px-4 py-2 border-t-2">
                                 <input type="number" wire:model.defer="detalles.{{ $loop->index }}.cantidad" class="w-20 rounded border px-2 py-1">
                             </td>
@@ -98,7 +104,7 @@
                     responsive: false,
                     fixedHeader: true, //Encabezado fijo
                     scrollX: false, //Evita que escabezado se salga de la tabla
-                    "lengthMenu": [15, 50, 100],
+                    "lengthMenu": [30, 50, 100],
                     "language": {
                         "lengthMenu": "Ver _MENU_",
                         "zeroRecords": "Sin datos",

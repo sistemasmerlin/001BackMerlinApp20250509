@@ -29,7 +29,11 @@
                     <tr class="border-b border-gray-200">
                         <td class="text-center">{{ $motivo->id }}</td>
                         <td>{{ $motivo->motivo }}</td>
-                        <td></td>
+                        @if($motivo->estado == 1)
+                        <td>ACTIVO</td>
+                        @else
+                        <td>INACTIVO</td>
+                        @endif
                         <td class="flex space-x-2 py-2">
                             <button wire:click="editar({{ $motivo->id }})" class="px-3 py-1 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">

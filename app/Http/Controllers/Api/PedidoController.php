@@ -18,31 +18,30 @@ use Illuminate\Support\Facades\DB;
 class PedidoController extends Controller
 {
 
-    public function pedidosConError($id){
-        $pedidos = Pedido::where('nota','=','No creado en Siesa')->where('codigo_asesor')->get();
+    public function pedidosConError($id)
+    {
+        $pedidos = Pedido::where('nota', '=', 'No creado en Siesa')->where('codigo_asesor')->get();
 
-        if($pedidos){
+        if ($pedidos) {
             return response()->json([
                 'estado' => true,
                 'mensaje' => 'Se retornan los pedidos que no llegaron a Siesa pero se crearon en la app',
             ], 200);
-
-        }else{
+        } else {
             return response()->json([
                 'estado' => true,
                 'mensaje' => 'No se encontraron pedidos',
             ], 200);
-
         }
-
     }
 
-    public function pedidosErp($codigo_asesor){
+    public function pedidosErp($codigo_asesor)
+    {
 
         // return $codigo_asesor;
 
         $pedidos = DB::connection('sqlsrv')
-        ->select("SELECT TOP (50)
+            ->select("SELECT TOP (50)
             [f430_fecha_ts_creacion] fecha_creacion
             ,t210.[f210_id] codigo_asesor
             ,[f430_id_tipo_docto] prefijo
@@ -69,15 +68,15 @@ class PedidoController extends Controller
         AND t210.[f210_id] = $codigo_asesor
         ORDER BY f430_fecha_ts_creacion desc");
 
-            return response()->json([
-                'pedidos' => $pedidos,
-                'estado' => true,
-                'mensaje' => 'Se retornan los pedidos que no llegaron a Siesa pero se crearon en la app',
-            ], 200);
-
+        return response()->json([
+            'pedidos' => $pedidos,
+            'estado' => true,
+            'mensaje' => 'Se retornan los pedidos que no llegaron a Siesa pero se crearon en la app',
+        ], 200);
     }
 
-    public function detallePedidoErp($prefijo, $consecutivo){
+    public function detallePedidoErp($prefijo, $consecutivo)
+    {
 
         $encabezado = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
             ,bi_t430.[f_fecha] as fecha
@@ -179,10 +178,10 @@ class PedidoController extends Controller
         $subtotal_pedido = 0;
         $subtotal_descuento = 0;
 
-        foreach($detalle as  $item){
-        $subtotal_pedido += $item->valor_unitario * $item->cantidad;
-        $subtotal_descuento += $item->total_descuento;
-        } 
+        foreach ($detalle as  $item) {
+            $subtotal_pedido += $item->valor_unitario * $item->cantidad;
+            $subtotal_descuento += $item->total_descuento;
+        }
 
         return response()->json([
             'encabezado' => $encabezado,
@@ -193,7 +192,6 @@ class PedidoController extends Controller
             'mensaje' => 'Se retornan los pedidos que no llegaron a Siesa pero se crearon en la app',
         ], 200);
     }
-
     public function guardar(Request $request)
     {
         $data = $request->validate([
@@ -257,9 +255,18 @@ class PedidoController extends Controller
         $orden_compra = date('ymdHis');
         $notasOriginal = $request['notas'] ?? '';
         $notasLimpias = strtr($notasOriginal, [
-            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
-            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
-            'ñ' => 'n', 'Ñ' => 'N'
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'Á' => 'A',
+            'É' => 'E',
+            'Í' => 'I',
+            'Ó' => 'O',
+            'Ú' => 'U',
+            'ñ' => 'n',
+            'Ñ' => 'N'
         ]);
 
         DB::beginTransaction();
@@ -275,7 +282,7 @@ class PedidoController extends Controller
                 'prefijo' => 'PAM',
                 'nota' => 'Nota',
                 'orden_compra' => $orden_compra,
-                'correo_cliente' =>  $request->creadoPor['correo'].','.$request->punto_envio['email'] ?? null,
+                'correo_cliente' =>  $request->creadoPor['correo'] . ',' . $request->punto_envio['email'] ?? null,
                 'estado' => '1',
                 'id_sucursal' => $request->sucursal['id_sucursal'],
                 'flete' => $request->totales['flete'],
@@ -335,14 +342,14 @@ class PedidoController extends Controller
 
             if ($resultadoXml['status'] !== 'success') {
 
-            $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;
-            $xmlObject = simplexml_load_string($xmlResponse, "SimpleXMLElement", LIBXML_NOCDATA);
-            $f_detalle = (string) $xmlObject->NewDataSet->Table->f_detalle;
+                $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;
+                $xmlObject = simplexml_load_string($xmlResponse, "SimpleXMLElement", LIBXML_NOCDATA);
+                $f_detalle = (string) $xmlObject->NewDataSet->Table->f_detalle;
 
                 DB::rollBack();
                 return response()->json([
                     'error' => 'Error al generar XML',
-                    'mensaje' => 'Error al procesar el pedido en el ERP: '.$f_detalle,
+                    'mensaje' => 'Error al procesar el pedido en el ERP: ' . $f_detalle,
                 ], 500);
             }
 
@@ -364,11 +371,11 @@ class PedidoController extends Controller
                 $consecutivo_siesa = $validar->consecutivo;
             }
 
-            $pedido_siesa = $prefijo_siesa.'-'.$consecutivo_siesa;
+            $pedido_siesa = $prefijo_siesa . '-' . $consecutivo_siesa;
             $pedido->nota = $resultadoXml['status'] === 'success' ? $pedido_siesa : 'No creado en Siesa';
             $pedido->save();
 
-                $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
+            $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
                         ,bi_t430.[f_fecha] as fecha
                         ,bi_t430.[f_estado] as estado
                         ,bi_t430.f_subtotal_local as f_subtotal
@@ -430,7 +437,7 @@ class PedidoController extends Controller
                         ORDER BY bi_t430.f_nrodocto desc;");
 
 
-                $detalles = DB::connection('sqlsrv')->select("SELECT  
+            $detalles = DB::connection('sqlsrv')->select("SELECT  
                         t120.f120_referencia AS referencia,
                         t106.f106_descripcion AS marca,
                         t120.f120_descripcion AS descripcion,
@@ -464,20 +471,20 @@ class PedidoController extends Controller
                         AND t431.f_nrodocto = '$consecutivo_siesa'
                     ORDER BY 
                         t120.f120_referencia;");
-                
-                $subtotal_pedido = 0;
-                $subtotal_descuento = 0;
 
-                foreach($detalles as  $detalle){
-                    $subtotal_pedido += $detalle->valor_unitario * $detalle->cantidad;
-                    $subtotal_descuento += $detalle->total_descuento;
-                }
+            $subtotal_pedido = 0;
+            $subtotal_descuento = 0;
+
+            foreach ($detalles as  $detalle) {
+                $subtotal_pedido += $detalle->valor_unitario * $detalle->cantidad;
+                $subtotal_descuento += $detalle->total_descuento;
+            }
 
 
             DB::commit();
 
             try {
-// correos
+                // correos
                 $correos = array_map('trim', explode(',', $pedido->correo_cliente));
 
                 Mail::to($correos)
@@ -485,17 +492,15 @@ class PedidoController extends Controller
 
                 return response()->json([
                     'success' => 'ok full',
-                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa. ' - Correos enviados.'
+                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - Correos enviados.'
                 ], 200);
-
             } catch (\Exception $e) {
                 return response()->json([
                     'warning' => 'Pedido creado y guardado, pero falló el envío del correo',
                     'error' => $e->getMessage(),
-                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa. ' - No se ha enviado los correos.'
+                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se ha enviado los correos.'
                 ], 200);
             }
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -504,7 +509,6 @@ class PedidoController extends Controller
             ], 500);
         }
     }
-
     public function guardarPedidoEspecial(Request $request)
     {
         $data = $request->validate([
@@ -515,6 +519,7 @@ class PedidoController extends Controller
             'sucursal.descripcion_sucursal' => 'required|string',
             'productos' => 'required|array',
             'productos.*.referencia' => 'required|string',
+            'productos.*.marca' => 'required|string',
             'productos.*.cantidad' => 'required|numeric|min:1',
             'productos.*.precio_1' => 'required|numeric|min:0',
             'totales' => 'required|array',
@@ -568,9 +573,18 @@ class PedidoController extends Controller
         $orden_compra = date('ymdHis');
         $notasOriginal = $request['notas'] ?? '';
         $notasLimpias = strtr($notasOriginal, [
-            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
-            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
-            'ñ' => 'n', 'Ñ' => 'N'
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'Á' => 'A',
+            'É' => 'E',
+            'Í' => 'I',
+            'Ó' => 'O',
+            'Ú' => 'U',
+            'ñ' => 'n',
+            'Ñ' => 'N'
         ]);
 
         DB::beginTransaction();
@@ -586,7 +600,7 @@ class PedidoController extends Controller
                 'prefijo' => 'PES',
                 'nota' => 'Negociación especial',
                 'orden_compra' => $orden_compra,
-                'correo_cliente' =>  $request->punto_envio['email'] ?? null,
+                'correo_cliente' => $request->creadoPor['correo'] . ',' . $request->punto_envio['email'] ?? null,
                 'estado' => '1',
                 'id_sucursal' => $request->sucursal['id_sucursal'],
                 'flete' => $request->totales['flete'],
@@ -599,6 +613,7 @@ class PedidoController extends Controller
                 DetallePedido::create([
                     'pedido_id' => $pedido->id,
                     'referencia' => $producto['referencia'],
+                    'marca' => $producto['marca'],
                     'descripcion' => $producto['descripcion'] ?? '',
                     'cantidad' => $producto['cantidad'],
                     'precio_unitario' => $producto['precio_1'],
@@ -645,28 +660,26 @@ class PedidoController extends Controller
             DB::commit();
 
             //Correo pedidos especiales
-            try{
+            try {
 
                 $correos = array_map('trim', explode(',', $pedido->correo_cliente));
 
                 // el primer correo es el del asesor
                 $correoAsesor = $correos[0];
 
-                Mail::to(['auxcomercial@merlinrod.com','auxsistemas@merlinrod.com',$correoAsesor])
+                Mail::to(['auxcomercial@merlinrod.com', 'auxsistemas@merlinrod.com', $correoAsesor])
                     ->send(new PedidoEspecialMail($pedido));
 
                 return response()->json([
                     'success' => 'ok full',
                     'mensaje' => 'Se ha enviado el pedido de negociacion especial para ser revisado'
                 ], 200);
-    
             } catch (\Exception $e) {
                 return response()->json([
                     'error' => 'Ocurrió un error al guardar el pedido',
                     'mensaje' => $e->getMessage()
                 ], 200);
             }
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -676,4 +689,28 @@ class PedidoController extends Controller
         }
     }
 
+    public function pedidosEspeciales($codigo_asesor)
+    {
+        $pedidos = Pedido::where('prefijo','=','PES')->where('codigo_asesor','=',$codigo_asesor)->with('direccionEnvio')->get();
+
+        return response()->json([
+            'pedidos' => $pedidos,
+            'codigo_asesor' => $codigo_asesor,
+            'estado' => true,
+            'mensaje' => 'Se retornan los pedidos con negociación especial',
+        ], 200);
+    }
+
+    public function detallePedidoEspecial($id_pedido)
+    {
+        $detalle = DetallePedido::where('pedido_id','=',$id_pedido)->get();
+        $pedido = Pedido::where('id','=',$id_pedido)->first();
+
+        return response()->json([
+            'detalle' => $detalle,
+            'pedido' => $pedido,
+            'estado' => true,
+            'mensaje' => 'Se retornan el detalle del pedido con negociación especial',
+        ], 200);
+    }
 }
