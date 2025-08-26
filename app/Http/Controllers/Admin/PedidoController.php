@@ -173,7 +173,7 @@ class PedidoController extends Controller
                 $subtotal_descuento += $detalle->total_descuento;
             }
 
-            $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
+            $pedido->nota = $resultadoXml['status'] === 'success' ? $prefijo_siesa.'-'.$consecutivo_siesa : 'No creado en Siesa';
             $pedido->save();
 
             DB::commit();
