@@ -18,11 +18,13 @@ class PedidoController extends Controller
 
         try {
             $pedido = Pedido::findOrFail($id); // 🔧 CORREGIDO: Obtener un solo objeto
-            $pedido->prefijo = 'PAM';   
+            $pedido->prefijo = 'PAM';
             $pedidoXml = new PedidoXml();
             $resultadoXml = $pedidoXml->generarXml($pedido);
 
             $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
+            $pedido->prefijo = 'PES';
+
             $pedido->save();
 
             if ($resultadoXml['status'] !== 'success') {
@@ -41,10 +43,10 @@ class PedidoController extends Controller
                 FROM BI_T430 
                 WHERE f_parametro_biable = 3 AND f_id_cia = 3 
                 AND f_cliente_desp = ? AND f_cliente_fact_suc = ? AND f_punto_envio = ? AND f_orden_compra = ?", [
-                    $info_pedido->nit,
-                    $info_pedido->id_sucursal,
-                    $info_pedido->direccionEnvio->id_punto_envio ?? null,
-                    $info_pedido->orden_compra
+                $info_pedido->nit,
+                $info_pedido->id_sucursal,
+                $info_pedido->direccionEnvio->id_punto_envio ?? null,
+                $info_pedido->orden_compra
             ]);
 
             if (empty($validacion_siesa)) {
@@ -52,13 +54,21 @@ class PedidoController extends Controller
                 return response()->json(['error' => 'No se ha creado el pedido en Siesa'], 500);
             }
 
-            foreach ($validacion_siesa as $validar) {
-                $prefijo_siesa = $validar->prefijo;
-                $consecutivo_siesa = $validar->consecutivo;
+            if ($validacion_siesa) {
+                foreach ($validacion_siesa as $validar) {
+                    $prefijo_siesa = $validar->prefijo;
+                    $consecutivo_siesa = $validar->consecutivo;
+                }
+
+
+                $pedido = Pedido::findOrFail($id); // 🔧 CORREGIDO: Obtener un solo objeto
+                $pedido->nota = $prefijo_siesa.'-'.$consecutivo_siesa;
+                $pedido->prefijo = 'PES';
+                $pedido->save();
             }
 
             // Datos de encabezado
-                $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
+            $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
                         ,bi_t430.[f_fecha] as fecha
                         ,bi_t430.[f_estado] as estado
                         ,bi_t430.f_subtotal_local as f_subtotal
@@ -120,7 +130,7 @@ class PedidoController extends Controller
                         ORDER BY bi_t430.f_nrodocto desc;");
 
 
-                $detalles = DB::connection('sqlsrv')->select("SELECT  
+            $detalles = DB::connection('sqlsrv')->select("SELECT  
                         t120.f120_referencia AS referencia,
                         t106.f106_descripcion AS marca,
                         t120.f120_descripcion AS descripcion,
@@ -154,15 +164,15 @@ class PedidoController extends Controller
                         AND t431.f_nrodocto = '$consecutivo_siesa'
                     ORDER BY 
                         t120.f120_referencia;");
-                
-                $subtotal_pedido = 0;
-                $subtotal_descuento = 0;
+
+            $subtotal_pedido = 0;
+            $subtotal_descuento = 0;
 
             foreach ($detalles as $detalle) {
                 $subtotal_pedido += $detalle->valor_unitario * $detalle->cantidad;
                 $subtotal_descuento += $detalle->total_descuento;
             }
-            
+
             $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
             $pedido->save();
 
@@ -193,7 +203,6 @@ class PedidoController extends Controller
                 ], 200); */
 
                 return back()->with('success', 'Se ha enviado el pedido y fue creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa);
-
             } catch (\Exception $e) {
                 /* return response()->json([
                     'warning' => 'Pedido creado, pero falló el envío del correo',
@@ -207,7 +216,6 @@ class PedidoController extends Controller
                     'mensaje' => 'Se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se enviaron correos.'
                 ]);
             }
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -216,5 +224,4 @@ class PedidoController extends Controller
             ], 500);
         }
     }
-
 }

@@ -69,6 +69,7 @@
 
                             <td class="px-6 py-4  border-t-2"><strong>{{ $pedido->nit }}</strong> - {{ $pedido->razon_social }}</td>
                             <td class="px-6 py-4 border-t-2">
+                            @can('Enviar Pedido Especial')
                                 <div class="flex items-center gap-2">
                                 @if($pedido->prefijo == 'PES')
                                     <flux:modal.trigger name="cambiar-nit" wire:click="abrirModalNit({{ $pedido->id }})">
@@ -84,22 +85,28 @@
                                     </div>
                                 @endif
                                 </div>
+                            @endcan
                             </td>
 
                             <td class="px-4 py-2 border-t-2">{{ $pedido->nombre_asesor }}</td>
                             <td class="px-4 py-2 border-t-2">
+                            @can('Enviar Pedido Especial')
                                 <a href="{{ route('admin.pedidos.detalle', $pedido->id) }}" class="inline-flex px-3 py-1 bg-green-500 hover:bg-green-800 text-white font-semibold rounded-lg">
                                     <svg class="size-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
                                         <path d="M288 144a110.9 110.9 0 0 0 -31.2 5 a55.4 55.4 0 0 1 7.2 27 a56 56 0 0 1 -56 56 a55.4 55.4 0 0 1 -27-7.2A111.7 111.7 0 1 0 288 144zm284.5 97.4C518.3 135.6 410.9 64 288 64S57.7 135.6 3.5 241.4a32.4 32.4 0 0 0 0 29.2C57.7 376.4 165.1 448 288 448s230.3-71.6 284.5-177.4a32.4 32.4 0 0 0 0-29.2zM288 400c-98.7 0-189.1-55-237.9-144C98.9 167 189.3 112 288 112s189.1 55 237.9 144C477.1 345 386.7 400 288 400z"/>
                                     </svg>
                                 </a>
+                            @endcan
                             </td>
                             @if($pedido->prefijo == 'PES')
                             <td class="px-4 py-2 border-t-2">
+                            @can('Enviar Pedido Especial')
+                            
                                 <a href="{{ route('pedidos.enviar', $pedido->id) }}"
                                 class="inline-block px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                                 <svg  class="size-5" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <path d="M440 6.5L24 246.4c-34.4 19.9-31.1 70.8 5.7 85.9L144 379.6V464c0 46.4 59.2 65.5 86.6 28.6l43.8-59.1 111.9 46.2c5.9 2.4 12.1 3.6 18.3 3.6 8.2 0 16.3-2.1 23.6-6.2 12.8-7.2 21.6-20 23.9-34.5l59.4-387.2c6.1-40.1-36.9-68.8-71.5-48.9zM192 464v-64.6l36.6 15.1L192 464zm212.6-28.7l-153.8-63.5L391 169.5c10.7-15.5-9.5-33.5-23.7-21.2L155.8 332.6 48 288 464 48l-59.4 387.3z"/></svg>
                                 </a>
+                            @endcan
                             </td>
                             @else
                             <td class="px-4 py-2 border-t-2">
@@ -114,6 +121,8 @@
                             @if($pedido->prefijo == 'PES')
 
                             <td class="px-4 py-2  border-t-2">{{ $pedido->observaciones }} 
+                            @can('Enviar Pedido Especial')
+                            
                                 <br>
                             <flux:modal.trigger name="edit-nota" wire:click="editarNota({{ $pedido->id }})">
                                     <button class="px-3 py-1 bg-blue-600 hover:bg-blue-800 text-white font-semibold rounded-lg mt-2">
@@ -122,6 +131,7 @@
                                         </svg>
                                     </button>
                                 </flux:modal.trigger>
+                            @endcan
                             </td>
                             @else
                             <td class="px-4 py-2 border-t-2">
@@ -137,6 +147,7 @@
                             <td class="px-4 py-2 border-t-2">{{ $pedido->fecha_pedido }}</td>
                             @if($pedido->prefijo == 'PES')
                             <td class="px-4 py-2 border-t-2">
+                            @can('Enviar Pedido Especial')
                                 <button
                                     wire:click="eliminarCotizacion({{ $pedido->id }})"
                                     class="px-3 py-1 bg-red-500 hover:bg-red-800 text-white font-semibold rounded-lg"
@@ -145,6 +156,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                     </svg>
                                 </button>
+                            @endcan
                             </td>
                             @else
                             <td class="px-4 py-2 border-t-2">

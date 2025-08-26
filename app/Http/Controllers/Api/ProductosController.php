@@ -211,6 +211,10 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '407220450' THEN 'PORTAFOLIO CARRO'
                     WHEN rtrim(t120.f120_referencia) = '407220500' THEN 'PORTAFOLIO CARRO'
                     WHEN rtrim(t120.f120_referencia) = '407221150' THEN 'PORTAFOLIO CARRO'
+                    WHEN rtrim(t120.f120_referencia) = '316426300' THEN 'WDT BIKE'
+                    WHEN rtrim(t120.f120_referencia) = '316427300' THEN 'WDT BIKE'
+                    WHEN rtrim(t120.f120_referencia) = '316429200' THEN 'WDT BIKE'
+                    WHEN rtrim(t120.f120_referencia) = '316429300' THEN 'WDT BIKE'
                 ELSE
                 rtrim(t106.f106_descripcion) END AS marca
                 ,CASE 

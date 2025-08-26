@@ -154,6 +154,13 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+                    @can('Administrar pedidos')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>
+                            {{ __('Listar Pedidos') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
                 <!-- <flux:navlist variant="outline">
