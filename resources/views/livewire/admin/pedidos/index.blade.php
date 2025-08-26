@@ -195,7 +195,11 @@
                 </form>
         </flux:modal>
 
-         <flux:modal name="cambiar-nit" class="md:w-96">
+         <flux:modal name="cambiar-nit" class="md:w-96"
+    x-data
+    x-ref="modalNit"
+    x-on:cerrarModal.window="$refs.modalNit.close()"
+>
     <form wire:submit.prevent="guardarNuevoNit">
         <div class="space-y-6">
             <div class="bg-amber-500 p-3 rounded">
