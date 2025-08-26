@@ -103,7 +103,7 @@
                 $('#detalle').DataTable({
                     responsive: false,
                     fixedHeader: true, //Encabezado fijo
-                    scrollX: false, //Evita que escabezado se salga de la tabla
+                    scrollX: true, //Evita que escabezado se salga de la tabla
                     "lengthMenu": [30, 50, 100],
                     "language": {
                         "lengthMenu": "Ver _MENU_",

@@ -72,7 +72,7 @@
                             <td class="px-6 py-4 border-t-2">
                             @can('Enviar Pedido Especial')
                                 <div class="flex items-center gap-2">
-                                @if($pedido->prefijo == 'PES')
+                                @if($pedido->nota === 'Negociación especial')
                                     <flux:modal.trigger name="cambiar-nit" wire:click="abrirModalNit({{ $pedido->id }})">
                                     <button class="px-3 py-1 bg-blue-600 hover:bg-blue-800 text-white font-semibold rounded-lg mt-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -99,7 +99,7 @@
                                 </a>
                             @endcan
                             </td>
-                            @if($pedido->prefijo == 'PES')
+                            @if($pedido->nota === 'Negociación especial')
                             <td class="px-4 py-2 border-t-2">
                             @can('Enviar Pedido Especial')
                             
@@ -120,7 +120,7 @@
                             <td class="px-4 py-2 border-t-2">{{ $pedido->flete }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->estado_siesa }}</td>
 
-                            @if($pedido->prefijo == 'PES')
+                            @if($pedido->nota === 'Negociación especial')
 
                             <td class="px-4 py-2  border-t-2">{{ $pedido->observaciones }} 
                             @can('Enviar Pedido Especial')
@@ -141,13 +141,13 @@
                             </td>
                             @endif
 
-                            @if($pedido->nota == 'Negociación especial')
+                            @if($pedido->nota === 'Negociación especial')
                             <td class="px-4 py-2 bg-lime-300 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
                             @else
                             <td class="px-4 py-2 bg-gray-200 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
                             @endif
                             <td class="px-4 py-2 border-t-2">{{ $pedido->fecha_pedido }}</td>
-                            @if($pedido->prefijo == 'PES')
+                            @if($pedido->nota === 'Negociación especial')
                             <td class="px-4 py-2 border-t-2">
                             @can('Enviar Pedido Especial')
                                 <button
