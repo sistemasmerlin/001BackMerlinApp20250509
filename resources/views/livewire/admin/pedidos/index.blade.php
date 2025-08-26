@@ -47,6 +47,7 @@
                         <th class="px-4 py-3">Ver</th>
                         <th class="px-4 py-3">Enviar Siesa</th>
                         <th class="px-4 py-3">Sucursal</th>
+                        <th class="px-4 py-3">Punto envío</th>
                         <th class="px-4 py-3">Cond Pago</th>
                         <th class="px-4 py-3">Valor Flete</th>
                         <th class="px-4 py-3">Estado Siesa</th>
@@ -114,6 +115,7 @@
                             </td>
                             @endif
                             <td class="px-4 py-2 border-t-2">{{ $pedido->id_sucursal }}</td>
+                            <td class="px-4 py-2 border-t-2">{{ $pedido->direccionEnvio->id_punto_envio ?? 'Sin punto de envío' }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->condicion_pago }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->flete }}</td>
                             <td class="px-4 py-2 border-t-2">{{ $pedido->estado_siesa }}</td>
