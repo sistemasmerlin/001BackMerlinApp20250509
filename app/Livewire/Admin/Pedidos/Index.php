@@ -17,6 +17,7 @@ class Index extends Component
 
     public $notaId;
     public $observacion;
+    public $nota;
     public $pedidoIdParaNit = null;
     public $nuevoNit = '';
     public $nuevaSucursal = '';
@@ -269,5 +270,35 @@ public function guardarNuevoNit()
             return redirect()->route('pedidos.index');
         }
 
+
+    public function editarEstado($id){
+        
+            $pedido = Pedido::find($id);
+
+            if (! $pedido) {
+                session()->flash('error', 'Pedido no encontrado.');
+                return;
+            }
+
+            $this->notaId = $pedido->id;
+            $this->nota = $pedido->nota;
+        }
+
+    
+    public function guardarEstado(){
+
+            $pedido = Pedido::find($this->notaId);
+
+            if ($pedido) {
+                $pedido->nota = $this->nota;
+                $pedido->save();
+
+                session()->flash('success', 'Estado actualizada correctamente.');
+                $this->dispatch('cerrarModal');
+
+            }
+
+            return redirect()->route('pedidos.index');
+        }
        
 }

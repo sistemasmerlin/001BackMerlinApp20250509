@@ -691,7 +691,11 @@ class PedidoController extends Controller
 
     public function pedidosEspeciales($codigo_asesor)
     {
-        $pedidos = Pedido::where('prefijo','=','PES')->where('codigo_asesor','=',$codigo_asesor)->with('direccionEnvio')->get();
+        $pedidos = Pedido::where('prefijo','=','PES')
+        ->where('codigo_asesor','=',$codigo_asesor)
+        ->with('direccionEnvio')
+        ->orderBy('id','desc')
+        ->get();
 
         return response()->json([
             'pedidos' => $pedidos,

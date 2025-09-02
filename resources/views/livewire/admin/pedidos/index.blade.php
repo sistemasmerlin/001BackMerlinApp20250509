@@ -137,15 +137,27 @@
                             </td>
                             @else
                             <td class="px-4 py-2 border-t-2">
-                                N/A
+                            {{ $pedido->observaciones }} 
                             </td>
                             @endif
 
                             @if($pedido->nota === 'Negociación especial')
                             <td class="px-4 py-2 bg-lime-300 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
                             @else
-                            <td class="px-4 py-2 bg-gray-200 border-t-2"><strong>{{ $pedido->nota }}</strong></td>
+                            <td class="px-4 py-2 bg-gray-200 border-t-2"><strong>{{ $pedido->nota }}</strong>
+                            <br>
+                            @can('Editar Estado Pedido')
+                            <flux:modal.trigger name="edit-estado" wire:click="editarEstado({{ $pedido->id }})">
+                                    <button class="px-3 py-1 bg-blue-600 hover:bg-blue-800 text-white font-semibold rounded-lg mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </button>
+                                </flux:modal.trigger>
+                            </td>
+                            @endcan
                             @endif
+                            
                             <td class="px-4 py-2 border-t-2">{{ $pedido->fecha_pedido }}</td>
                             @if($pedido->nota === 'Negociación especial')
                             <td class="px-4 py-2 border-t-2">
@@ -171,7 +183,7 @@
             </table>
         </div>
 
-        <!-- Modal para editar nota -->
+        <!-- Modal para editar observacion -->
 
         <flux:modal name="edit-nota" class="md:w-96" >
             <form wire:submit.prevent="guardarNota">
@@ -186,6 +198,37 @@
                         <div>
                             <label for="observacion" class="block text-sm text-gray-900 font-bold">NOTA:</label>
                             <input id="observacion" wire:model.defer="observacion" class="w-full border border-gray-300 rounded p-2" rows="4">
+                        </div>
+                        <div class="flex justify-end">
+                            <flux:spacer />
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Guardar</button>
+                        </div>
+                    </div>
+                </form>
+        </flux:modal>
+
+        
+        <!-- Modal para editar nota -->
+
+        <flux:modal name="edit-estado" class="md:w-96" >
+            <form wire:submit.prevent="guardarEstado">
+                <div class="space-y-6">
+                        <div class="bg-blue-500 p-3 rounded">
+                            <h2 class="text-center text-accent"><strong>ACTUALIZAR ESTADO</strong> </h2>
+                        </div>
+                        <div>
+                            <label for="notaId" class="block text-sm text-gray-900 font-bold">ID COTIZACION:</label>
+                            <input id="notaId" wire:model.defer="notaId" class="w-full border bg-gray-300 border-gray-300 rounded p-1" rows="4" readonly>
+                        </div>
+                        <div>
+                            <label for="nota" class="block text-sm text-gray-900 font-bold">ESTADO:</label>
+                            <select
+                            id="nota"
+                            wire:model.defer="nota"
+                            class="w-full border border-gray-300 rounded p-2" required>
+                            <option value="">-- Seleccione Estado --</option>
+                            <option value="Negociación especial">Negociación especial</option>
+                        </select>
                         </div>
                         <div class="flex justify-end">
                             <flux:spacer />

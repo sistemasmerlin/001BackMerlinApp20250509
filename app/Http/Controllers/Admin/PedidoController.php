@@ -20,6 +20,9 @@ class PedidoController extends Controller
             $pedido = Pedido::findOrFail($id); // 🔧 CORREGIDO: Obtener un solo objeto
             $pedido->prefijo = 'PAM';
             $pedidoXml = new PedidoXml();
+
+           // return $pedidoXml;
+
             $resultadoXml = $pedidoXml->generarXml($pedido);
 
             $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
@@ -173,7 +176,9 @@ class PedidoController extends Controller
                 $subtotal_descuento += $detalle->total_descuento;
             }
 
-            $pedido->nota = $resultadoXml['status'] === 'success' ? 'Creado en Siesa' : 'No creado en Siesa';
+            $factura_siesa = $prefijo_siesa.'-'.$consecutivo_siesa;
+
+            $pedido->nota = $resultadoXml['status'] === 'success' ? $factura_siesa : 'No creado en Siesa';
             $pedido->save();
 
             DB::commit();

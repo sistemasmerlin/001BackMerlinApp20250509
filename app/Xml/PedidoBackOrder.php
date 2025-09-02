@@ -24,8 +24,8 @@ class PedidoBackOrder {
 
             $opts = array('ssl' => array('ciphers'=>'RC4-SHA', 'verify_peer'=>false, 'verify_peer_name'=>false));
             $params = array ('encoding' => 'UTF-8', 'verifypeer' => false, 'verifyhost' => false, 'soap_version' => SOAP_1_2,'trace' => 1, 'exceptions' => 1, "connection_timeout" => 180, 'stream_context' => stream_context_create($opts));
-            $url = 'http://192.168.140.249/WSUNOEE/WSUNOEE.asmx?WSDL';
-            //$url = 'http://192.168.140.236/WSUNOEE/WSUNOEE.asmx?WSDL';
+            //$url = 'http://192.168.140.249/WSUNOEE/WSUNOEE.asmx?WSDL';
+            $url = 'http://192.168.140.236/WSUNOEE/WSUNOEE.asmx?WSDL';
             $client = new \SoapClient($url, $params);
 
             $prefijo = $pedido->prefijo ?? 'PAM';

@@ -15,15 +15,23 @@ class Pedido {
         $xmlResult = null;
         $importar = "";
 
-        $nombreConexion = env('SIESA_NOMBRE_CONEXION');
-        $usuario = env('SIESA_USUARIO');
-        $clave = env('SIESA_CLAVE');
-        //$url = env('SIESA_WSDL_URL');
+        $nombreConexion = config('siesa.nombre_conexion');
+        $usuario        = config('siesa.usuario');
+        $clave          = config('siesa.clave');
+        $url            = config('siesa.wsdl_url');
+
+
+        // return $data = [
+        //     'nombreConexion' =>  $nombreConexion,
+        //     'usuario' =>  $usuario,
+        //     'clave' =>  $clave,
+        //     'url' => $url
+        // ];
 
     try {
             $opts = array('ssl' => array('ciphers'=>'RC4-SHA', 'verify_peer'=>false, 'verify_peer_name'=>false));
             $params = array ('encoding' => 'UTF-8', 'verifypeer' => false, 'verifyhost' => false, 'soap_version' => SOAP_1_2,'trace' => 1, 'exceptions' => 1, "connection_timeout" => 180, 'stream_context' => stream_context_create($opts));
-            $url = 'http://192.168.140.249/WSUNOEE/WSUNOEE.asmx?WSDL';
+            //$url = 'http://192.168.140.249/WSUNOEE/WSUNOEE.asmx?WSDL';
             //$url = 'http://192.168.140.236/WSUNOEE/WSUNOEE.asmx?WSDL';
             $client = new \SoapClient($url, $params);
 
@@ -143,10 +151,8 @@ class Pedido {
                 $filasProductos .= '<Linea>' . $filaFinal . '99990001003</Linea>';
                 $importar = '<Importar><NombreConexion>'.$nombreConexion.'</NombreConexion>
                 <IdCia>3</IdCia><Usuario>'.$usuario.'</Usuario><Clave>'.$clave.'</Clave><Datos><Linea>000000100000001003</Linea>'.$linea2.$filasProductos.'</Datos></Importar>';
-
-
-                    
-        // return $importar;
+        
+           //return $importar;
 
             $importacionXML = $client->ImportarXML(['pvstrDatos'=>$importar,'printTipoError'=>0]);
 
