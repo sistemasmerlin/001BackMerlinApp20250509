@@ -113,6 +113,10 @@ class Pedido {
                 }
 
 
+                if( $idCliente == '900110012' ){
+                    $flete = 0;
+                }
+
                 if ($flete > 0) {
                     // Función auxiliar para completar con ceros o espacios
                     $padLeft = fn($value, $length, $char = '0') => str_pad($value, $length, $char, STR_PAD_LEFT);

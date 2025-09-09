@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class ProductosController extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
 
         $result = DB::connection('sqlsrv')
             ->select("SELECT t120.f120_id item
@@ -332,9 +333,9 @@ class ProductosController extends Controller
                 t106.f106_descripcion,
                 t120.f120_fecha_creacion
                 ORDER BY 1");
-       
+
         return response()->json([
             'productos' => $result,
-        ]);        
+        ]);
     }
 }
