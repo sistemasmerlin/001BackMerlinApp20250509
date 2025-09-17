@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+
+
+use App\Models\MotivosVisita;
+use App\Models\ReporteVisita;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Pedido;
@@ -205,6 +211,7 @@ class PedidoController extends Controller
             'productos.*.cantidad' => 'required|numeric|min:1',
             'productos.*.precio_1' => 'required|numeric|min:0',
             'totales' => 'required|array',
+            'ubicacion_envio' => 'required|array',
             'creadoPor.nombre' => 'required|string',
             'creadoPor.codigo' => 'required|string',
         ]);
@@ -291,6 +298,25 @@ class PedidoController extends Controller
                 'fecha_pedido' => now(),
             ]);
 
+            $ciudad = $this->obtenerCiudadGoogle($request->ubicacion_envio['lat'], $request->ubicacion_envio['lng']);
+
+                        // Crear el reporte
+            $reporte = ReporteVisita::create([
+                'nit' => $request->cliente['nit'],
+                'razon_social' => $request->cliente['razon_social'],
+                'sucursal' => $request->sucursal['id_sucursal'],
+                'vendedor' => $request->creadoPor['codigo'],
+                'latitud' =>  $request->ubicacion_envio['lat'],
+                'longitud' => $request->ubicacion_envio['lng'],
+                'ciudad' => $ciudad,
+                'notas' => 'Desde enviar pedido',
+            ]);
+
+            
+            $motivoVentaId = MotivosVisita::where('motivo', 'Venta')->value('id');
+
+            $reporte->motivos()->attach([$motivoVentaId]);
+
             foreach ($request->productos as $producto) {
                 DetallePedido::create([
                     'pedido_id' => $pedido->id,
@@ -338,7 +364,6 @@ class PedidoController extends Controller
 
             $pedidoXml = new PedidoXml();
             $resultadoXml = $pedidoXml->generarXml($pedido);
-
 
             if ($resultadoXml['status'] !== 'success') {
 
@@ -716,5 +741,23 @@ class PedidoController extends Controller
             'estado' => true,
             'mensaje' => 'Se retornan el detalle del pedido con negociación especial',
         ], 200);
+    }
+
+    public function obtenerCiudadGoogle($latitud, $longitud)
+    {
+        $apiKey = config('services.google_maps.key'); // o colócala directamente
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$latitud},{$longitud}&key={$apiKey}";
+
+        $response = Http::get($url);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            if (isset($data['results'][0])) {
+                return $data['results'][0]['formatted_address'];
+            }
+        }
+
+        return 'Desconocida';
     }
 }
