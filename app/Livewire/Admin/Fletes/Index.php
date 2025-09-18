@@ -16,6 +16,11 @@ class Index extends Component
     public $archivoCsv;
     public $excel_fletes;
 
+    public $modalEditar = false;
+    public $fleteId;
+    public $depto, $cod_depto, $ciudad, $cod_ciudad, $menor, $mayor, $minimo, $entrega, $monto, $monto_minimo;
+
+
     /*protected $rules = [
         'archivoCsv' => 'required|file|mimes:csv,txt',
     ];*/
@@ -85,6 +90,76 @@ class Index extends Component
         session()->flash('success', 'Archivo importado correctamente.');
         $this->reset('excel_fletes'); // limpia el input
 
+    }
+
+    public function eliminarFlete($id)
+    {
+        try {
+            $flete = FleteCiudad::findOrFail($id);
+            $flete->delete();
+    
+            session()->flash('success', 'Flete eliminado correctamente.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Hubo un problema al eliminar el flete.');
+        }
+
+        return redirect(request()->header('Referer'));
+    }
+
+    public function editarFlete($id){
+        $flete = FleteCiudad::findOrFail($id);
+
+        $this->fleteId = $flete->id;
+        $this->depto = $flete->depto;
+        $this->cod_depto = $flete->cod_depto;
+        $this->ciudad = $flete->ciudad;
+        $this->cod_ciudad = $flete->cod_ciudad;
+        $this->menor = $flete->menor;
+        $this->mayor = $flete->mayor;
+        $this->minimo = $flete->minimo;
+        $this->entrega = $flete->entrega;
+        $this->monto = $flete->monto;
+        $this->monto_minimo = $flete->monto_minimo;
+
+        $this->modalEditar = true;
+    }
+
+    public function actualizarFlete(){
+
+            //dd($this->fleteId, $this->depto, $this->monto);
+
+                $this->validate([
+                    'depto'        => 'required|string',
+                    'cod_depto'    => 'required|string',
+                    'ciudad'       => 'required|string',
+                    'cod_ciudad'   => 'required|string',
+                    'menor'        => 'required|numeric',   
+                    'mayor'        => 'required|numeric',   
+                    'minimo'       => 'required|integer',   
+                    'entrega'      => 'required|integer',   
+                    'monto'        => 'required|integer',   
+                    'monto_minimo' => 'required|integer',   
+                ]);
+
+            $flete = FleteCiudad::findOrFail($this->fleteId);
+
+            $flete->update([
+                'depto' => $this->depto,
+                'cod_depto' => $this->cod_depto,
+                'ciudad' => $this->ciudad,
+                'cod_ciudad' => $this->cod_ciudad,
+                'menor' => $this->menor,
+                'mayor' => $this->mayor,
+                'minimo' => $this->minimo,
+                'entrega' => $this->entrega,
+                'monto' => $this->monto,
+                'monto_minimo' => $this->monto_minimo,
+            ]);
+
+            $this->modalEditar = false;
+            session()->flash('success', 'Flete actualizado correctamente.');
+
+            return redirect(request()->header('Referer'));
     }
 
     public function render()

@@ -40,6 +40,8 @@ class Index extends Component
 
         $this->resetModal();
         session()->flash('success', 'Permiso creado correctamente');
+
+        return redirect(request()->header('Referer'));
     }
 
     public function editar($id)
@@ -61,6 +63,22 @@ class Index extends Component
 
         $this->resetModal();
         session()->flash('success', 'Permiso actualizado correctamente');
+
+        return redirect(request()->header('Referer'));
+    }
+
+    public function eliminarPermiso($id)
+    {
+        try {
+            $permiso = Permission::findOrFail($id);
+            $permiso->delete();
+    
+            session()->flash('success', 'Permiso eliminado correctamente.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Hubo un problema al eliminar el Permiso.');
+        }
+
+        return redirect(request()->header('Referer'));
     }
 
     public function resetModal()
