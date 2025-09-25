@@ -201,7 +201,8 @@ class PedidoController extends Controller
     public function guardar(Request $request)
     {
         $data = $request->validate([
-            'cliente.nit' => 'required|string',
+            'cliente.nit' => 'required|string', 
+            'cliente.facturas_vencidas' => 'required|string', 
             'cliente.razon_social' => 'required|string',
             'cliente.email' => 'nullable|email',
             'sucursal.id_sucursal' => 'required|string',
@@ -363,6 +364,7 @@ class PedidoController extends Controller
             }
 
             $pedidoXml = new PedidoXml();
+            
             $resultadoXml = $pedidoXml->generarXml($pedido);
 
             if ($resultadoXml['status'] !== 'success') {

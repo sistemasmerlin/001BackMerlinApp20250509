@@ -34,24 +34,40 @@ class Detalle extends Component
         return view('livewire.admin.pedidos.detalle');
     }
 
-    public function guardarLinea($index)
-    {
-        $detalle = $this->detalles[$index];
-        $registro = DetallePedido::find($detalle['id']);
+    public function guardarLinea($index){
 
-        if ($registro) {
-            $registro->cantidad = $detalle['cantidad'];
-            $registro->descuento = $detalle['descuento'];
-            $registro->save();
+                $detalle = $this->detalles[$index];
 
-            session()->flash('success', 'Producto actualizado');
-        }
+                /* $validated = validator($detalle, [
+                    'cantidad' => 'required|integer|min:1',
+                    'descuento' => 'nullable|numeric|min:0',
+                ])->validate(); */
 
-        return redirect(request()->header('Referer'));
-    }
+                if ($detalle['cantidad'] < 1) {
+                    session()->flash('error', 'La cantidad mínima es 1 en todos los productos.');
+                    return redirect(request()->header('Referer'));
+                }
+
+                $registro = DetallePedido::find($detalle['id']);
+
+                if ($registro) {
+                    $registro->cantidad = $validated['cantidad'];
+                    $registro->descuento = $validated['descuento'] ?? 0;
+                    $registro->save();
+
+                    session()->flash('success', 'Producto actualizado');
+                }
+
+                return redirect(request()->header('Referer'));
+            }
 
     public function aplicarDescuentoGlobal()
     {
+        if (is_null($this->descuentoGlobal) || $this->descuentoGlobal === '') {
+            session()->flash('error', 'Valor vacío: ingresa un descuento para aplicarlo.');
+            return;
+        }
+
         foreach ($this->detalles as $i => $detalle) {
             $registro = DetallePedido::find($detalle['id']);
             if ($registro) {
@@ -59,6 +75,7 @@ class Detalle extends Component
                 $registro->save();
 
                 $this->detalles[$i]['descuento'] = $this->descuentoGlobal;
+                
             }
         }
 
@@ -72,7 +89,13 @@ class Detalle extends Component
             $actualizados = 0;
         
             foreach ($this->detalles as $detalle) {
+
                 $registro = DetallePedido::find($detalle['id']);
+
+                if ($detalle['cantidad'] < 1) {
+                    session()->flash('error', 'La cantidad mínima es 1 en todos los productos.');
+                    return redirect(request()->header('Referer'));
+                }
         
                 if ($registro) {
                     $cantidadNueva = $detalle['cantidad'];

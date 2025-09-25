@@ -12,6 +12,12 @@
             {{ session('success') }}
         </div>
     @endif
+
+    @if (session()->has('error'))
+        <div class="mb-4 rounded-lg bg-red-100 px-4 py-2 text-sm text-red-800">
+            {{ session('error') }}
+        </div>
+    @endif
     
     <div class="w-full overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
         <div wire:ignore>

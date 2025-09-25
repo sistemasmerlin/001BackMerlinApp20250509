@@ -45,6 +45,13 @@ class TercerosController extends Controller
             MAX(t201.f201_id_lista_precio) AS f201_id_lista_precio,
             MAX(t206.f206_descripcion) AS f206_descripcion,
 
+            (  SELECT 
+                COUNT(*) AS TotalRegistros
+            FROM [UnoEE].[dbo].[t353_co_saldo_abierto]
+            WHERE f353_rowid_tercero = t200.f200_rowid 
+            AND [f353_fecha_cancelacion] IS NULL
+            and DATEDIFF(DAY, [f353_fecha], GETDATE()) > 60) as facturasVencidas,
+
             SUM(CAST(pedidos.pedidos AS FLOAT)) AS pedidos,
             SUM(CAST(cartera.cartera AS FLOAT)) AS cartera,
             AVG(CAST(pago.Dias_Prom_pago AS FLOAT)) AS pago,
@@ -336,6 +343,7 @@ class TercerosController extends Controller
                 $clientes[$terceroId] = [
                     'tercero_id' => $terceroId,
                     'nit' => $row->f200_nit,
+                    'facturas_vencidas' => $row->facturasVencidas,
                     'razon_social' => $row->f200_razon_social,
                     'nombre_establecimiento' => $row->f200_nombre_est,
                     'apellido1' => $row->f200_apellido1,
