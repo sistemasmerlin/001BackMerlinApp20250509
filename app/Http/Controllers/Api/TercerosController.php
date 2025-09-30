@@ -50,7 +50,8 @@ class TercerosController extends Controller
             FROM [UnoEE].[dbo].[t353_co_saldo_abierto]
             WHERE f353_rowid_tercero = t200.f200_rowid 
             AND [f353_fecha_cancelacion] IS NULL
-            and DATEDIFF(DAY, [f353_fecha], GETDATE()) > 60) as facturasVencidas,
+            AND f353_id_tipo_docto_cruce = 'FVM'
+            AND DATEDIFF(DAY, [f353_fecha], GETDATE()) > 60) as facturasVencidas,
 
             SUM(CAST(pedidos.pedidos AS FLOAT)) AS pedidos,
             SUM(CAST(cartera.cartera AS FLOAT)) AS cartera,

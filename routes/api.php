@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CarteraController;
 use App\Http\Controllers\Api\NoticiasController;
 use App\Http\Controllers\Api\BackorderController;
 use App\Http\Controllers\Api\MotivosVisitaController;
+use App\Http\Controllers\Api\ComercialController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -62,6 +63,14 @@ Route::middleware('auth:sanctum')->get('/noticias', [NoticiasController::class, 
 Route::middleware('auth:sanctum')->get('/motivos/visita', [MotivosVisitaController::class, 'index']);
 
 Route::middleware('auth:sanctum')->post('/motivos/visita/guardar', [MotivosVisitaController::class, 'store']);
+
+//Indicadores
+
+Route::middleware('auth:sanctum')->get(
+    '/indicadores/clientes/impactados/{asesor}/{periodo}',
+    [ComercialController::class, 'clientesImpactados']
+);
+
 
 
 
