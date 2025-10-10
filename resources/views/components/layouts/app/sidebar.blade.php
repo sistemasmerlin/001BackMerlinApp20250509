@@ -112,6 +112,13 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+                    @can('Administrar noticias')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('presupuesto.index')" :current="request()->routeIs('presupuesto.*')" wire:navigate>
+                            {{ __('Presupuesto Comercial') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
             @can('Logistica')

@@ -322,6 +322,7 @@
                             class="w-full border border-gray-300 rounded p-2 bg-white" required>
                             <option value="">-- Seleccione Lista --</option>
                             <option value="001">001</option>
+                            <option value="202">202</option>
                         </select>
 
                         <!-- ========================== -->

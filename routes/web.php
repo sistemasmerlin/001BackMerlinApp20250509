@@ -17,10 +17,12 @@ use App\Livewire\Admin\MotivosVisitas\Index as MotivosVisitasIndex;
 use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
+use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesIndex;
 
 use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
 use App\Http\Controllers\Admin\PedidoController;
+use App\Http\Controllers\Admin\PresupuestoComercialController;
 use App\Http\Controllers\Api\InteresesCarteraController;
 
 Route::get('/', function () {
@@ -43,6 +45,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/usuarios', UsuariosIndex::class)->middleware('can:Usuarios')->name('usuarios.index');
     Route::get('/roles', RolesIndex::class)->name('roles.index');
     Route::get('/permisos', PermisosIndex::class)->name('permisos.index');
+    Route::get('/presupuesto', PresupuestosComercialesIndex::class)->name('presupuesto.index');
 
     Route::get('/terceros', TercerosIndex::class)->name('terceros.index');
     Route::get('/terceros/consultar', [TercerosController::class, 'index']);
@@ -73,6 +76,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/enviar-envio/{id}', [PedidoController::class, 'enviarPedido'])->name('pedidos.enviar');
 
     Route::get('/cartera/intereses/calcular', [InteresesCarteraController::class, 'calcularInteresesDiarios'])->name('cartera.intereses.calcular');
+
+    Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
 });
 
 

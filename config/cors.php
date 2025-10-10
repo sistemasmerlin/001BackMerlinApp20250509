@@ -12,6 +12,8 @@ return [
         'http://localhost:8100',
         'http://127.0.0.1:8100',
         'http://192.168.140.233:8100',
+        'ionic://localhost',
+        'http://10.0.2.2', 
         'https://aplicacion.merlinrod.com',
     ],
 
