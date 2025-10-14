@@ -112,6 +112,21 @@ class ComercialController extends Controller
             [$year, $month, $asesor]
         );
 
+        $nitsVenta = collect($clientesConVenta)
+            ->pluck('f200_nit')
+            ->filter()
+            ->map(fn($n) => trim((string)$n))
+            ->unique()
+            ->values();
+
+        $clientesSinVentaCantidad = ReporteVisita::query()
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->where('vendedor', $asesor)
+            ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
+            ->when($nitsVenta->isNotEmpty(), fn($q) => $q->whereNotIn('nit', $nitsVenta))
+            ->distinct('nit')
+            ->count('nit');
 
         $impactadosNoVenta = ReporteVisita::query()
             ->whereYear('created_at', $year)
@@ -370,6 +385,7 @@ class ComercialController extends Controller
             'clientes_con_venta'   => $conVenta,
             'cumplimiento_porcent' => $cumplimiento,
             'clientesConVenta'     => $clientesConVenta,
+            'clientesSinVentaCantidad' => $clientesSinVentaCantidad,
             'periodo'              => $periodo,
             'impactadosNoVenta'    => $impactadosNoVenta,
             'asesor'               => $asesor,
