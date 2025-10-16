@@ -23,6 +23,20 @@ class ComercialController extends Controller
         $month = (int) substr($periodo, 4, 2);
         $asesor = (int) $asesor;
 
+        $datosAsesor = DB::connection('sqlsrv')
+            ->selectOne("SELECT t210.f210_id as codigo_asesor,
+            t200.f200_nit as codigo_tercero
+            from [t200_mm_terceros] AS t200
+            INNER JOIN [t210_mm_vendedores]AS t210
+            ON t210.[f210_rowid_tercero] = t200.f200_rowid
+            AND t200.f200_id_cia = 3
+            AND t210.f210_id = $asesor");
+
+        if( $datosAsesor){
+            $codigo_tercero = $datosAsesor->codigo_tercero;
+            $codigo_asesor = $datosAsesor->codigo_asesor;
+        }
+
         // Total clientes del asesor
         $totalRow = DB::connection('sqlsrv')->selectOne(
             "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
@@ -34,7 +48,7 @@ class ComercialController extends Controller
                AND t200.f200_ind_cliente = 1
                AND t200.f200_ind_estado = 1
                AND t201.f201_id_vendedor = ?",
-            [$asesor]
+            [$codigo_tercero]
         );
 
         $ventaConPagoRow = DB::connection('sqlsrv')->select(
@@ -61,7 +75,7 @@ class ComercialController extends Controller
                     FROM totales
                     GROUP BY ROLLUP(f_condicion_pago);
                     ",
-                    [$periodo,$asesor]);
+                    [$periodo,$codigo_tercero]);
         
          $ventasPeriodoRow = DB::connection('sqlsrv')->select(
                                 "SELECT 
@@ -85,7 +99,7 @@ class ComercialController extends Controller
                     GROUP BY t461_1.f_cliente_fact, t461_1.f_ciudad_desp, t200.f200_razon_social, t461_1.f_id_tipo_docto 
                     ORDER BY t461_1.f_ciudad_desp, t461_1.f_id_tipo_docto ASC;
                     ",
-                    [$periodo,$asesor]);
+                    [$periodo,$codigo_tercero]);
 
         $ventaRow = DB::connection('sqlsrv')->selectOne(
             "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
@@ -96,7 +110,7 @@ class ComercialController extends Controller
                 AND YEAR(t461.f461_id_fecha) = ?
                 AND MONTH(t461.f461_id_fecha) = ?
                 AND t201.f201_id_vendedor = ?",
-            [$year, $month, $asesor]
+            [$year, $month, $codigo_tercero]
         );
 
         $clientesConVenta = DB::connection('sqlsrv')->select(
@@ -109,7 +123,7 @@ class ComercialController extends Controller
                 AND YEAR(t461.f461_id_fecha) = ?
                 AND MONTH(t461.f461_id_fecha) = ?
                 AND t201.f201_id_vendedor = ?",
-            [$year, $month, $asesor]
+            [$year, $month, $codigo_tercero]
         );
 
         $nitsVenta = collect($clientesConVenta)
@@ -122,7 +136,7 @@ class ComercialController extends Controller
         $clientesSinVentaCantidad = ReporteVisita::query()
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
-            ->where('vendedor', $asesor)
+            ->where('vendedor', $codigo_tercero)
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->when($nitsVenta->isNotEmpty(), fn($q) => $q->whereNotIn('nit', $nitsVenta))
             ->distinct('nit')
@@ -131,7 +145,7 @@ class ComercialController extends Controller
         $impactadosNoVenta = ReporteVisita::query()
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
-            ->where('vendedor', $asesor)
+            ->where('vendedor', $codigo_tercero)
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->distinct('nit')
             ->count('nit');
@@ -141,7 +155,7 @@ class ComercialController extends Controller
         $conVenta = (int)($ventaRow->clientes_con_venta ?? 0);
         $cumplimiento = $total > 0 ? round(($conVenta / $total) * 100, 2) : 0.0;
 
-        $presupuesto = PresupuestoComercial::where('codigo_asesor','=',$asesor)->where('periodo','=', $periodo)->get();
+        $presupuesto = PresupuestoComercial::where('codigo_asesor','=',$codigo_tercero)->where('periodo','=', $periodo)->get();
 
 
         $marcasPresu = [
@@ -170,7 +184,7 @@ class ComercialController extends Controller
                 ->where('periodo', $periodo),
             'tipo_asesor'
         )
-        ->where('users.codigo_asesor', $asesor);
+        ->where('users.codigo_asesor', $codigo_tercero);
 
     foreach ($marcasPresu as $marca => $alias) {
         $query->withSum(
@@ -225,7 +239,7 @@ class ComercialController extends Controller
         SQL;
 
         
-        $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $asesor]);
+        $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $codigo_tercero]);
 
         $ventasPorMarca = [];
 
@@ -342,7 +356,7 @@ class ComercialController extends Controller
             GROUP BY [f_vendedor],[f_cod_vendedor]
         SQL;
 
-        $dataVentasCat = DB::connection('sqlsrv')->select($sqlVentasCat, [$periodo, $asesor]);
+        $dataVentasCat = DB::connection('sqlsrv')->select($sqlVentasCat, [$periodo, $codigo_tercero]);
 
         $ventasCat = [];
         foreach ($dataVentasCat as $r) {
@@ -388,7 +402,7 @@ class ComercialController extends Controller
             'clientesSinVentaCantidad' => $clientesSinVentaCantidad,
             'periodo'              => $periodo,
             'impactadosNoVenta'    => $impactadosNoVenta,
-            'asesor'               => $asesor,
+            'asesor'               => $codigo_tercero,
             'presupuesto'          => $data_asesores,
             'presupuesto1'          => $presupuesto,
             'ventaCondPago'       => $ventaConPagoRow,
