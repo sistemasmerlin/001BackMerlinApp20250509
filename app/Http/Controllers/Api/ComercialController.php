@@ -137,7 +137,7 @@ class ComercialController extends Controller
         $clientesSinVentaCantidad = ReporteVisita::query()
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
-            ->where('vendedor', $codigo_tercero)
+            ->where('vendedor', $codigo_asesor)
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->when($nitsVenta->isNotEmpty(), fn($q) => $q->whereNotIn('nit', $nitsVenta))
             ->distinct('nit')
@@ -146,7 +146,7 @@ class ComercialController extends Controller
         $impactadosNoVenta = ReporteVisita::query()
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
-            ->where('vendedor', $codigo_tercero)
+            ->where('vendedor', $codigo_asesor)
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->distinct('nit')
             ->count('nit');
