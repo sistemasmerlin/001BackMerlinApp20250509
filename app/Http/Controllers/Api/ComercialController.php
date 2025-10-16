@@ -13,7 +13,7 @@ class ComercialController extends Controller
 
     public function clientesImpactados(Request $request, $asesor, $periodo)
     {
-        // periodo esperado: YYYYMM (ej: 202509)
+        
         $periodo = preg_replace('/\D/', '', $periodo);
         if (strlen($periodo) !== 6) {
             return response()->json(['message' => 'Periodo inválido (use YYYYMM)'], 422);
@@ -37,6 +37,7 @@ class ComercialController extends Controller
             $codigo_asesor = $datosAsesor->codigo_asesor;
         }
 
+        //return  $codigo_tercero;
         // Total clientes del asesor
         $totalRow = DB::connection('sqlsrv')->selectOne(
             "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
@@ -48,7 +49,7 @@ class ComercialController extends Controller
                AND t200.f200_ind_cliente = 1
                AND t200.f200_ind_estado = 1
                AND t201.f201_id_vendedor = ?",
-            [$codigo_tercero]
+            [$codigo_asesor]
         );
 
         $ventaConPagoRow = DB::connection('sqlsrv')->select(
@@ -77,7 +78,7 @@ class ComercialController extends Controller
                     ",
                     [$periodo,$codigo_tercero]);
         
-         $ventasPeriodoRow = DB::connection('sqlsrv')->select(
+        $ventasPeriodoRow = DB::connection('sqlsrv')->select(
                                 "SELECT 
                         t461_1.f_cliente_fact,
                         t200.f200_razon_social,
@@ -99,7 +100,7 @@ class ComercialController extends Controller
                     GROUP BY t461_1.f_cliente_fact, t461_1.f_ciudad_desp, t200.f200_razon_social, t461_1.f_id_tipo_docto 
                     ORDER BY t461_1.f_ciudad_desp, t461_1.f_id_tipo_docto ASC;
                     ",
-                    [$periodo,$codigo_tercero]);
+                    [$periodo,$codigo_asesor]);
 
         $ventaRow = DB::connection('sqlsrv')->selectOne(
             "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
@@ -110,7 +111,7 @@ class ComercialController extends Controller
                 AND YEAR(t461.f461_id_fecha) = ?
                 AND MONTH(t461.f461_id_fecha) = ?
                 AND t201.f201_id_vendedor = ?",
-            [$year, $month, $codigo_tercero]
+            [$year, $month, $codigo_asesor]
         );
 
         $clientesConVenta = DB::connection('sqlsrv')->select(
@@ -123,7 +124,7 @@ class ComercialController extends Controller
                 AND YEAR(t461.f461_id_fecha) = ?
                 AND MONTH(t461.f461_id_fecha) = ?
                 AND t201.f201_id_vendedor = ?",
-            [$year, $month, $codigo_tercero]
+            [$year, $month, $codigo_asesor]
         );
 
         $nitsVenta = collect($clientesConVenta)
@@ -402,7 +403,7 @@ class ComercialController extends Controller
             'clientesSinVentaCantidad' => $clientesSinVentaCantidad,
             'periodo'              => $periodo,
             'impactadosNoVenta'    => $impactadosNoVenta,
-            'asesor'               => $codigo_tercero,
+            'asesor'               => $codigo_asesor,
             'presupuesto'          => $data_asesores,
             'presupuesto1'          => $presupuesto,
             'ventaCondPago'       => $ventaConPagoRow,
