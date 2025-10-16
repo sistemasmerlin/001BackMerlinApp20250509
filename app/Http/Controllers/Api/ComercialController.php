@@ -185,7 +185,7 @@ class ComercialController extends Controller
                 ->where('periodo', $periodo),
             'tipo_asesor'
         )
-        ->where('users.codigo_asesor', $codigo_tercero);
+        ->where('users.codigo_asesor', $codigo_asesor);
 
     foreach ($marcasPresu as $marca => $alias) {
         $query->withSum(
@@ -211,9 +211,9 @@ class ComercialController extends Controller
 
     $data_asesores = $query->get();
 
-    $sqlVentasPorMarca = <<<SQL
+     $sqlVentasPorMarca = <<<SQL
         SELECT 
-            RTRIM([f_vendedor])       as vendedor,        -- suele ser CÉDULA
+            RTRIM([f_cod_vendedor])       as vendedor,        -- suele ser CÉDULA
             RTRIM([f_cod_vendedor])   as cod_vendedor,    -- suele ser CÓDIGO ASESOR
             RTRIM(t106.f106_descripcion) as marca,
             SUM([f_cant_base])        as cantidad,
@@ -240,7 +240,7 @@ class ComercialController extends Controller
         SQL;
 
         
-        $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $codigo_tercero]);
+        $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $codigo_asesor]);
 
         $ventasPorMarca = [];
 
@@ -328,7 +328,7 @@ class ComercialController extends Controller
 
         $sqlVentasCat = <<<SQL
             SELECT 
-                RTRIM([f_vendedor]) as vendedor,
+                RTRIM([f_cod_vendedor]) as vendedor,
                 RTRIM([f_cod_vendedor]) as cod_vendedor,
                 CONVERT(int, SUM(CASE 
                     WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT')
@@ -392,8 +392,9 @@ class ComercialController extends Controller
             // Cumplimientos por categorías
             $u->cumplimiento_venta_total_llantas     = $pct($u->venta_total_llantas,    (float) ($u->total_llantas ?? 0));
             $u->cumplimiento_venta_total_accesorios  = $pct($u->venta_total_accesorios, (float) ($u->total_repuestos ?? 0)); // si tu total por accesorios viene de REPUSTOS (presupuesto)
-            }
+        }
 
+        //return $data_asesores;
 
         return response()->json([
             'total_clientes'       => $total,
