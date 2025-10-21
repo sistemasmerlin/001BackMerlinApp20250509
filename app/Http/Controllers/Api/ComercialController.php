@@ -52,6 +52,35 @@ class ComercialController extends Controller
             [$codigo_asesor]
         );
 
+        $totalCreditoRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
+            FROM t200_mm_terceros t200
+            LEFT JOIN t201_mm_clientes t201
+                ON t200.f200_rowid = t201.f201_rowid_tercero
+            WHERE t200.f200_id_cia = 3
+                AND t201.f201_id_cia = 3
+                AND t200.f200_ind_cliente = 1
+                AND t200.f200_ind_estado = 1
+                AND t201.f201_id_vendedor = ?
+	            AND f201_id_cond_pago IN ('30D','10D','15D','30E')",
+            [$codigo_asesor]
+        );
+
+        $totalContadoRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
+            FROM t200_mm_terceros t200
+            LEFT JOIN t201_mm_clientes t201
+                ON t200.f200_rowid = t201.f201_rowid_tercero
+            WHERE t200.f200_id_cia = 3
+                AND t201.f201_id_cia = 3
+                AND t200.f200_ind_cliente = 1
+                AND t200.f200_ind_estado = 1
+                AND t201.f201_id_vendedor = ?
+	            AND f201_id_cond_pago NOT IN ('30D','10D','15D','30E')",
+            [$codigo_asesor]
+        );
+        
+
         $ventaConPagoRow = DB::connection('sqlsrv')->select(
             "WITH totales AS (
                         SELECT 
@@ -82,23 +111,42 @@ class ComercialController extends Controller
                                 "SELECT 
                         t461_1.f_cliente_fact,
                         t200.f200_razon_social,
-                        t461_1.f_id_tipo_docto        AS tipo_docto,
+                        t461_1.f_id_tipo_docto AS tipo_docto,
+                        t461_1.f_nrodocto AS consecutivo_docto,
+                        t461_1.f_condicion_pago AS condicion_pago,
                         SUM(t461_1.f_valor_bruto_local)    AS total_bruto,
                         SUM(t461_1.f_valor_dscto_local)    AS total_descuento,
                         SUM(t461_1.f_valor_imp_local)      AS total_impuesto,
                         SUM(t461_1.f_valor_neto_local)     AS total_neto_local,
                         SUM(t461_1.f_valor_subtotal_local) AS total_subtotal,
-                        t461_1.f_ciudad_desp
+                        t461_1.f_ciudad_desp,
+                        MAX(t206.f206_descripcion) AS categoria
                     FROM [BI_T461_1] AS t461_1
                     LEFT JOIN [t200_mm_terceros] AS t200
                     ON t200.f200_nit = t461_1.f_cliente_fact
                     AND t200.f200_id_cia = 3
+                    LEFT JOIN [t201_mm_clientes] AS t201
+					ON t201.f201_rowid_tercero = t200.f200_rowid
+					AND t201.[f201_id_sucursal] = t461_1.f_cliente_fact_suc
+					AND t200.f200_id_cia = 3
+					LEFT JOIN t207_mm_criterios_clientes t207 ON t207.f207_rowid_tercero = t201.f201_rowid_tercero
+					AND t207.f207_id_sucursal = t201.f201_id_sucursal
+					AND t207.f207_id_cia = t201.f201_id_cia
+					AND t207.f207_id_plan_criterios = '005'
+					LEFT JOIN  t206_mm_criterios_mayores t206 
+					ON t206.f206_id_plan = t207.f207_id_plan_criterios
+					AND t206.f206_id_cia = t207.f207_id_cia 
+					AND t206.f206_id = t207.f207_id_criterio_mayor
                     WHERE t461_1.f_periodo = ?
                     AND t461_1.f_ref_item NOT IN ('ZLE99998','ZLE99999')
                     AND t461_1.f_parametro_biable = 3 
                     AND t461_1.f_cod_vendedor = ?
-                    GROUP BY t461_1.f_cliente_fact, t461_1.f_ciudad_desp, t200.f200_razon_social, t461_1.f_id_tipo_docto 
-                    ORDER BY t461_1.f_ciudad_desp, t461_1.f_id_tipo_docto ASC;
+                    GROUP BY t461_1.f_cliente_fact, 
+                    t461_1.f_ciudad_desp, t200.f200_razon_social, 
+                    t461_1.f_condicion_pago, t461_1.f_nrodocto , 
+                    t461_1.f_id_tipo_docto, t206.f206_descripcion,
+					t201.[f201_id_sucursal], t461_1.f_cliente_fact_suc
+                    ORDER BY t461_1.f_id_tipo_docto,t461_1.f_condicion_pago, t461_1.f_ciudad_desp ASC;
                     ",
                     [$periodo,$codigo_asesor]);
 
@@ -113,6 +161,35 @@ class ComercialController extends Controller
                 AND t201.f201_id_vendedor = ?",
             [$year, $month, $codigo_asesor]
         );
+
+        $ventaCreditoRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
+               FROM t461_cm_docto_factura_venta t461
+               INNER JOIN t201_mm_clientes t201
+                 ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
+              WHERE t461.f461_id_cia = 3
+                AND YEAR(t461.f461_id_fecha) = ?
+                AND MONTH(t461.f461_id_fecha) = ?
+                AND t201.f201_id_vendedor = ?
+                AND t461.[f461_id_concepto] = '501'
+	            AND f201_id_cond_pago IN ('30D','10D','15D','30E')",
+            [$year, $month, $codigo_asesor]
+        );
+
+        $ventaContadoRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
+               FROM t461_cm_docto_factura_venta t461
+               INNER JOIN t201_mm_clientes t201
+                 ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
+              WHERE t461.f461_id_cia = 3
+                AND YEAR(t461.f461_id_fecha) = ?
+                AND MONTH(t461.f461_id_fecha) = ?
+                AND t201.f201_id_vendedor = ?
+                AND t461.[f461_id_concepto] = '501'
+	            AND f201_id_cond_pago NOT IN ('30D','10D','15D','30E')",
+            [$year, $month, $codigo_asesor]
+        );
+
 
         $clientesConVenta = DB::connection('sqlsrv')->select(
             "SELECT DISTINCT t200.f200_nit
@@ -153,8 +230,12 @@ class ComercialController extends Controller
 
 
         $total = (int)($totalRow->total_clientes ?? 0);
+        $totalCredito = (int)($totalCreditoRow->total_clientes ?? 0);
+        $totalContado = (int)($totalContadoRow->total_clientes ?? 0);
         $conVenta = (int)($ventaRow->clientes_con_venta ?? 0);
-        $cumplimiento = $total > 0 ? round(($conVenta / $total) * 100, 2) : 0.0;
+        $conCreditoVenta = (int)($ventaCreditoRow->clientes_con_venta ?? 0);
+        $conContadoVenta = (int)($ventaContadoRow->clientes_con_venta ?? 0);
+        $cumplimiento = $totalCredito > 0 ? round(($conCreditoVenta / $totalCredito) * 100, 2) : 0.0;
 
         $presupuesto = PresupuestoComercial::where('codigo_asesor','=',$codigo_tercero)->where('periodo','=', $periodo)->get();
 
@@ -408,7 +489,11 @@ class ComercialController extends Controller
             'presupuesto'          => $data_asesores,
             'presupuesto1'          => $presupuesto,
             'ventaCondPago'       => $ventaConPagoRow,
-            'ventasPeriodo'        => $ventasPeriodoRow
+            'ventasPeriodo'        => $ventasPeriodoRow,
+            'conCreditoVenta'   =>$conCreditoVenta,
+            'conContadoVenta' => $conContadoVenta,
+            'totalCredito' => $totalCredito,
+            'totalContado' => $totalContado
         ], 200, [], JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE);
     }
 }

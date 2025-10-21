@@ -146,178 +146,19 @@ class TercerosController extends Controller
             t201.f201_id_sucursal,
             t215.f215_id");
 
-        /*$result = DB::connection('sqlsrv')
-            ->select("SELECT  t200.f200_rowid AS tercero_id,
-                        t200.f200_razon_social,
-                        t200.f200_nit,
-                        RTRIM(t200.f200_dv_nit) AS f200_dv_nit,
-                        t200.f200_id_tipo_ident,
-                        t200.f200_ind_tipo_tercero,
-                        t200.f200_apellido1,
-                        t200.f200_apellido2,
-                        t200.f200_nombres,
-                        RTRIM(t201.f201_id_vendedor) AS f201_id_vendedor,
-                        t201.f201_id_sucursal,
-                        t201.f201_descripcion_sucursal,
-                        t215.f215_id AS punto_envio_id,
-                        t015.f015_id_pais,
-                        t015.f015_id_depto,
-                        t012.f012_descripcion,
-                        t015.f015_id_ciudad,
-                        t013.f013_descripcion,
-                        t015.f015_direccion1,
-                        t015.f015_email,
-                        t015.f015_contacto,
-                        t015.f015_telefono,
-                        t015.f015_celular,
-                        t201.f201_id_cond_pago,
-                        t201.f201_cupo_credito,
-                        t201.f201_id_lista_precio,
-                        t206.f206_descripcion,
-
-                        CASE
-                            WHEN pedidos.pedidos IS NULL THEN '0'
-                            ELSE pedidos.pedidos
-                        END AS pedidos,
-
-                        CASE
-                            WHEN cartera.cartera IS NULL THEN '0'
-                            ELSE cartera.cartera
-                        END AS cartera,
-
-
-                        CASE
-                            WHEN pago.Dias_Prom_pago IS NULL THEN '0'
-                            ELSE pago.Dias_Prom_pago
-                        END AS pago,
-
-                        t215.f215_descripcion AS descripcion_punto_envio,
-                        ult_factura.f461_ts as ultima_factura, -- Aquí se une la última factura,
-                        t015.f015_contacto AS nombre_contacto,
-                        t015.f015_telefono,
-                        t015.f015_celular,
-                        t015.f015_email,
-                        t015.f015_rowid AS contacto_id
-                    FROM t200_mm_terceros t200
-                    JOIN t201_mm_clientes t201
-                        ON t200.f200_rowid = t201.f201_rowid_tercero
-                    JOIN t215_mm_puntos_envio_cliente t215
-                        ON t215.f215_rowid_tercero = t201.f201_rowid_tercero
-                        AND t215.f215_id_sucursal = t201.f201_id_sucursal
-                    LEFT JOIN t015_mm_contactos t015
-                        ON t015.f015_rowid = t215.f215_rowid_contacto
-                    OUTER APPLY (
-                        SELECT TOP 1 f461_ts
-                        FROM t461_cm_docto_factura_venta f
-                        WHERE f.f461_rowid_tercero_fact = t200.f200_rowid
-                        AND f.f461_id_cia = 3
-                        AND f.f461_id_concepto = 501
-                        ORDER BY f.f461_ts DESC
-                    ) ult_factura
-
-                    LEFT JOIN
-                        (
-                            SELECT
-                                t200.f200_rowid rowid
-                                ,t201.f201_id_sucursal Suc
-                                ,SUM(v431_vlr_neto_pen_local) Pedidos
-                            FROM	t430_cm_pv_docto t430
-                                INNER JOIN t201_mm_clientes t201 ON t201.f201_rowid_tercero = t430.f430_rowid_tercero_fact
-                                    AND t201.f201_id_sucursal = t430.f430_id_sucursal_fact
-                                    AND t201.f201_id_cia = t430.f430_id_cia
-                                INNER JOIN t200_mm_terceros t200 ON t200.f200_rowid = t201.f201_rowid_tercero
-                                INNER JOIN v431 on  v431_rowid_pv_docto = f430_rowid
-                                    AND v431_ind_estado <> 4
-                            WHERE	f430_cond_pago_dias_vcto <> 0
-                                AND f430_id_grupo_clase_docto = 502
-                                AND f430_ind_estado IN (2,3) --2:Aprob  3:Comprometidos.
-                                AND t200.f200_rowid= t201.f201_rowid_tercero
-                                GROUP BY t200.f200_rowid,t201.f201_id_sucursal
-                        )pedidos 
-                    ON pedidos.rowid = t200.f200_rowid
-
-                    LEFT JOIN
-                        ( SELECT
-                                    t200.f200_rowid rowid
-                                    ,t201.f201_id_sucursal Suc
-                                    ,ISNULL(SUM(f353_total_db - f353_total_cr),0) Cartera
-                                FROM t353_co_saldo_abierto t353
-                                    INNER JOIN t201_mm_clientes t201 ON t201.f201_rowid_tercero = t353.f353_rowid_tercero
-                                        AND t201.f201_id_sucursal = t353.f353_id_sucursal AND t201.f201_id_cia =t353.f353_id_cia
-                                    INNER JOIN t200_mm_terceros t200 ON t200.f200_rowid = t201.f201_rowid_tercero
-                                    INNER JOIN t253_co_auxiliares t253 ON t253.f253_rowid = t353.f353_rowid_auxiliar
-                                        AND t253.f253_ind_sa=1
-                                WHERE t353.f353_id_cia= 3
-                                    AND f353_fecha_cancelacion IS NULL
-                                GROUP BY t200.f200_rowid,t201.f201_id_sucursal                        
-                        )cartera 
-                    ON cartera.rowid = t200.f200_rowid
-
-
-                    LEFT JOIN
-                        ( SELECT
-                            t201.f201_id_sucursal id_sucursal
-                            ,t201.f201_rowid_tercero rowid
-                            ,avg(datediff(day, f353_fecha, f353_fecha_cancelacion_rec)) Dias_Prom_pago
-                        FROM t353_co_saldo_abierto
-                            INNER JOIN t253_co_auxiliares on f253_rowid = f353_rowid_auxiliar
-                            AND f253_ind_sa = 1 and f253_ind_naturaleza = 1
-                            INNER JOIN t201_mm_clientes t201 ON t201.f201_rowid_tercero = f353_rowid_tercero
-                                AND t201.f201_id_sucursal = f353_id_sucursal
-                            INNER JOIN t200_mm_terceros t200 ON t200.f200_rowid = t201.f201_rowid_tercero
-                        WHERE	NOT f353_fecha_cancelacion IS NULL
-                            --and		f353_fecha >= dateadd(year,-1,'2012-01-01')
-                            AND f353_id_cia= 3
-                            AND t200.f200_rowid= t201.f201_rowid_tercero
-                            AND		NOT EXISTS
-                            (	SELECT 1
-                                FROM t354_co_mov_saldo_abierto
-                                    INNER JOIN t350_co_docto_contable ON f350_rowid = f354_rowid_docto
-                                    AND f350_id_clase_docto in (25,37,521,525,526,531,1030,1250)
-                                WHERE f354_rowid_sa = f353_rowid
-                                    AND f350_id_cia= 3
-                            )
-                            GROUP BY t201.f201_id_sucursal,t201.f201_rowid_tercero
-                        ) pago 
-                    ON pago.rowid = t201.f201_rowid_tercero AND pago.id_sucursal=t201.f201_id_sucursal
-
-                    LEFT JOIN t012_mm_deptos AS t012
-                    ON t012.f012_id = t015.f015_id_depto
-                    AND t012.f012_id_pais = 169
-
-                    LEFT JOIN t013_mm_ciudades AS t013
-                    ON t013.f013_id = t015.f015_id_ciudad
-                    AND t013.f013_id_depto = t015.f015_id_depto
-                    AND t013.f013_id_pais = 169
-
-                    LEFT JOIN t207_mm_criterios_clientes t207 
-                    ON t207.f207_rowid_tercero = t201.f201_rowid_tercero
-                    AND t207.f207_id_sucursal = t201.f201_id_sucursal 
-                    AND t207.f207_id_cia = t201.f201_id_cia
-                    AND t207.f207_id_plan_criterios = '005'
-
-                    LEFT JOIN  t206_mm_criterios_mayores t206 
-                    ON t206.f206_id_plan = t207.f207_id_plan_criterios
-                    AND t206.f206_id_cia = t207.f207_id_cia 
-                    AND t206.f206_id = t207.f207_id_criterio_mayor
-
-
-                    WHERE t200.f200_ind_cliente = 1
-                    AND t200.f200_ind_estado = 1
-                    AND t200.f200_id_cia = 3
-                    AND t201.f201_ind_estado_activo = 1
-                    AND t201.f201_id_cia = 3
-                    AND t215.f215_ind_estado = 1
-                    AND t215.f215_id_cia = 3
-                    AND t201.f201_id_vendedor = $id
-        ");*/
-
-        // Agrupar resultados
         $clientes = [];
+
+
+        $clientesCredito = 0;
     
         foreach ($result as $row) {
             $terceroId = $row->tercero_id;
             $sucursalId = $row->f201_id_sucursal;
+
+            if($row->f201_id_cond_pago == '10D' OR $row->f201_id_cond_pago == '30D' OR $row->f201_id_cond_pago == '30E'){
+                $clientesCredito ++;
+            }
+
     
             // Inicializar cliente si no existe
             if (!isset($clientes[$terceroId])) {
@@ -429,6 +270,7 @@ class TercerosController extends Controller
     
         return response()->json([
             'clientes' => $clientes,
+            'clientes_credito' => $clientesCredito,
             'ciudades' => $ciudadesUnicas
         ]);
     }
