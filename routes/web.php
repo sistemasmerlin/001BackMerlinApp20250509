@@ -26,9 +26,13 @@ use App\Http\Controllers\Admin\PresupuestoComercialController;
 use App\Http\Controllers\Api\InteresesCarteraController;
 
 Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+    return redirect()->route('login');
+});
 
+Route::get('/', function () {
+    return redirect()->route('login');
+    })->name('home');
+    
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

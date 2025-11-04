@@ -36,7 +36,7 @@ class Pedido {
             $client = new \SoapClient($url, $params);
 
             $prefijo = $pedido->prefijo ?? 'PAM';
-            $lista_precio = $pedido->lista_precio ?? '001';
+            $lista_precio_pedido = $pedido->lista_precio;
             $nota = str_pad(substr($pedido->observaciones ?? '', 0, 2000), 2000);
             $fechaActual = now()->format('Ymd');
             $fechaEntrega = now()->addDay()->format('Ymd');
@@ -78,10 +78,10 @@ class Pedido {
                     $consecutivo2 = str_pad($consecutivo, 10, '0', STR_PAD_LEFT);
                     $referencia = str_pad($value['referencia'], 110, ' ', STR_PAD_RIGHT);
                     $campoMotivo = str_pad('01', 50, ' ', STR_PAD_RIGHT); // 2 caracteres de código + 48 espacios
-                    $listaPrecio = str_pad($lista_precio, 3, ' ', STR_PAD_RIGHT);
+                    $listaPrecio = str_pad($lista_precio_pedido, 3, ' ', STR_PAD_RIGHT);
                     $unidadMedida = str_pad('UNID', 4, ' ', STR_PAD_RIGHT);
                     $cantidadPedida = str_pad((string) $value['cantidad'], 15, '0', STR_PAD_LEFT) . '.0000';
-                    $precio = str_pad('001', 15, '0', STR_PAD_LEFT) . '.0000';
+                    $precio = str_pad($listaPrecio, 15, '0', STR_PAD_LEFT) . '.0000';
 
                     $comentario = str_pad($orden_compra . ' Pedido tienda online', 2255, ' ', STR_PAD_RIGHT);
 

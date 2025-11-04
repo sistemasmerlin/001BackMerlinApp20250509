@@ -210,7 +210,6 @@ class PedidoController extends Controller
             'productos' => 'required|array',
             'productos.*.referencia' => 'required|string',
             'productos.*.cantidad' => 'required|numeric|min:1',
-            'productos.*.precio_1' => 'required|numeric|min:0',
             'totales' => 'required|array',
             'ubicacion_envio' => 'required|array',
             'creadoPor.nombre' => 'required|string',
@@ -324,7 +323,7 @@ class PedidoController extends Controller
                     'referencia' => $producto['referencia'],
                     'descripcion' => $producto['descripcion'] ?? '',
                     'cantidad' => $producto['cantidad'],
-                    'precio_unitario' => $producto['precio_1'],
+                    'precio_unitario' => $producto['precio_1'] ?? $producto['precio_202'],
                     'descuento' => $producto['descuento'] ?? 0,
                     'subtotal' => $producto['subtotal'] ?? 0,
                 ]);
@@ -548,7 +547,6 @@ class PedidoController extends Controller
             'productos.*.referencia' => 'required|string',
             'productos.*.marca' => 'required|string',
             'productos.*.cantidad' => 'required|numeric|min:1',
-            'productos.*.precio_1' => 'required|numeric|min:0',
             'totales' => 'required|array',
             'creadoPor.nombre' => 'required|string',
             'creadoPor.codigo' => 'required|string',
@@ -643,7 +641,7 @@ class PedidoController extends Controller
                     'marca' => $producto['marca'],
                     'descripcion' => $producto['descripcion'] ?? '',
                     'cantidad' => $producto['cantidad'],
-                    'precio_unitario' => $producto['precio_1'],
+                    'precio_unitario' => $producto['precio_1'] ?? $producto['precio_202'],
                     'descuento' => $producto['descuento'] ?? 0,
                     'subtotal' => $producto['subtotal'] ?? 0,
                 ]);
@@ -660,6 +658,24 @@ class PedidoController extends Controller
                     'codigo_departamento' => $request->punto_envio['cod_departamento'] ?? '',
                 ]);
             }
+
+
+            $ciudad = $this->obtenerCiudadGoogle($request->ubicacion_envio['lat'], $request->ubicacion_envio['lng']);
+
+            $reporte = ReporteVisita::create([
+                'nit' => $request->cliente['nit'],
+                'razon_social' => $request->cliente['razon_social'],
+                'sucursal' => $request->sucursal['id_sucursal'],
+                'vendedor' => $request->creadoPor['codigo'],
+                'latitud' =>  $request->ubicacion_envio['lat'],
+                'longitud' => $request->ubicacion_envio['lng'],
+                'ciudad' => $ciudad,
+                'notas' => 'Desde enviar pedido especial',
+            ]);
+
+            $motivoVentaId = MotivosVisita::where('motivo', 'Venta')->value('id');
+
+            $reporte->motivos()->attach([$motivoVentaId]);
 
             if (!empty($request->backorder)) {
                 $backorder = \App\Models\Backorder::create([

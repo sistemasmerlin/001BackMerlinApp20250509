@@ -37,6 +37,9 @@ class ComercialController extends Controller
             $codigo_asesor = $datosAsesor->codigo_asesor;
         }
 
+        /*$codigo_asesor  = '0508';
+        $codigo_tercero = '0508';*/
+
         //return  $codigo_tercero;
         // Total clientes del asesor
         $totalRow = DB::connection('sqlsrv')->selectOne(
@@ -227,6 +230,13 @@ class ComercialController extends Controller
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->distinct('nit')
             ->count('nit');
+        
+        $impactadosNoVentaDetalle = ReporteVisita::with('motivos')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->where('vendedor', $codigo_asesor)
+            ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
+            ->get();
 
 
         $total = (int)($totalRow->total_clientes ?? 0);
@@ -485,6 +495,7 @@ class ComercialController extends Controller
             'clientesSinVentaCantidad' => $clientesSinVentaCantidad,
             'periodo'              => $periodo,
             'impactadosNoVenta'    => $impactadosNoVenta,
+            'impactadosNoVentaDetalle' => $impactadosNoVentaDetalle,
             'asesor'               => $codigo_asesor,
             'presupuesto'          => $data_asesores,
             'presupuesto1'          => $presupuesto,

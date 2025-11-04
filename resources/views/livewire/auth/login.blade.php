@@ -75,7 +75,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
  <!-- Cuerpo de login -->
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('RinovAdmin')" :description="__('Ingrese correo y contraseña para acceder')" />
+    <!-- <x-auth-header :title="__('Rinova')" :description="__('Ingrese correo y contraseña para acceder')" /> -->
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
