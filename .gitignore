@@ -1,0 +1,15 @@
+/vendor/
+/node_modules/
+/npm-debug.log
+yarn-error.log
+.env
+.env.*
+/storage/*.key
+/public/storage
+/public/hot
+/public/mix-manifest.json
+/public/build
+/storage/debugbar
+.idea
+.vscode
+.DS_Store
