@@ -323,7 +323,7 @@ class PedidoController extends Controller
                     'referencia' => $producto['referencia'],
                     'descripcion' => $producto['descripcion'] ?? '',
                     'cantidad' => $producto['cantidad'],
-                    'precio_unitario' => $producto['precio_1'] ?? $producto['precio_202'],
+                    'precio_unitario' => $producto['precio_1'] ?? 0,
                     'descuento' => $producto['descuento'] ?? 0,
                     'subtotal' => $producto['subtotal'] ?? 0,
                 ]);
@@ -651,7 +651,7 @@ class PedidoController extends Controller
                 DireccionEnvio::create([
                     'pedido_id' => $pedido->id,
                     'id_punto_envio' => $request->punto_envio['punto_envio_id'],
-                    'direccion' => $request->punto_envio['direccion'],
+                    'direccion' => $request->punto_envio['direccion'] ?? 'N/A',
                     'ciudad' => $request->punto_envio['ciudad'],
                     'departamento' => $request->punto_envio['departamento'],
                     'codigo_ciudad' => $request->punto_envio['cod_ciudad'] ?? '',

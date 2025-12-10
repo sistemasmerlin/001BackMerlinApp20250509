@@ -136,8 +136,9 @@ class TercerosController extends Controller
             AND t201.f201_ind_estado_activo = 1
             AND t201.f201_id_cia = 3
             AND t215.f215_ind_estado = 1
+            AND f201_id_sucursal != '001'
             AND t215.f215_id_cia = 3
-            AND t201.f201_id_vendedor = $id
+            AND t201.f201_id_vendedor = '$id'
         -- AND t200.f200_nit = '805020771'
         GROUP BY
             t200.f200_rowid,

@@ -35,7 +35,7 @@ public function store(Request $request)
         'vendedor' => 'required',
         'latitud' => 'required|numeric|not_in:0',
         'longitud' => 'required|numeric|not_in:0',
-        'ciudad' => 'required',
+        'ciudad' => 'nullable|string',
         'notas' => 'nullable|string',
         'motivos' => 'required|array',
         'motivos.*' => 'exists:motivos_visitas,id',

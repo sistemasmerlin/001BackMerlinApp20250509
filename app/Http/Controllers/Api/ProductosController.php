@@ -83,21 +83,6 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '407510008' THEN 'CUNAS RNV EN PROMOCION'
                     WHEN rtrim(t120.f120_referencia) = '407510009' THEN 'CUNAS RNV EN PROMOCION'
                     WHEN rtrim(t120.f120_referencia) = '407510011' THEN 'CUNAS RNV EN PROMOCION'
-                    WHEN rtrim(t120.f120_referencia) = '612010000' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010001' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010002' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010003' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010004' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010005' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010006' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010007' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010008' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010009' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010010' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010011' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010012' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010013' THEN 'BATERIAS SMF'
-                    WHEN rtrim(t120.f120_referencia) = '612010014' THEN 'BATERIAS SMF'
                     WHEN rtrim(t120.f120_referencia) = '316426300' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316427300' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316429200' THEN 'WDT BIKE'
@@ -111,7 +96,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA TIRES' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'NARVA' THEN 'Iluminacion'
-                    WHEN rtrim(t106.f106_descripcion) = 'GOOD TUBE' THEN 'Neumaticos'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA - GOOD TUBE' THEN 'Neumaticos'
                     WHEN rtrim(t106.f106_descripcion) = 'PFI' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'PIRELLI' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'PIRELLI RADIAL' THEN 'Llantas'
@@ -164,7 +149,7 @@ class ProductosController extends Controller
                             'RNV',
                             'RINOVA TIRES',
                             'NARVA',
-                            'GOOD TUBE',
+                            'RINOVA - GOOD TUBE',
                             'PFI',
                             'PIRELLI',
                             'PIRELLI RADIAL',
