@@ -71,6 +71,15 @@ Route::middleware('auth:sanctum')->get(
     [ComercialController::class, 'clientesImpactados']
 );
 
+Route::middleware('auth:sanctum')->get(
+    '/indicadores/clientes/facturacion/{asesor}/{periodo}',
+    [ComercialController::class, 'efectividadVentas']
+);
+
+Route::middleware('auth:sanctum')->get(
+    '/indicadores/clientes/cartera/{asesor}/{periodo}/{categoria_asesor}',
+    [CarteraController::class, 'recuadoPresupuesto']
+);
 
 
 

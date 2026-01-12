@@ -8,17 +8,18 @@ use App\Models\ReporteVisita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+
 class ComercialController extends Controller
 {
 
     public function clientesImpactados(Request $request, $asesor, $periodo)
     {
-        
+
         $periodo = preg_replace('/\D/', '', $periodo);
         if (strlen($periodo) !== 6) {
             return response()->json(['message' => 'Periodo inválido (use YYYYMM)'], 422);
         }
-        
+
         $year  = (int) substr($periodo, 0, 4);
         $month = (int) substr($periodo, 4, 2);
         $asesor = (int) $asesor;
@@ -32,7 +33,7 @@ class ComercialController extends Controller
             AND t200.f200_id_cia = 3
             AND t210.f210_id = $asesor");
 
-        if( $datosAsesor){
+        if ($datosAsesor) {
             $codigo_tercero = $datosAsesor->codigo_tercero;
             $codigo_asesor = $datosAsesor->codigo_asesor;
         }
@@ -82,7 +83,7 @@ class ComercialController extends Controller
 	            AND f201_id_cond_pago NOT IN ('30D','10D','15D','30E')",
             [$codigo_asesor]
         );
-        
+
 
         $ventaConPagoRow = DB::connection('sqlsrv')->select(
             "WITH totales AS (
@@ -108,10 +109,11 @@ class ComercialController extends Controller
                     FROM totales
                     GROUP BY ROLLUP(f_condicion_pago);
                     ",
-                    [$periodo,$codigo_tercero]);
-        
+            [$periodo, $codigo_tercero]
+        );
+
         $ventasPeriodoRow = DB::connection('sqlsrv')->select(
-                                "SELECT 
+            "SELECT 
                         t461_1.f_cliente_fact,
                         t200.f200_razon_social,
                         t461_1.f_id_tipo_docto AS tipo_docto,
@@ -151,7 +153,8 @@ class ComercialController extends Controller
 					t201.[f201_id_sucursal], t461_1.f_cliente_fact_suc
                     ORDER BY t461_1.f_id_tipo_docto,t461_1.f_condicion_pago, t461_1.f_ciudad_desp ASC;
                     ",
-                    [$periodo,$codigo_asesor]);
+            [$periodo, $codigo_asesor]
+        );
 
         $ventaRow = DB::connection('sqlsrv')->selectOne(
             "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
@@ -175,6 +178,7 @@ class ComercialController extends Controller
                 AND MONTH(t461.f461_id_fecha) = ?
                 AND t201.f201_id_vendedor = ?
                 AND t461.[f461_id_concepto] = '501'
+				AND t461.f461_id_clase_docto = '523'
 	            AND f201_id_cond_pago IN ('30D','10D','15D','30E')",
             [$year, $month, $codigo_asesor]
         );
@@ -230,7 +234,7 @@ class ComercialController extends Controller
             ->whereHas('motivos', fn($q) => $q->where('motivos_visita_id', '<>', '11'))
             ->distinct('nit')
             ->count('nit');
-        
+
         $impactadosNoVentaDetalle = ReporteVisita::with('motivos')
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
@@ -247,62 +251,64 @@ class ComercialController extends Controller
         $conContadoVenta = (int)($ventaContadoRow->clientes_con_venta ?? 0);
         $cumplimiento = $totalCredito > 0 ? round(($conCreditoVenta / $totalCredito) * 100, 2) : 0.0;
 
-        $presupuesto = PresupuestoComercial::where('codigo_asesor','=',$codigo_tercero)->where('periodo','=', $periodo)->get();
+        $presupuesto = PresupuestoComercial::where('codigo_asesor', '=', $codigo_tercero)->where('periodo', '=', $periodo)->get();
 
 
         $marcasPresu = [
-            'RINOVA TIRES'         => 'rinova_tires',
-            'PIRELLI'              => 'pirelli',
-            'CST TIRES'            => 'cst_tires',
-            'HAKUBA - ARMOR'       => 'hakuba_armor',
-            'KOYO'                 => 'koyo',
-            'PFI'                  => 'pfi',
-            'RNV'                  => 'rnv',
-            'BATERIAS RINOVA'      => 'baterias_rinova',
-            'NARVA'                => 'narva',
-            'RINOVA LIGHTING'      => 'rinova_lighting',
-            'RINOVA LIGHTING LED'  => 'rinova_lighting_led',
-            'GOOD TUBE'            => 'good_tube',
+            'RINOVA TIRES'          => 'rinova_tires',
+            'PIRELLI'               => 'pirelli',
+            'CST TIRES'             => 'cst_tires',
+            'CST ATV'               => 'cst_atv',
+            'CST E-SCOOTER'         => 'cst_e_scooter',
+            'HAKUBA - ARMOR'        => 'hakuba_armor',
+            'KOYO'                  => 'koyo',
+            'PFI'                   => 'pfi',
+            'RNV'                   => 'rnv',
+            'BATERIAS RINOVA'       => 'baterias_rinova',
+            'NARVA'                 => 'narva',
+            'RINOVA LIGHTING'       => 'rinova_lighting',
+            'RINOVA LIGHTING LED'   => 'rinova_lighting_led',
+            'RINOVA - GOOD TUBE'    => 'good_tube',
         ];
 
 
 
         $query = User::query()
-        ->select('users.cedula','users.codigo_asesor','users.name')
-        ->addSelect(DB::raw("'{$periodo}' as periodo"))
-        ->selectSub(
-            PresupuestoComercial::selectRaw('MAX(clasificacion_asesor)')
-                ->whereColumn('codigo_asesor','users.codigo_asesor')
-                ->where('periodo', $periodo),
-            'tipo_asesor'
-        )
-        ->where('users.codigo_asesor', $codigo_asesor);
+            ->select('users.cedula', 'users.codigo_asesor', 'users.name')
+            ->addSelect(DB::raw("'{$periodo}' as periodo"))
+            ->selectSub(
+                PresupuestoComercial::selectRaw('MAX(clasificacion_asesor)')
+                    ->whereColumn('codigo_asesor', 'users.codigo_asesor')
+                    ->where('periodo', $periodo),
+                'tipo_asesor'
+            )
+            ->where('users.codigo_asesor', $codigo_asesor);
 
-    foreach ($marcasPresu as $marca => $alias) {
-        $query->withSum(
-            ['presupuestosComerciales as '.$alias => function($q) use ($periodo, $marca) {
-                $q->where('periodo', $periodo)
-                ->where('marca', $marca);
-                // ->where('estado',1); // si tienes esta columna
-            }],
-            'presupuesto'
-        );
-    }
+        foreach ($marcasPresu as $marca => $alias) {
+            $query->withSum(
+                ['presupuestosComerciales as ' . $alias => function ($q) use ($periodo, $marca) {
+                    $q->where('periodo', $periodo)
+                        ->where('marca', $marca);
+                    // ->where('estado',1); // si tienes esta columna
+                }],
+                'presupuesto'
+            );
+        }
 
-    $query
-        ->withSum(['presupuestosComerciales as total_llantas' => function($q) use ($periodo) {
-            $q->where('periodo', $periodo)->where('categoria', 'llantas');
-        }], 'presupuesto')
-        ->withSum(['presupuestosComerciales as total_repuestos' => function($q) use ($periodo) {
-            $q->where('periodo', $periodo)->where('categoria', 'repuestos');
-        }], 'presupuesto')
-        ->withSum(['presupuestosComerciales as total_presupuesto' => function($q) use ($periodo) {
-            $q->where('periodo', $periodo);
-        }], 'presupuesto');
+        $query
+            ->withSum(['presupuestosComerciales as total_llantas' => function ($q) use ($periodo) {
+                $q->where('periodo', $periodo)->where('categoria', 'llantas');
+            }], 'presupuesto')
+            ->withSum(['presupuestosComerciales as total_repuestos' => function ($q) use ($periodo) {
+                $q->where('periodo', $periodo)->where('categoria', 'repuestos');
+            }], 'presupuesto')
+            ->withSum(['presupuestosComerciales as total_presupuesto' => function ($q) use ($periodo) {
+                $q->where('periodo', $periodo);
+            }], 'presupuesto');
 
-    $data_asesores = $query->get();
+        $data_asesores = $query->get();
 
-     $sqlVentasPorMarca = <<<SQL
+        $sqlVentasPorMarca = <<<SQL
         SELECT 
             RTRIM([f_cod_vendedor])       as vendedor,        -- suele ser CÉDULA
             RTRIM([f_cod_vendedor])   as cod_vendedor,    -- suele ser CÓDIGO ASESOR
@@ -330,7 +336,7 @@ class ComercialController extends Controller
         GROUP BY [f_vendedor], t106.f106_descripcion, [f_cod_vendedor]
         SQL;
 
-        
+
         $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $codigo_asesor]);
 
         $ventasPorMarca = [];
@@ -346,16 +352,18 @@ class ComercialController extends Controller
 
         $mapVentas = [
             // Unidades
-            'RINOVA TIRES'           => ['col' => 'venta_rinova_tires', 'tipo' => 'unidades', 'col_dinero' => 'venta_dinero_rinova_tires'],
-            'PIRELLI'                => ['col' => 'venta_pirelli', 'tipo' => 'unidades'],
-            'CST TIRES'              => ['col' => 'venta_cst_tires', 'tipo' => 'unidades'],
-            'FORERUNNER'             => ['col' => 'venta_forerunner', 'tipo' => 'unidades'],
-            'WDT BIKE'               => ['col' => 'venta_wdt_bike', 'tipo' => 'unidades'],
-            'WDT TUBE'               => ['col' => 'venta_wdt_tube', 'tipo' => 'unidades'],
-            'WDT E-SCOOTER'          => ['col' => 'venta_wdt_e_scooter', 'tipo' => 'unidades'],
-            'RINOVA ATV'             => ['col' => 'venta_rinova_atv', 'tipo' => 'unidades'],
-            'WDT'                    => ['col' => 'venta_wdt', 'tipo' => 'unidades'],
-            'HAKUBA - ARMOR - WDT'   => ['col' => 'venta_hakuba_armor_wdt', 'tipo' => 'unidades'],
+            'RINOVA TIRES'              => ['col' => 'venta_rinova_tires', 'tipo' => 'unidades', 'col_dinero' => 'venta_dinero_rinova_tires'],
+            'PIRELLI'                   => ['col' => 'venta_pirelli', 'tipo' => 'unidades'],
+            'CST TIRES'                 => ['col' => 'venta_cst_tires', 'tipo' => 'unidades'],
+            'CST ATV'                   => ['col' => 'venta_cst_atv', 'tipo' => 'unidades'],
+            'CST E-SCOOTER'             => ['col' => 'venta_cst_e_scooter', 'tipo' => 'unidades'],
+            'FORERUNNER'                => ['col' => 'venta_forerunner', 'tipo' => 'unidades'],
+            'WDT BIKE'                  => ['col' => 'venta_wdt_bike', 'tipo' => 'unidades'],
+            'WDT TUBE'                  => ['col' => 'venta_wdt_tube', 'tipo' => 'unidades'],
+            'WDT E-SCOOTER'             => ['col' => 'venta_wdt_e_scooter', 'tipo' => 'unidades'],
+            'RINOVA ATV'                => ['col' => 'venta_rinova_atv', 'tipo' => 'unidades'],
+            'WDT'                       => ['col' => 'venta_wdt', 'tipo' => 'unidades'],
+            'HAKUBA - ARMOR - WDT'      => ['col' => 'venta_hakuba_armor_wdt', 'tipo' => 'unidades'],
 
             // Dinero
             'KOYO'                   => ['col' => 'venta_koyo', 'tipo' => 'dinero'],
@@ -365,10 +373,10 @@ class ComercialController extends Controller
             'NARVA'                  => ['col' => 'venta_narva', 'tipo' => 'dinero'],
             'RINOVA LIGHTING'        => ['col' => 'venta_rinova_lighting', 'tipo' => 'dinero'],
             'RINOVA LIGHTING LED'    => ['col' => 'venta_rinova_lighting_led', 'tipo' => 'dinero'],
-            'GOOD TUBE'              => ['col' => 'venta_good_tube', 'tipo' => 'dinero'],
+            'RINOVA - GOOD TUBE'              => ['col' => 'venta_good_tube', 'tipo' => 'dinero'],
         ];
 
-        $wdtToHakuba = ['WDT BIKE','WDT TUBE','WDT E-SCOOTER','HAKUBA - ARMOR - WDT','FORERUNNER','RINOVA ATV','WDT'];
+        $wdtToHakuba = ['WDT BIKE', 'WDT TUBE', 'WDT E-SCOOTER', 'HAKUBA - ARMOR - WDT', 'FORERUNNER', 'RINOVA ATV', 'WDT'];
 
         $pct = fn($venta, $presu) => $presu > 0 ? round(($venta / $presu) * 100, 2) : 0.0;
 
@@ -422,10 +430,10 @@ class ComercialController extends Controller
                 RTRIM([f_cod_vendedor]) as vendedor,
                 RTRIM([f_cod_vendedor]) as cod_vendedor,
                 CONVERT(int, SUM(CASE 
-                    WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT')
+                    WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT')
                     THEN [f_cant_base] ELSE 0 END)) AS llantas,
                 CONVERT(int, SUM(CASE 
-                    WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','GOOD TUBE')
+                    WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','RINOVA - GOOD TUBE')
                     THEN [f_valor_sub_local] ELSE 0 END)) AS accesorios
             FROM BI_T461_1 AS t461_1
             LEFT JOIN [t120_mc_items]               AS t120 ON t120.[f120_rowid] = t461_1.[f_rowid_item]
@@ -458,7 +466,6 @@ class ComercialController extends Controller
             ];
         }
 
-
         foreach ($data_asesores as $u) {
             $cedula = (string) $u->cedula;
 
@@ -467,18 +474,20 @@ class ComercialController extends Controller
             $u->total_venta_general    = $u->venta_total_llantas + $u->venta_total_accesorios;
 
             // Cumplimientos por marca principal
-            $u->cumplimiento_venta_rinova_tires        = $pct($u->venta_rinova_tires,        (float) ($u->rinova_tires ?? 0));
-            $u->cumplimiento_venta_pirelli             = $pct($u->venta_pirelli,             (float) ($u->pirelli ?? 0));
-            $u->cumplimiento_venta_cst_tires           = $pct($u->venta_cst_tires,           (float) ($u->cst_tires ?? 0));
-            $u->cumplimiento_venta_hakuba_armor        = $pct($u->venta_hakuba_armor,        (float) ($u->hakuba_armor ?? 0));
-            $u->cumplimiento_venta_koyo                = $pct($u->venta_koyo,                (float) ($u->koyo ?? 0));
-            $u->cumplimiento_venta_pfi                 = $pct($u->venta_pfi,                 (float) ($u->pfi ?? 0));
-            $u->cumplimiento_venta_rnv                 = $pct($u->venta_rnv,                 (float) ($u->rnv ?? 0));
-            $u->cumplimiento_venta_baterias_rinova     = $pct($u->venta_baterias_rinova,     (float) ($u->baterias_rinova ?? 0));
-            $u->cumplimiento_venta_rinova_lighting     = $pct($u->venta_rinova_lighting,     (float) ($u->rinova_lighting ?? 0));
-            $u->cumplimiento_venta_rinova_lighting_led = $pct($u->venta_rinova_lighting_led, (float) ($u->rinova_lighting_led ?? 0));
-            $u->cumplimiento_venta_narva               = $pct($u->venta_narva,               (float) ($u->narva ?? 0));
-            $u->cumplimiento_venta_good_tube           = $pct($u->venta_good_tube,           (float) ($u->good_tube ?? 0));
+            $u->cumplimiento_venta_rinova_tires         = $pct($u->venta_rinova_tires,        (float) ($u->rinova_tires ?? 0));
+            $u->cumplimiento_venta_pirelli              = $pct($u->venta_pirelli,             (float) ($u->pirelli ?? 0));
+            $u->cumplimiento_venta_cst_tires            = $pct($u->venta_cst_tires,           (float) ($u->cst_tires ?? 0));
+            $u->cumplimiento_venta_cst_atv              = $pct($u->venta_cst_atv,             (float) ($u->cst_atv ?? 0));
+            $u->cumplimiento_venta_cst_e_scooter        = $pct($u->venta_cst_e_scooter,       (float) ($u->cst_e_scooter ?? 0));
+            $u->cumplimiento_venta_hakuba_armor         = $pct($u->venta_hakuba_armor,        (float) ($u->hakuba_armor ?? 0));
+            $u->cumplimiento_venta_koyo                 = $pct($u->venta_koyo,                (float) ($u->koyo ?? 0));
+            $u->cumplimiento_venta_pfi                  = $pct($u->venta_pfi,                 (float) ($u->pfi ?? 0));
+            $u->cumplimiento_venta_rnv                  = $pct($u->venta_rnv,                 (float) ($u->rnv ?? 0));
+            $u->cumplimiento_venta_baterias_rinova      = $pct($u->venta_baterias_rinova,     (float) ($u->baterias_rinova ?? 0));
+            $u->cumplimiento_venta_rinova_lighting      = $pct($u->venta_rinova_lighting,     (float) ($u->rinova_lighting ?? 0));
+            $u->cumplimiento_venta_rinova_lighting_led  = $pct($u->venta_rinova_lighting_led, (float) ($u->rinova_lighting_led ?? 0));
+            $u->cumplimiento_venta_narva                = $pct($u->venta_narva,               (float) ($u->narva ?? 0));
+            $u->cumplimiento_venta_good_tube            = $pct($u->venta_good_tube,           (float) ($u->good_tube ?? 0));
 
             // Cumplimientos por categorías
             $u->cumplimiento_venta_total_llantas     = $pct($u->venta_total_llantas,    (float) ($u->total_llantas ?? 0));
@@ -501,10 +510,281 @@ class ComercialController extends Controller
             'presupuesto1'          => $presupuesto,
             'ventaCondPago'       => $ventaConPagoRow,
             'ventasPeriodo'        => $ventasPeriodoRow,
-            'conCreditoVenta'   =>$conCreditoVenta,
+            'conCreditoVenta'   => $conCreditoVenta,
             'conContadoVenta' => $conContadoVenta,
             'totalCredito' => $totalCredito,
             'totalContado' => $totalContado
         ], 200, [], JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function efectividadVentas(Request $request, $asesor, $periodo)
+    {
+
+        // return $asesor;
+        $usuario = User::where('codigo_asesor', '=', $asesor)->first();
+
+        $periodo = preg_replace('/\D/', '', $periodo);
+
+        if (strlen($periodo) !== 6) {
+            return response()->json(['message' => 'Periodo inválido (use YYYYMM)'], 422);
+        }
+
+        $asesor = (int) $asesor;
+
+        // 2) Traer cod_asesor y nit desde SQL Server
+        $datosAsesor = DB::connection('sqlsrv')
+            ->selectOne("
+            SELECT 
+                t210.f210_id   AS codigo_asesor,
+                t200.f200_nit  AS codigo_tercero
+            FROM [t200_mm_terceros] AS t200
+            INNER JOIN [t210_mm_vendedores] AS t210
+                ON t210.[f210_rowid_tercero] = t200.f200_rowid
+            WHERE 
+                t200.f200_id_cia = 3
+                AND t210.f210_id = ?
+        ", [$asesor]);
+
+        if (!$datosAsesor) {
+            return response()->json(['message' => 'Asesor no encontrado'], 404);
+        }
+
+        $codigo_tercero = $datosAsesor->codigo_tercero;
+        $codigo_asesor  = $datosAsesor->codigo_asesor; // p.ej. '0603'
+
+        $categoria_asesor = strtolower(trim($usuario->categoria_asesor ?? ''));
+
+        if ($categoria_asesor == 'master') {
+            $rangosRepuestos = [
+                ['min' => 0,    'max' => 79.99, 'factor' => 0.000],
+                ['min' => 80,   'max' => 84.99, 'factor' => 0.0058],
+                ['min' => 85,   'max' => 89.99, 'factor' => 0.0062],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0066],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0070],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0074],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0079],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0084],
+            ];
+
+            $rangosLlantas = [
+                ['min' => 0,    'max' => 79.99, 'factor' => 0.000],
+                ['min' => 80,   'max' => 84.99, 'factor' => 0.0045],
+                ['min' => 85,   'max' => 89.99, 'factor' => 0.0049],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0053],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0057],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0061],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0066],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0071],
+            ];
+        } else{
+            $rangosRepuestos = [
+                ['min' => 0,    'max' => 14.99, 'factor' => 0.000],
+                ['min' => 15,   'max' => 84.99, 'factor' => 0.0058],
+                ['min' => 85,   'max' => 89.99, 'factor' => 0.0062],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0066],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0070],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0074],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0079],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0084],
+            ];
+
+            $rangosLlantas = [
+                ['min' => 0,    'max' => 14.99, 'factor' => 0.00],
+                ['min' => 15,   'max' => 34.99, 'factor' => 0.0045],
+                ['min' => 35,   'max' => 89.99, 'factor' => 0.0049],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0053],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0057],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0061],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0066],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0071],
+            ];
+        }
+
+        // Helper para encontrar factor según % cumplimiento
+        $calcularFactor = function (float $cumplimiento, array $rangos): float {
+            foreach ($rangos as $r) {
+                if ($cumplimiento >= $r['min'] && $cumplimiento <= $r['max']) {
+                    return (float) $r['factor'];
+                }
+            }
+            return 0.0;
+        };
+
+        $presuLlantas = (float) PresupuestoComercial::where('codigo_asesor', $codigo_asesor)
+            ->where('periodo', $periodo)
+            ->where('categoria', 'llantas')
+            ->where('tipo_presupuesto', 'unidades')
+            ->sum('presupuesto');
+
+        $presuPirelli = (float) PresupuestoComercial::where('codigo_asesor', $codigo_asesor)
+            ->where('periodo', $periodo)
+            ->where('categoria', 'pirelli')
+            ->where('tipo_presupuesto', 'unidades')
+            ->sum('presupuesto');
+
+        $presuRepuestos = (float) PresupuestoComercial::where('codigo_asesor', $codigo_asesor)
+            ->where('periodo', $periodo)
+            ->where('categoria', 'repuestos')
+            ->sum('presupuesto');
+
+        $presuTotal = (float) PresupuestoComercial::where('codigo_asesor', $codigo_asesor)
+            ->where('periodo', $periodo)
+            ->where('categoria', 'total')
+            ->sum('presupuesto');
+
+        // 4) VENTAS desde SQL Server
+        $ventasRows = DB::connection('sqlsrv')->select(
+            "SELECT 
+            RTRIM(t461_1.[f_cod_vendedor]) AS vendedor,       -- cédula / código asesor
+            RTRIM(t461_1.[f_cod_vendedor]) AS cod_vendedor,   -- código asesor
+            CASE 
+                WHEN t106.[f106_descripcion] IN ('RINOVA TIRES', 'HAKUBA - ARMOR - WDT', 'CST TIRES')
+                    THEN 'LLANTAS'
+                WHEN t106.[f106_descripcion] IN ('PIRELLI', 'PIRELLI RADIAL')
+                    THEN 'PIRELLI'
+                WHEN t106.[f106_descripcion] IN ('RINOVA LIGHTING','RINOVA LIGHTING LED', 'RNV', 'BATERIAS RINOVA','KOYO', 'NARVA', 'PFI' , 'RINOVA - GOOD TUBE')
+                    THEN 'REPUESTOS'
+                ELSE 'OTRAS'
+            END AS categoria,
+            SUM(t461_1.[f_cant_base])       AS cantidad,
+            SUM(t461_1.[f_valor_sub_local]) AS dinero
+        FROM BI_T461_1 AS t461_1
+        LEFT JOIN [t120_mc_items]                   AS t120 ON t120.[f120_rowid] = t461_1.[f_rowid_item]
+        LEFT JOIN [t125_mc_items_criterios]         AS t125 ON t125.[f125_rowid_item] = t120.[f120_rowid]
+        LEFT JOIN [t105_mc_criterios_item_planes]   AS t105 ON t105.[f105_id] = t125.[f125_id_plan]
+        LEFT JOIN [t106_mc_criterios_item_mayores]  AS t106 ON t106.[f106_id] = t125.[f125_id_criterio_mayor]
+        WHERE 
+            t461_1.[f_id_cia] = 3
+            AND t461_1.[f_co] = '003'
+            AND t461_1.[f_parametro_biable] = 3
+            AND t106.[f106_id_plan] = '003'
+            AND t106.[f106_id_cia] = '3'
+            AND t120.[f120_id_cia] = '3'
+            AND t125.[f125_id_plan] = '003'
+            AND t125.[f125_id_cia] = '3'
+            AND t105.[f105_id_cia] = '3'
+            AND t106.[f106_descripcion] NOT IN ('ZFLETE','NO APLICA')
+            AND t461_1.f_periodo = ?
+            AND t461_1.[f_cod_vendedor] = ?
+        GROUP BY 
+            t461_1.[f_cod_vendedor],
+            CASE 
+                WHEN t106.[f106_descripcion] IN ('RINOVA TIRES', 'HAKUBA - ARMOR - WDT', 'CST TIRES')
+                    THEN 'LLANTAS'
+                WHEN t106.[f106_descripcion] IN ('PIRELLI', 'PIRELLI RADIAL')
+                    THEN 'PIRELLI'
+                WHEN t106.[f106_descripcion] IN ('RINOVA LIGHTING','RINOVA LIGHTING LED', 'RNV', 'BATERIAS RINOVA','KOYO', 'NARVA', 'PFI' , 'RINOVA - GOOD TUBE')
+                    THEN 'REPUESTOS'
+                ELSE 'OTRAS'
+            END
+        ",
+            [$periodo, $codigo_asesor]
+        );
+
+        // Agrupamos ventas por categoría para tener suma de unidades y de valor
+        $ventasGrouped = collect($ventasRows)->groupBy(function ($row) {
+            return strtolower($row->categoria); // 'llantas','repuestos','pirelli','otras'
+        });
+
+        $sumCatField = function (string $cat, string $field) use ($ventasGrouped): float {
+            /** @var \Illuminate\Support\Collection|null $g */
+            $g = $ventasGrouped->get($cat);
+            return $g ? (float) $g->sum($field) : 0.0;
+        };
+
+        // Llantas y Pirelli en UNIDADES
+        $ventaLlantasUnid = $sumCatField('llantas', 'cantidad');
+        $ventaPirelliUnid = $sumCatField('pirelli',  'cantidad');
+
+        // Repuestos en VALOR
+        $ventaRepuestosVal = $sumCatField('repuestos', 'dinero');
+
+        // Valores en dinero
+        $ventaLlantasVal  = $sumCatField('llantas', 'dinero');
+        $ventaPirreliVal  = $sumCatField('pirelli', 'dinero');
+
+        // Total en VALOR (todas las categorías en pesos)
+        //$ventaTotalVal = (float) collect($ventasRows)->sum('dinero');
+
+        $ventaTotalVal = (float) collect($ventasRows)
+            ->filter(fn($r) => strtolower(trim($r->categoria)) !== 'pirelli')
+            ->sum('dinero');
+
+        // ventas "otras" en valor, por si las quieres mostrar
+        $ventaOtrasVal = $sumCatField('otras', 'dinero');
+
+        // 5) % cumplimiento
+        $pct = function (float $venta, float $presu): float {
+            if ($presu <= 0) return 0.0;
+            return round(($venta * 100) / $presu, 2);
+        };
+
+        $cumplLlantas    = $pct($ventaLlantasUnid,  $presuLlantas);
+        $cumplRepuestos  = $pct($ventaRepuestosVal, $presuRepuestos);
+
+        // 6) Factor e incentivo (valor a pagar)
+        $factorLlantas   = $calcularFactor($cumplLlantas,   $rangosLlantas);
+        $factorRepuestos = $calcularFactor($cumplRepuestos, $rangosRepuestos);
+
+        // Valor a pagar = venta en dinero * factor
+        $valorPagarLlantas   = round($ventaTotalVal   * $factorLlantas,   2);
+        $valorPagarRepuestos = round($ventaTotalVal * $factorRepuestos, 2);
+
+        $valorPagarTotal = $valorPagarLlantas + $valorPagarRepuestos;
+
+        $valor_a_pagar_pirelli = 0;
+
+        if ($pct($ventaPirelliUnid, $presuPirelli) >= 80) {
+            $valor_a_pagar_pirelli = (($ventaPirreliVal / 100) * 1.5);
+        }
+
+        $respuesta = [
+            'asesor'  => $codigo_asesor,
+            'periodo' => $periodo,
+
+            'llantas' => [
+                'tipo'              => 'unidades',
+                'presupuesto'       => $presuLlantas,
+                'ventas'            => $ventaLlantasUnid,
+                'ventas_dinero'     => $ventaLlantasVal,
+                'cumplimiento_pct'  => $cumplLlantas,
+                'factor_incentivo'  => $factorLlantas,
+                'valor_pagar'       => $valorPagarLlantas,
+            ],
+            'pirelli' => [
+                'tipo'              => 'unidades',
+                'presupuesto'       => $presuPirelli,
+                'ventas'            => $ventaPirelliUnid,
+                'ventas_dinero'     => $ventaPirreliVal,
+                'cumplimiento_pct'  => $pct($ventaPirelliUnid, $presuPirelli),
+                'factor_incentivo'  => 1.5,
+                'valor_pagar'       => $valor_a_pagar_pirelli,
+                // si luego quieres incentivo para Pirelli, aquí lo agregas
+            ],
+            'repuestos' => [
+                'tipo'              => 'valor',
+                'presupuesto'       => $presuRepuestos,
+                'ventas'            => $ventaRepuestosVal,
+                'cumplimiento_pct'  => $cumplRepuestos,
+                'factor_incentivo'  => $factorRepuestos,
+                'valor_pagar'       => $valorPagarRepuestos,
+            ],
+            'total' => [
+                'tipo'              => 'valor',
+                'presupuesto'       => $presuTotal,
+                'ventas'            => $ventaTotalVal,
+                'cumplimiento_pct'  => $pct($ventaTotalVal, $presuTotal),
+            ],
+
+            'otras' => [
+                'tipo'   => 'valor',
+                'ventas' => $ventaOtrasVal,
+            ],
+
+            // resumen global de incentivos
+            'valor_pagar_total' => $valorPagarTotal,
+        ];
+
+        return response()->json($respuesta, 200, [], JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE);
     }
 }

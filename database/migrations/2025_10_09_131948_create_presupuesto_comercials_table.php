@@ -9,7 +9,7 @@ return new class extends Migration
  
     public function up(): void
     {
-        Schema::create('presupuestos_comerciales', function (Blueprint $table) {
+        Schema::create('presupuesto_comercial', function (Blueprint $table) {
             $table->id();
 
             $table->string('codigo_asesor', 20)->index();
@@ -33,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('presupuestos_comerciales');
+        Schema::dropIfExists('presupuesto_comercial');
     }
 };

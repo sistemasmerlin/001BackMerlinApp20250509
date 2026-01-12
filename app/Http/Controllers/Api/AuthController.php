@@ -80,6 +80,7 @@ class AuthController extends Controller
                 'roles' => $user->getRoleNames(),
                 'codigo_asesor' => $user->codigo_asesor,
                 'cedula' => $user->cedula,
+                'categoria_asesor' => $user->categoria_asesor,
                 'relacionados' => $relacionados,
             ],
             'expires_at' => $expiration->toDateTimeString(),

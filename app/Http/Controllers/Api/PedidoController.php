@@ -365,7 +365,7 @@ class PedidoController extends Controller
             $pedidoXml = new PedidoXml();
             
             $resultadoXml = $pedidoXml->generarXml($pedido);
-
+ 
             if ($resultadoXml['status'] !== 'success') {
 
                 $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;

@@ -29,7 +29,7 @@
                class="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-lg">Plantilla</a>
 
             <button wire:click="abrirImport"
-                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                    class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-900 text-white font-medium shadow"
                     wire:loading.attr="disabled" wire:target="abrirImport">
                 Importar
             </button>
@@ -185,33 +185,111 @@
 
         @endif
 
-    {{-- ✅ Modal Importación (independiente) --}}
-    @if($modalImport)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-5 w-full max-w-lg border border-zinc-200 dark:border-zinc-700">
-                <h2 class="text-xl font-bold mb-3">Importar presupuestos</h2>
 
-                <p class="text-sm text-gray-600 mb-3">
-                    Formato: <b>.xlsx</b> o <b>.csv</b>.<br>
-                    Encabezados:
-                    <code>periodo, codigo_asesor, tipo_presupuesto, presupuesto, marca, categoria, clasificacion_asesor</code>
-                </p>
-
-                <div class="space-y-2">
-                    <input type="file" wire:model="archivo" accept=".xlsx,.csv,.txt"
-                           class="w-full border rounded px-3 py-2">
-                    @error('archivo') <small class="text-red-600">{{ $message }}</small> @enderror
+        {{-- ✅ Modal Importación (estilo limpio tipo "cartera") --}}
+        @if($modalImport)
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3"
+            x-data
+            x-on:keydown.escape.window="$wire.set('modalImport', false)"
+        >
+            <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+            {{-- Header --}}
+            <div class="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+                <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                    {{-- icono upload --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 5v11" />
+                    </svg>
                 </div>
 
-                <div class="flex justify-end gap-2 mt-4">
-                    <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded"
-                            wire:click="$set('modalImport', false)">Cancelar</button>
-                    <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded"
-                            wire:click="procesarImport">Importar</button>
+                <div>
+                    <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Importar presupuestos</h2>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                    Sube un archivo <b>.xlsx</b> o <b>.csv</b> con el formato correcto.
+                    </p>
+                </div>
+                </div>
+
+                <button
+                type="button"
+                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                wire:click="$set('modalImport', false)"
+                aria-label="Cerrar"
+                >
+                ✕
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-5 py-4 space-y-4">
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-200">
+                <div class="font-medium mb-1">Encabezados requeridos</div>
+                <code class="block text-xs leading-relaxed text-zinc-700 dark:text-zinc-200">
+                    periodo, codigo_asesor, tipo_presupuesto, presupuesto, marca, categoria, clasificacion_asesor
+                </code>
+                </div>
+
+                {{-- File input --}}
+                <div>
+                <label class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                    Archivo
+                </label>
+
+                <input
+                    type="file"
+                    wire:model="archivo"
+                    accept=".xlsx,.csv,.txt"
+                    class="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 shadow-sm
+                        file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium
+                        hover:file:bg-zinc-200
+                        focus:outline-none focus:ring-2 focus:ring-red-500/40
+                        dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100
+                        dark:file:bg-zinc-800 dark:hover:file:bg-zinc-700"
+                />
+
+                @error('archivo')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                {{-- Loading pequeño --}}
+                <div class="mt-2 text-xs text-zinc-500 dark:text-zinc-400" wire:loading wire:target="archivo">
+                    Cargando archivo…
+                </div>
                 </div>
             </div>
+
+            {{-- Footer --}}
+            <div class="flex items-center justify-end gap-2 border-t border-zinc-100 bg-white px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <button
+                type="button"
+                class="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50
+                        dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                wire:click="$set('modalImport', false)"
+                >
+                Cancelar
+                </button>
+
+                <button
+                type="button"
+                class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white shadow
+                        hover:bg-zinc-800
+                        disabled:opacity-60 disabled:cursor-not-allowed
+                        dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                wire:click="procesarImport"
+                wire:loading.attr="disabled"
+                wire:target="procesarImport"
+                >
+                <span wire:loading.remove wire:target="procesarImport">Importar</span>
+                <span wire:loading wire:target="procesarImport">Importando…</span>
+                </button>
+            </div>
+            </div>
         </div>
-    @endif
+        @endif
+
 
 
 

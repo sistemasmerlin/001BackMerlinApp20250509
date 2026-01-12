@@ -26,7 +26,8 @@ class User extends Authenticatable
         'password',
         'cedula', 
         'codigo_asesor', 
-        'codigo_recibos'
+        'codigo_recibos',
+        'categoria_asesor'
     ];
 
     /**

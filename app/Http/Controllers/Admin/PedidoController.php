@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Pedido;
 use App\Xml\Pedido as PedidoXml;
 use App\Mail\PedidoConfirmadoMail;
+use App\Models\DetallePedido;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,59 @@ class PedidoController extends Controller
 {
     public function enviarPedido($id)
     {
+
+        $detallePedido = DetallePedido::where('pedido_id', $id)
+        ->select('referencia', 'cantidad')
+        ->get();
+
+        $referenciasValidar = $detallePedido->pluck('referencia')->unique()->values()->toArray();
+
+        $referenciasSql = "'" . implode("','", array_map('addslashes', $referenciasValidar)) . "'";
+
+        $validacion = DB::connection('sqlsrv')->select("SELECT RTRIM(t120.f120_referencia) AS referencia,
+                SUM(t400.f400_cant_existencia_1) AS existencia
+            FROM t400_cm_existencia t400
+            INNER JOIN t121_mc_items_extensiones t121
+                ON t400.f400_rowid_item_ext = t121.f121_rowid
+                AND t121.f121_ind_estado = 1
+            INNER JOIN t120_mc_items t120
+                ON t120.f120_rowid = t121.f121_rowid_item
+            LEFT JOIN t125_mc_items_criterios t125
+                ON t125.f125_rowid_item = t120.f120_rowid
+                AND PATINDEX('%[a-zA-Z]%', t120.f120_referencia) <= 0
+                AND t125.f125_id_cia = t120.f120_id_cia
+                AND t125.f125_id_plan = '003'
+            WHERE t120.f120_referencia IN ($referenciasSql)
+            GROUP BY t120.f120_referencia
+        ");
+
+        $existencias = collect($validacion)
+            ->keyBy('referencia')
+            ->map(fn($i) => (float) $i->existencia);
+
+        $errores = [];
+
+        foreach ($detallePedido as $producto) {
+            $referencia = trim($producto->referencia);
+            $cantidadSolicitada = (float) $producto->cantidad;
+            $existenciaDisponible = $existencias[$referencia] ?? 0;
+
+            if ($cantidadSolicitada > $existenciaDisponible) {
+                $errores[] = [
+                    'referencia' => $referencia,
+                    'cantidad_solicitada' => $cantidadSolicitada,
+                    'existencia_disponible' => $existenciaDisponible,
+                ];
+            }
+        }
+
+        if (!empty($errores)) {
+            return back()
+                ->with('error', 'No hay unidades disponibles para algunos productos')
+                ->with('detalles', $errores);
+        }
+
+
         DB::beginTransaction();
 
         try {
@@ -32,10 +86,11 @@ class PedidoController extends Controller
 
             if ($resultadoXml['status'] !== 'success') {
                 DB::rollBack();
-                return response()->json([
-                    'error' => 'Error al generar XML',
-                    'mensaje' => $resultadoXml['mensaje'] ?? 'Error no especificado'
-                ], 500);
+
+                return back()->with([
+                    'error'   => 'Error al generar XML',
+                    'mensaje' => $resultadoXml['mensaje'] ?? 'Error no especificado',
+                ]);
             }
 
             // Validación en Siesa
@@ -54,7 +109,7 @@ class PedidoController extends Controller
 
             if (empty($validacion_siesa)) {
                 DB::rollBack();
-                return response()->json(['error' => 'No se ha creado el pedido en Siesa'], 500);
+                return back()->with('error', 'No se ha creado el pedido en Siesa');    
             }
 
             if ($validacion_siesa) {

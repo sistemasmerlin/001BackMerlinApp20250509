@@ -72,7 +72,7 @@ class PresupuestosComercialesImport implements ToCollection, WithHeadingRow, Wit
                 if ($tipo === '') {
                     throw new \Exception("Falta tipo_presupuesto en fila {$fila}");
                 }
-                if (!in_array($categoria, ['llantas','repuestos','total'])) {
+                if (!in_array($categoria, ['llantas','repuestos','total','pirelli'])) {
                     throw new \Exception("Categoría debe ser 'llantas' o 'repuestos' en fila {$fila}");
                 }
 

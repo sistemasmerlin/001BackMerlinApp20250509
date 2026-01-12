@@ -18,6 +18,7 @@ use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
 use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesIndex;
+use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
 
 use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
@@ -60,6 +61,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/promociones/{promocion}/detalle', Detalle::class)->name('admin.promociones.detalle');
 
     Route::get('/pedidos', PedidosIndex::class)->name('pedidos.index');
+    Route::get('/presupuesto-cartera', PresupuestosCarteraIndex::class)->name('presupuesto.cartera.index');
+
+    
 
     Route::get('/motivosVisita', MotivosVisitasIndex::class)->name('motivosVisita.index');
 
