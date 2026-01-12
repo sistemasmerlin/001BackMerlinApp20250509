@@ -14,6 +14,7 @@ return [
         'http://192.168.140.233:8100',
         'ionic://localhost',
         'http://10.0.2.2', 
+	    'https://appmovil.merlinrod.com',
         'https://aplicacion.merlinrod.com',
     ],
 
