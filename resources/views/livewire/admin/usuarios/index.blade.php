@@ -1,183 +1,294 @@
 <div class="space-y-6">
-    
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Lista de Usuarios</h1>
-        <button wire:click="abrirModal" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
-            + Crear Usuarioo
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-xl font-semibold text-zinc-900 dark:text-white">Usuarios</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Gestiona usuarios, roles y categoría de asesor.</p>
+        </div>
+
+        <button
+            type="button"
+            wire:click="abrirModal"
+            class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800
+                   dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+        >
+            <span class="text-base leading-none">+</span>
+            Nuevo usuario
         </button>
     </div>
 
+    {{-- Alerts --}}
     @if (session()->has('success'))
-        <div class="mb-4 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-800">
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800
+                    dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
             {{ session('success') }}
         </div>
     @endif
 
     @if (session()->has('error'))
-        <div class="mb-4 rounded-lg bg-red-100 px-4 py-2 text-sm text-red-800">
+        <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800
+                    dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200">
             {{ session('error') }}
         </div>
     @endif
-    
-    <div class="w-full overflow-x-auto max-w-screen-lg mx-auto rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 p-6" >
-        <div wire:ignore>
-            <table id="tabla"  class="w-4/5 table-auto text-sm text-left text-gray-700 dark:text-zinc-300" style="padding-top: 10px;">
-                <thead class="text-xs text-zinc-50  dark:text-zinc-50 uppercase bg-zinc-950 dark:bg-zinc-700" >
-                    <tr>
-                        <th class="px-4 py-3">Id Asesor</th>
-                        <th class="px-4 py-3">Id Recibos</th>
-                        <th class="px-4 py-3">Cédula</th>
-                        <th class="px-4 py-3">Nombre</th>
-                        <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">Rol</th>
-                        <th class="px-4 py-3">Editar</th>
-                        <th class="px-4 py-3">Eliminar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                        @foreach ($usuarios as $usuario)
-                            <tr class="bg-white dark:bg-zinc-800 border-b dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700">
-                                <td class="px-4 py-2">{{ $usuario->codigo_asesor }}</td>
-                                <td class="px-4 py-2">{{ $usuario->codigo_recibos }}</td>
-                                <td class="px-4 py-2">{{ $usuario->cedula }}</td>
-                                <td class="px-4 py-2">{{ $usuario->name }}</td>
-                                <td class="px-4 py-2">{{ $usuario->email }}</td>
-                                <td class="px-4 py-2">
-                                    @foreach ($usuario->roles as $rol)
-                                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2 py-1 rounded-full mr-1 dark:bg-indigo-900 dark:text-indigo-200">
+
+    {{-- Table --}}
+    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div class="p-4 sm:p-6">
+            <div wire:ignore>
+                <table id="tabla" class="min-w-full text-sm text-left text-zinc-700 dark:text-zinc-300">
+                    <thead class="text-xs uppercase bg-zinc-50 text-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-300">
+                        <tr>
+                            <th class="px-4 py-3">Id Asesor</th>
+                            <th class="px-4 py-3">Id Recibos</th>
+                            <th class="px-4 py-3">Cédula</th>
+                            <th class="px-4 py-3">Nombre</th>
+                            <th class="px-4 py-3">Email</th>
+                            <th class="px-4 py-3">Rol</th>
+                            <th class="px-4 py-3">Categoría</th>
+                            <th class="px-4 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @forelse ($usuarios as $usuario)
+                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
+                                <td class="px-4 py-3">{{ $usuario->codigo_asesor }}</td>
+                                <td class="px-4 py-3">{{ $usuario->codigo_recibos }}</td>
+                                <td class="px-4 py-3">{{ $usuario->cedula }}</td>
+
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                                            {{ $usuario->initials() }}
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-zinc-900 dark:text-white">{{ $usuario->name }}</div>
+                                            <div class="text-xs text-zinc-500 dark:text-zinc-400">ID: {{ $usuario->id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-4 py-3">{{ $usuario->email }}</td>
+
+                                <td class="px-4 py-3">
+                                    @forelse ($usuario->roles as $rol)
+                                        <span class="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700
+                                                    dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 mr-1">
                                             {{ $rol->name }}
                                         </span>
-                                    @endforeach
+                                    @empty
+                                        <span class="text-xs text-zinc-400">Sin rol</span>
+                                    @endforelse
                                 </td>
-                                <td class="px-3 py-2">
-                                    <button wire:click="editarUsuario({{ $usuario->id }})" class="px-3 py-1 bg-blue-500 hover:bg-blue-800 text-white font-semibold rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                    </svg>
-                                    </button>
+
+                                <td class="px-4 py-3">
+                                    @if($usuario->categoria_asesor)
+                                        <span class="inline-flex items-center rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700
+                                                    dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200">
+                                            {{ ucfirst($usuario->categoria_asesor) }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-zinc-400">—</span>
+                                    @endif
                                 </td>
-                                <td class="px-3 py-2">
-                                    <button
-                                        wire:click="eliminarUsuario({{ $usuario->id }})"
-                                        class="px-3 py-1 bg-red-500 hover:bg-red-800 text-white font-semibold rounded-lg"
-                                        onclick="return confirm('¿Estás seguro de eliminar este usuario?')"
-                                    >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                    </svg>
-                                    </button>
+
+                                <td class="px-4 py-3 text-right">
+                                    <div class="inline-flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            wire:click="editarUsuario({{ $usuario->id }})"
+                                            class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50
+                                                   dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                                        >
+                                            Editar
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onclick="return confirm('¿Estás seguro de eliminar este usuario?')"
+                                            wire:click="eliminarUsuario({{ $usuario->id }})"
+                                            class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50
+                                                   dark:border-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-900/20"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-6 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                                    No hay usuarios registrados.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
 
-                        @endforeach
-                </tbody>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Modal -->
+
+    {{-- Modal --}}
     @if ($openModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-4 w-full max-w-md border border-zinc-200 dark:border-zinc-700">
-                <h2 class="text-lg text-center font-bold text-zinc-50 bg-blue-500 dark:text-white mb-3 p-2">
-                    {{ $modoEditar ? 'Editar Usuario' : 'Nuevo Usuario' }}
-                </h2>
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" wire:click="$set('openModal', false)"></div>
 
-                <form wire:submit.prevent="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}" class="space-y-3 text-sm">
+            <div class="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
+                        {{ $modoEditar ? 'Editar usuario' : 'Nuevo usuario' }}
+                    </h2>
 
-                    @if ($errors->any())
-                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-                            <ul class="list-disc list-inside text-sm">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
+                    <button
+                        type="button"
+                        wire:click="$set('openModal', false)"
+                        class="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        aria-label="Cerrar"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                {{-- Errors summary --}}
+                @if ($errors->any())
+                    <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form wire:submit.prevent="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}" class="mt-5 space-y-4">
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        {{-- Nombre --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre</label>
+                            <input type="text" wire:model.defer="name"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('name') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Email --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Email</label>
+                            <input type="email" wire:model.defer="email"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('email') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Password --}}
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                {{ $modoEditar ? 'Nueva contraseña (opcional)' : 'Contraseña' }}
+                            </label>
+                            <div class="relative mt-1">
+                                <input
+                                    type="{{ $mostrarPassword ? 'text' : 'password' }}"
+                                    wire:model.defer="{{ $modoEditar ? 'nuevaPassword' : 'password' }}"
+                                    class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-16 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                           dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                                >
+                                <button
+                                    type="button"
+                                    wire:click="$toggle('mostrarPassword')"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-600 hover:text-zinc-900
+                                           dark:text-zinc-300 dark:hover:text-white"
+                                >
+                                    {{ $mostrarPassword ? 'Ocultar' : 'Ver' }}
+                                </button>
+                            </div>
+                            @error('password') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                            @error('nuevaPassword') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Cédula --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Cédula</label>
+                            <input type="text" wire:model.defer="cedula"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('cedula') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Código asesor --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Código asesor</label>
+                            <input type="text" wire:model.defer="codigo_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('codigo_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Código recibos --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Código recibos</label>
+                            <input type="text" wire:model.defer="codigo_recibos"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('codigo_recibos') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Categoría asesor (NUEVO) --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Categoría asesor</label>
+                            <select wire:model.defer="categoria_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                                <option value="">Seleccione...</option>
+                                <option value="senior">Senior</option>
+                                <option value="master">Master</option>
+                            </select>
+                            @error('categoria_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Roles --}}
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Roles</label>
+                            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                @foreach($roles as $rol)
+                                    <label class="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700
+                                                  dark:border-zinc-800 dark:text-zinc-200">
+                                        <input
+                                            type="checkbox"
+                                            wire:model.defer="rolesSeleccionados"
+                                            value="{{ $rol->id }}"
+                                            class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400 dark:bg-zinc-900 dark:border-zinc-700"
+                                        >
+                                        <span>{{ $rol->name }}</span>
+                                    </label>
                                 @endforeach
-                            </ul>
+                            </div>
                         </div>
-                    @endif
 
-                    <div class="space-y-1">
-                        <label class="block text-zinc-950 dark:text-zinc-300">Nombre</label>
-                        <input type="text" wire:model="name" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="block text-zinc-950 dark:text-zinc-300">Email</label>
-                        <input type="email" wire:model="email" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                    </div>
-
-                    @if ($modoEditar)
-                        <div class="space-y-1 relative">
-                            <label class="block text-zinc-950 dark:text-zinc-300">Nueva Contraseña</label>
-                            <input :type="$wire.mostrarPassword ? 'text' : 'password'"
-                                wire:model.defer="nuevaPassword"
-                                class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                            <button type="button"
-                                    wire:click="$toggle('mostrarPassword')"
-                                    class="absolute right-2 top-7 text-xs text-indigo-600 hover:underline">
-                                {{ $mostrarPassword ? 'Ocultar' : 'Ver' }}
-                            </button>
-                        </div>
-                    @else
-                        <div class="space-y-1 relative">
-                            <label class="block text-zinc-950 dark:text-zinc-300">Contraseña</label>
-                            <input :type="$wire.mostrarPassword ? 'text' : 'password'"
-                                wire:model.defer="password"
-                                class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-3 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                            <button type="button"
-                                    wire:click="$toggle('mostrarPassword')"
-                                    class="absolute right-2 top-7 text-xs text-indigo-600 hover:underline">
-                                {{ $mostrarPassword ? 'Ocultar' : 'Ver' }}
-                            </button>
-                        </div>
-                    @endif
-
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="space-y-1">
-                            <label class="block text-zinc-950 dark:text-zinc-300">Cédula</label>
-                            <input type="text" wire:model="cedula" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block text-zinc-950 dark:text-zinc-300">Código Asesor</label>
-                            <input type="text" wire:model="codigo_asesor" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block text-zinc-950 dark:text-zinc-300">Código Recibos</label>
-                            <input type="text" wire:model="codigo_recibos" class="w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1.5 focus:ring-indigo-500 focus:outline-none" />
-                        </div>
-                    </div>
-
-                    <div class="space-y-1">
-                                <label class="block text-zinc-950 dark:text-zinc-300">Roles</label>
-                                <div class="grid grid-cols-3 gap-4">
-                                    @foreach($roles as $rol)
-                                        <label class="w-full flex items-center">
-                                            <input type="checkbox" wire:model="rolesSeleccionados" value="{{ $rol->id }}"
-                                                class="rounded text-blue-600 border-gray-300 hover:ring-blue-500 dark:bg-zinc-800 dark:border-zinc-600">
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">
-                                                {{ $rol->name }}
-                                            </span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                    </div>
-                    
-                    <div class="flex justify-end pt-4 gap-3">
+                    {{-- Actions --}}
+                    <div class="mt-6 flex justify-end gap-2">
                         <button
                             type="button"
                             wire:click="$set('openModal', false)"
-                            class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg"
+                            class="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50
+                                   dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Cancelar
                         </button>
 
                         <button
                             type="submit"
-                            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+                            class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800
+                                   dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                         >
-                            {{ $modoEditar ? 'Actualizar' : 'Guardar' }}
+                            {{ $modoEditar ? 'Guardar cambios' : 'Crear usuario' }}
                         </button>
                     </div>
                 </form>
@@ -185,6 +296,8 @@
         </div>
     @endif
 
+
+    {{-- DataTable --}}
     @push('scripts')
         <script>
             function iniciarDataTable() {
@@ -194,35 +307,31 @@
 
                 $('#tabla').DataTable({
                     responsive: false,
-                    fixedHeader: true, //Encabezado fijo
-                    scrollX: true, //Evita que encabezado se salga de la tabla
-                    "lengthMenu": [10, 50, 100],
-                    "language": {
-                        "lengthMenu": "Ver _MENU_",
-                        "zeroRecords": "Sin datos",
-                        "info": "Página _PAGE_ de _PAGES_",
-                        "infoEmpty": "No hay datos disponibles",
-                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
-                        'search': 'Buscar:',
-                        'paginate': {
-                            'next': 'Siguiente',
-                            'previous': 'Anterior'
-                        }
+                    fixedHeader: true,
+                    scrollX: true,
+                    lengthMenu: [10, 50, 100],
+                    language: {
+                        lengthMenu: "Ver _MENU_",
+                        zeroRecords: "Sin datos",
+                        info: "Página _PAGE_ de _PAGES_",
+                        infoEmpty: "No hay datos disponibles",
+                        infoFiltered: "(Filtrado de _MAX_ registros totales)",
+                        search: "Buscar:",
+                        paginate: { next: "Siguiente", previous: "Anterior" }
                     }
                 });
             }
 
-            //cuando la vista carga por primera vez.
             document.addEventListener("livewire:load", () => {
                 iniciarDataTable();
             });
-            //cuando se vuelve a la vista.
+
             document.addEventListener("livewire:navigated", () => {
                 setTimeout(() => iniciarDataTable(), 50);
             });
-        
 
+            // Si creas/editar y quieres reinit sin recargar, luego lo conectamos con events.
         </script>
-        @endpush
+    @endpush
 
 </div>

@@ -119,6 +119,14 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
+                    @can('Ver fletes')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
+                            {{ __('Fletes') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
             @can('Logistica')
@@ -133,7 +141,7 @@
                         <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
                     </button>
 
-                    @can('Administrar fletes')
+                    @can('Ver fletes')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
                             {{ __('Lista de ciudades') }}

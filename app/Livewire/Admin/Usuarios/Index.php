@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     
-    public $usuarios, $name, $email, $password, $cedula, $codigo_asesor, $codigo_recibos, $usuario_id;
+    public $usuarios, $name, $email, $password, $cedula, $codigo_asesor, $codigo_recibos, $usuario_id, $categoria_asesor;
     public $roles = [], $rolesSeleccionados = [];
     public $nuevaPassword;
     public $mostrarPassword = false;
@@ -28,7 +28,7 @@ class Index extends Component
 
     public function abrirModal()
     {
-        $this->reset(['name', 'email', 'password', 'cedula', 'codigo_asesor', 'codigo_recibos', 'rolesSeleccionados', 'usuario_id']);
+        $this->reset(['name', 'email', 'password', 'cedula', 'codigo_asesor', 'codigo_recibos', 'rolesSeleccionados', 'usuario_id', 'categoria_asesor']);
         $this->modoEditar = false;
         $this->openModal = true;
     }
@@ -41,6 +41,7 @@ class Index extends Component
             'cedula' => 'required|unique:users,cedula,' . $this->usuario_id,
             'codigo_asesor' => 'required|unique:users,codigo_asesor,' . $this->usuario_id,
             'codigo_recibos' => 'required|unique:users,codigo_recibos,' . $this->usuario_id,
+            'categoria_asesor' => 'required|in:senior,master', // ✅ NUEVO
         ]);
 
         $usuario = User::find($this->usuario_id);
@@ -51,6 +52,7 @@ class Index extends Component
             'cedula' => $this->cedula,
             'codigo_asesor' => $this->codigo_asesor,
             'codigo_recibos' => $this->codigo_recibos,
+            'categoria_asesor' => $this->categoria_asesor,
         ]);
 
         if (!empty($this->nuevaPassword)) {
@@ -79,6 +81,7 @@ class Index extends Component
         $this->cedula = $usuario->cedula;
         $this->codigo_asesor = $usuario->codigo_asesor;
         $this->codigo_recibos = $usuario->codigo_recibos;
+        $this->categoria_asesor = $usuario->categoria_asesor; 
         $this->rolesSeleccionados = $usuario->roles->pluck('id')->toArray();
 
         $this->modoEditar = true;
@@ -94,6 +97,7 @@ class Index extends Component
             'cedula' => 'required|unique:users,cedula,' . $this->usuario_id,
             'codigo_asesor' => 'required|unique:users,codigo_asesor,' . $this->usuario_id,
             'codigo_recibos' => 'required|unique:users,codigo_recibos,' . $this->usuario_id,
+            'categoria_asesor' => 'required|in:senior,master', // ✅ NUEVO
         ]);
 
         $data = [
@@ -102,6 +106,7 @@ class Index extends Component
             'cedula' => $this->cedula,
             'codigo_asesor' => $this->codigo_asesor,
             'codigo_recibos' => $this->codigo_recibos,
+            'categoria_asesor' => $this->categoria_asesor,
         ];
 
         if (!$this->modoEditar) {
@@ -141,9 +146,10 @@ class Index extends Component
 
     public function render()
     {
-
-        return view('livewire.admin.usuarios.index');
-
+        return view('livewire.admin.usuarios.index', [
+            'usuarios' => User::with('roles')->get(),
+            'roles' => Role::all(),
+        ]);
     }
     
 }
