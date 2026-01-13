@@ -109,6 +109,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'BATERIAS RINOVA' THEN 'Baterias'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA LIGHTING' THEN 'Iluminacion'
                     WHEN rtrim(t106.f106_descripcion) = 'CST TIRES' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST E-SCOOTER' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'CST ATV' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'WDT E-SCOOTER' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'WDT BIKE' THEN 'Llantas'
@@ -163,6 +164,8 @@ class ProductosController extends Controller
                             'BATERIAS RINOVA',
                             'RINOVA LIGHTING',
                             'CST TIRES',
+                            'CST ATV',
+                            'CST E-SCOOTER',
                             'WDT E-SCOOTER',
                             'WDT BIKE',
                             'WDT TUBE',
