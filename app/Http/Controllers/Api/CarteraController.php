@@ -158,12 +158,44 @@ class CarteraController extends Controller
 
             if ($dataPresupuesto->total_presupuesto > 0) {
                 $dataPresupuesto->total_presupuesto = ($dataPresupuesto->total_presupuesto/1.19);
-                $dataPresupuesto->cumplimiento = round(($dataPresupuesto->total_recaudado / $dataPresupuesto->total_presupuesto) * 100, 2);
+                $dataPresupuesto->cumplimiento = round(($dataPresupuesto->total_recaudado / $dataPresupuesto->total_presupuesto) * 100, 1);
             } else {
                 $dataPresupuesto->cumplimiento = 0;
             }
 
+            $porcentajeClientesImpactadosCredito = $this->porcentajeClientesImpactadosCredito($periodo, $cedula);
+
             $baseComision = $dataPresupuesto->total_recaudado_general_sin_flete ?? 0;
+
+            if ($categoria_asesor == 'master') {
+                if($porcentajeClientesImpactadosCredito >= 60){
+                    $baseComision = $baseComision * 1.1;
+                }elseif($porcentajeClientesImpactadosCredito >= 55){
+                    $baseComision = $baseComision * 1.05;
+                }elseif($porcentajeClientesImpactadosCredito >= 50){
+                    $baseComision = $baseComision;
+                }elseif($porcentajeClientesImpactadosCredito >= 45){
+                    $baseComision = $baseComision * 0.90;
+                }elseif($porcentajeClientesImpactadosCredito >= 45){
+                    $baseComision = $baseComision * 0.8;
+                }else{
+                   $baseComision = 0; 
+                }
+            }else{
+                if($porcentajeClientesImpactadosCredito >= 60){
+                    $baseComision = $baseComision * 1.05;
+                }elseif($porcentajeClientesImpactadosCredito >= 55){
+                    $baseComision = $baseComision * 1.02;
+                }elseif($porcentajeClientesImpactadosCredito >= 50){
+                    $baseComision = $baseComision;
+                }elseif($porcentajeClientesImpactadosCredito >= 45){
+                    $baseComision = $baseComision * 0.90;
+                }elseif($porcentajeClientesImpactadosCredito >= 45){
+                    $baseComision = $baseComision * 0.8;
+                }else{
+                   $baseComision = 0; 
+                }
+            }
 
             if ($categoria_asesor == 'master') {
                 if ($dataPresupuesto->cumplimiento >= 90) {
@@ -198,10 +230,12 @@ class CarteraController extends Controller
 
         $recuadoPorDiasCartera = $this->recuadoPorDiasCartera($periodo, $cedula);
 
+
         return response()->json([
             'categoria_asesor' => $categoria_asesor,
             'recaudoCartera' => $dataPresupuestos,
             'recuadoPorDiasCartera' => $recuadoPorDiasCartera,
+           // 'porcentajeClientesImpactadosCredito' => $porcentajeClientesImpactadosCredito,
             'estado' => true,
             'mensaje' => 'Se retornan las facturas pendientes de pago',
         ], 200);
@@ -568,11 +602,11 @@ class CarteraController extends Controller
                 THEN bi_t351_1.[creditos] ELSE 0 END
             ) AS creditos_46_60,
             SUM(CASE 
-                WHEN DATEDIFF(day, CONVERT(datetime, bi_t351_1.[fecha_docto_cruce], 112), CONVERT(datetime, bi_t351_1.[fecha_recaudo], 112)) BETWEEN 66 AND 75 
+                WHEN DATEDIFF(day, CONVERT(datetime, bi_t351_1.[fecha_docto_cruce], 112), CONVERT(datetime, bi_t351_1.[fecha_recaudo], 112)) BETWEEN 66 AND 80 
                 THEN bi_t351_1.[creditos] ELSE 0 END
             ) AS creditos_61_75,
             SUM(CASE 
-                WHEN DATEDIFF(day, CONVERT(datetime, bi_t351_1.[fecha_docto_cruce], 112), CONVERT(datetime, bi_t351_1.[fecha_recaudo], 112)) >= 76 
+                WHEN DATEDIFF(day, CONVERT(datetime, bi_t351_1.[fecha_docto_cruce], 112), CONVERT(datetime, bi_t351_1.[fecha_recaudo], 112)) >= 81
                 THEN bi_t351_1.[creditos] ELSE 0 END
             ) AS creditos_76_85,
             SUM(CASE 
@@ -719,4 +753,57 @@ class CarteraController extends Controller
 
         return $data_asesores;
     }
+
+    public function porcentajeClientesImpactadosCredito(string $periodo, string $asesorCedula): float
+{
+    // Periodo YYYYMM
+    $periodo = preg_replace('/\D/', '', $periodo);
+    if (strlen($periodo) !== 6) {
+        return 0.0;
+    }
+
+    $year  = (int) substr($periodo, 0, 4);
+    $month = (int) substr($periodo, 4, 2);
+
+    // IMPORTANTÍSIMO: el asesor aquí es CÉDULA (string), no int
+    $asesorCedula = trim($asesorCedula);
+
+    // Total clientes del asesor con condición 30D o 10D (según maestro t201)
+    $totalRow = DB::connection('sqlsrv')->selectOne(
+        "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
+         FROM t200_mm_terceros t200
+         INNER JOIN t201_mm_clientes t201
+           ON t200.f200_rowid = t201.f201_rowid_tercero
+         WHERE t200.f200_id_cia = 3
+           AND t201.f201_id_cia = 3
+           AND t200.f200_ind_cliente = 1
+           AND t200.f200_ind_estado = 1
+           AND t201.f201_id_vendedor = ?
+           AND t201.f201_id_cond_pago IN ('30D','10D')",
+        [$asesorCedula]
+    );
+
+    $totalClientes = (int) ($totalRow->total_clientes ?? 0);
+
+    // Clientes con venta en el mes (solo clientes 30D o 10D)
+    $ventaRow = DB::connection('sqlsrv')->selectOne(
+        "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
+         FROM t461_cm_docto_factura_venta t461
+         INNER JOIN t201_mm_clientes t201
+           ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
+         WHERE t461.f461_id_cia = 3
+           AND YEAR(t461.f461_id_fecha) = ?
+           AND MONTH(t461.f461_id_fecha) = ?
+           AND t201.f201_id_vendedor = ?
+           AND t201.f201_id_cond_pago IN ('30D','10D')",
+        [$year, $month, $asesorCedula]
+    );
+
+    $clientesConVenta = (int) ($ventaRow->clientes_con_venta ?? 0);
+
+    return $totalClientes > 0
+        ? round(($clientesConVenta / $totalClientes) * 100, 2)
+        : 0.0;
+}
+
 }
