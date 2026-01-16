@@ -67,7 +67,7 @@ class AuthController extends Controller
 
         if ($user->hasRole(['Televentas', 'Coordinador Comercial'])) {
             $relacionados = $user->relacionados()
-                ->select('users.id', 'users.name', 'users.email', 'users.codigo_asesor', 'users.cedula')
+                ->select('users.id', 'users.name', 'users.email', 'users.codigo_asesor', 'users.cedula', 'users.categoria_asesor')
                 ->get();
         }
 
