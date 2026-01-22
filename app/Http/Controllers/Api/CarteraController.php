@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use App\Models\InteresesCartera;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class CarteraController extends Controller
 {
@@ -78,168 +79,139 @@ class CarteraController extends Controller
             'mensaje' => 'Se retornan las facturas pendientes de pago',
         ], 200);
     }
+public function recuadoPresupuesto(Request $request)
+{
+    $cedula           = trim((string) $request->asesor);
+    $categoria_asesor  = strtolower(trim((string) $request->categoria_asesor));
+    $periodo          = str_replace("-", "", (string) $request->periodo);
 
-    public function recuadoPresupuesto(Request $request)
-    {
+    // 1) Presupuesto(s) del asesor
+    $dataPresupuestos = $this->obtenerPresupuestos($periodo, $cedula);
 
-        $cedula = $request->asesor;
+    // 2) Totales base que usas en la vista (recaudo, etc.)
+    $dataPresupuestos->each(function ($dataPresupuesto) use ($periodo) {
+        $dataPresupuesto->total_recaudado         = (float) $this->calcularTotalRecaudado($periodo, $dataPresupuesto->cedula);
+        $dataPresupuesto->total_recaudado_diez    = (float) $this->calcularTotalRecaudadoDiez($periodo, $dataPresupuesto->cedula);
+        $dataPresupuesto->total_recaudado_contado = (float) $this->calcularTotalRecaudadoContado($periodo, $dataPresupuesto->cedula);
+        $dataPresupuesto->porcentaje_comision     = 0;
+        $dataPresupuesto->comisiones              = 0;
+    });
 
-        $categoria_asesor = $request->categoria_asesor;
+    // 3) Recaudo por días (para base comisión)
+    $recuadoPorDiasCartera = $this->recuadoPorDiasCartera($periodo, $cedula);
 
-        $periodo = str_replace("-", "", $request->periodo);
+    // base comision = total recaudo por dias SIN flete (ya viene sin IVA en tu recuadoPorDias)
+    $baseComision = (float) data_get($recuadoPorDiasCartera, 'totales.total_recaudo_dias_sin_flete', 0);
+    $baseComision = round($baseComision);
 
-        $dataPresupuestos = $this->obtenerPresupuestos($periodo, $cedula);
+    // 4) Efectividad de ventas (tu función) -> aplica factor sobre la comisión final
+    $efectividad = (float) $this->porcentajeClientesImpactadosCredito($periodo, $cedula);
 
-        $dataPresupuestos->each(function ($dataPresupuesto) use ($periodo) {
-            $totalRecaudado = $this->calcularTotalRecaudado($periodo, $dataPresupuesto->cedula);
-            $totalRecaudadoDiez = $this->calcularTotalRecaudadoDiez($periodo, $dataPresupuesto->cedula);
-            $totalRecaudadoContado = $this->calcularTotalRecaudadoContado($periodo, $dataPresupuesto->cedula);
-            $dataPresupuesto->total_recaudado = $totalRecaudado;
-            $dataPresupuesto->porcentaje_comision = 0;
-            $dataPresupuesto->total_recaudado_diez = $totalRecaudadoDiez;
-            $dataPresupuesto->total_recaudado_contado = $totalRecaudadoContado;
-        });
+    $factor = 0.0;
+    if ($efectividad >= 60 ) {
+        $factor = 1.10;
+    } elseif ($efectividad >= 55) {
+        $factor = 1.05;
+    } elseif ($efectividad > 50) {
+        $factor = 1;
+    } elseif ($efectividad > 45) {
+        $factor = 0.90;
+    } elseif  ($efectividad > 40) {
+        $factor = 0.80;
+    } else {
+        $factor = 0.0; // menor o igual a 40 => 0
+    }
 
-        //return $dataPresupuestos;
+    foreach ($dataPresupuestos as $dataPresupuesto) {
 
-        foreach ($dataPresupuestos as $dataPresupuesto) {
+        // Simulación / normalización (tú ajustas si quieres otra base)
+        $totalPresupuesto = (float) ($dataPresupuesto->total_presupuesto ?? 0);
 
-            $recaudos = \DB::connection('sqlsrv')->select("SELECT 
-                    RTRIM(bi_t351_1.[tercero_vend]) AS tercero_vendedor,
-                    SUM(
-                        CASE 
-                            WHEN bi_t461.[f_valor_imp_local] > 0 
-                            THEN bi_t351_1.[creditos] 
-                            ELSE bi_t351_1.[creditos] 
-                        END
-                    ) AS total_creditos
-                FROM [UnoEE].[dbo].[BI_T351_1] AS bi_t351_1
-                LEFT JOIN [UnoEE].[dbo].[BI_T461] AS bi_t461
-                    ON bi_t461.[f_id_tipo_docto] = bi_t351_1.[id_tipo_docto_cruce]
-                    AND bi_t461.[f_nrodocto] = bi_t351_1.[nro_docto_cruce]
-                WHERE bi_t351_1.[compañia] = 3
-                    AND bi_t351_1.[tercero_vend] = '$dataPresupuesto->cedula'
-                    AND bi_t351_1.[parametro_biable] = 3
-                    AND bi_t351_1.[id_periodo] = '$periodo'
-                    AND bi_t351_1.[id_tipo_docto_cruce] IN ('FVM')
-                    AND bi_t351_1.[id_tipo_docto] IN (
-                        'FCF','FCR','FRC','NCD','NDE','R01','R02','R03','R04','R05','R06','R07','R08','R09','R10',
-                        'R11','R12','R13','R14','R15','R16','R17','R18','R19','R20','R21','R22','R23','R24',
-                        'R25','R26','R27','R28','R29','R30','R31','R32','R33','R34','R35','R36','R37','R38',
-                        'R39','R40','R41','R42','R43','R44','R45','R46','R47','R48','R49','R50'
-                    )
-                    AND bi_t461.[f_id_cia] = 3
-                    AND bi_t461.[f_parametro_biable] = 3
-                GROUP BY 
-                    RTRIM(bi_t351_1.[tercero_vend]);");
+        if ($totalPresupuesto > 0) {
+            // Tu lógica: presupuesto sin IVA
+            $dataPresupuesto->total_presupuesto = $totalPresupuesto / 1.19;
 
-
-            $fecha = Carbon::createFromFormat('Ym', $periodo);
-            $mesAnterior = $fecha->subMonth()->format('Ym');
-            $mesTresMenos = $fecha->subMonths(2)->format('Ym');
-
-            $porcentaje_flete = 0;
-
-            $dataPresupuesto->porcentaje_flete = $porcentaje_flete;
+            // cumplimiento = total_recaudado / total_presupuesto
+            /*$dataPresupuesto->cumplimiento = round(
+                ((float) $dataPresupuesto->total_recaudado / (float) $dataPresupuesto->total_presupuesto) * 100,
+                1
+            );*/
 
 
-            $recaudo_total_general = 0;
-            $total_recaudado_general_sin_flete = 0;
-
-            foreach ($recaudos as $recaudo) {
-                $recaudo_total_general = $recaudo->total_creditos;
-
-                $total_recaudado_general_sin_flete = round($recaudo->total_creditos - (($recaudo->total_creditos / 100) * $porcentaje_flete));
-            }
-
-            $dataPresupuesto->total_recaudado_general = $recaudo_total_general;
-
-            $dataPresupuesto->total_recaudado_general_sin_flete = $total_recaudado_general_sin_flete;
-
-            if ($dataPresupuesto->total_presupuesto > 0) {
-                $dataPresupuesto->total_presupuesto = ($dataPresupuesto->total_presupuesto/1.19);
-                $dataPresupuesto->cumplimiento = round(($dataPresupuesto->total_recaudado / $dataPresupuesto->total_presupuesto) * 100, 1);
-            } else {
-                $dataPresupuesto->cumplimiento = 0;
-            }
-
-            $porcentajeClientesImpactadosCredito = $this->porcentajeClientesImpactadosCredito($periodo, $cedula);
-
-            $baseComision = $dataPresupuesto->total_recaudado_general_sin_flete ?? 0;
-
-            if ($categoria_asesor == 'master') {
-                if($porcentajeClientesImpactadosCredito >= 60){
-                    $baseComision = $baseComision * 1.1;
-                }elseif($porcentajeClientesImpactadosCredito >= 55){
-                    $baseComision = $baseComision * 1.05;
-                }elseif($porcentajeClientesImpactadosCredito >= 50){
-                    $baseComision = $baseComision;
-                }elseif($porcentajeClientesImpactadosCredito >= 45){
-                    $baseComision = $baseComision * 0.90;
-                }elseif($porcentajeClientesImpactadosCredito >= 45){
-                    $baseComision = $baseComision * 0.8;
-                }else{
-                   $baseComision = 0; 
-                }
-            }else{
-                if($porcentajeClientesImpactadosCredito >= 60){
-                    $baseComision = $baseComision * 1.05;
-                }elseif($porcentajeClientesImpactadosCredito >= 55){
-                    $baseComision = $baseComision * 1.02;
-                }elseif($porcentajeClientesImpactadosCredito >= 50){
-                    $baseComision = $baseComision;
-                }elseif($porcentajeClientesImpactadosCredito >= 45){
-                    $baseComision = $baseComision * 0.90;
-                }elseif($porcentajeClientesImpactadosCredito >= 45){
-                    $baseComision = $baseComision * 0.8;
-                }else{
-                   $baseComision = 0; 
-                }
-            }
-
-            if ($categoria_asesor == 'master') {
-                if ($dataPresupuesto->cumplimiento >= 90) {
-                    $dataPresupuesto->porcentaje_comision = 0.00600;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } elseif ($dataPresupuesto->cumplimiento >= 85) {
-                    $dataPresupuesto->porcentaje_comision = 0.0057;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } elseif ($dataPresupuesto->cumplimiento >= 80) {
-                    $dataPresupuesto->porcentaje_comision = 0.0054;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } else {
-                    $dataPresupuesto->porcentaje_comision = 0;
-                    $dataPresupuesto->comisiones = 0;
-                }
-            } elseif ($categoria_asesor == 'senior') {
-                if ($dataPresupuesto->cumplimiento >= 90) {
-                    $dataPresupuesto->porcentaje_comision = 0.00600;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } elseif ($dataPresupuesto->cumplimiento >= 85) {
-                    $dataPresupuesto->porcentaje_comision = 0.0057;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } elseif ($dataPresupuesto->cumplimiento >= 80) {
-                    $dataPresupuesto->porcentaje_comision = 0.00540;
-                    $dataPresupuesto->comisiones = round($baseComision * $dataPresupuesto->porcentaje_comision);
-                } else {
-                    $dataPresupuesto->porcentaje_comision = 0;
-                    $dataPresupuesto->comisiones = 0;
-                }
-            }
+            $dataPresupuesto->cumplimiento = ceil(
+                (
+                    ((float) $dataPresupuesto->total_recaudado / (float) $dataPresupuesto->total_presupuesto) * 100
+                ) * 10
+            ) / 10;
+        } else {
+            $dataPresupuesto->cumplimiento = 0;
         }
 
-        $recuadoPorDiasCartera = $this->recuadoPorDiasCartera($periodo, $cedula);
+        // ==========================================================
+        // BLOQUE MASTER
+        // ==========================================================
+        if ($categoria_asesor === 'master') {
 
+            if ($dataPresupuesto->cumplimiento >= 90) {
+                $dataPresupuesto->porcentaje_comision = 0.00600;
+            } elseif ($dataPresupuesto->cumplimiento >= 85) {
+                $dataPresupuesto->porcentaje_comision = 0.00570;
+            } elseif ($dataPresupuesto->cumplimiento >= 80) {
+                $dataPresupuesto->porcentaje_comision = 0.00540;
+            } else {
+                $dataPresupuesto->porcentaje_comision = 0;
+            }
 
-        return response()->json([
-            'categoria_asesor' => $categoria_asesor,
-            'recaudoCartera' => $dataPresupuestos,
-            'recuadoPorDiasCartera' => $recuadoPorDiasCartera,
-           // 'porcentajeClientesImpactadosCredito' => $porcentajeClientesImpactadosCredito,
-            'estado' => true,
-            'mensaje' => 'Se retornan las facturas pendientes de pago',
-        ], 200);
+            // Comisión base por cumplimiento
+            $comisionCalculada = round($baseComision * (float) $dataPresupuesto->porcentaje_comision);
+
+            // Ajuste por efectividad
+            $dataPresupuesto->comisiones = (int) round($comisionCalculada * $factor);
+
+        // ==========================================================
+        // BLOQUE SENIOR
+        // ==========================================================
+        } elseif ($categoria_asesor === 'senior') {
+
+            if ($dataPresupuesto->cumplimiento >= 90) {
+                $dataPresupuesto->porcentaje_comision = 0.00600;
+            } elseif ($dataPresupuesto->cumplimiento >= 85) {
+                $dataPresupuesto->porcentaje_comision = 0.00570;
+            } elseif ($dataPresupuesto->cumplimiento >= 80) {
+                $dataPresupuesto->porcentaje_comision = 0.00540;
+            } else {
+                $dataPresupuesto->porcentaje_comision = 0;
+            }
+
+            // Comisión base por cumplimiento
+            $comisionCalculada = round($baseComision * (float) $dataPresupuesto->porcentaje_comision);
+
+            // Ajuste por efectividad
+            $dataPresupuesto->comisiones = (int) round($comisionCalculada * $factor);
+
+        } else {
+            // Si llega otra categoría
+            $dataPresupuesto->porcentaje_comision = 0;
+            $dataPresupuesto->comisiones = 0;
+        }
+
+        // (Opcional) mandar datos para debug
+        $dataPresupuesto->baseComision = $baseComision;
+        $dataPresupuesto->efectividad_ventas = $efectividad;
+        $dataPresupuesto->factor_efectividad = $factor;
     }
+
+    return response()->json([
+        'categoria_asesor'      => $categoria_asesor,
+        'recaudoCartera'        => $dataPresupuestos,
+        'baseComision'          => $baseComision,
+        'recuadoPorDiasCartera' => $recuadoPorDiasCartera,
+        'efectividad_ventas'    => $efectividad,
+        'factor_efectividad'    => $factor,
+        'estado'                => true,
+        'mensaje'               => 'Se retornan las facturas pendientes de pago',
+    ], 200);
+}
 
     private function obtenerPresupuestos($periodo, $cedula)
     {
@@ -522,14 +494,39 @@ class CarteraController extends Controller
     }
 
 
-    public function recuadoPorDiasCartera($periodo, $asesor)
+    /*public function recuadoPorDiasCartera($periodo, $asesor)
     {
 
         $periodo = str_replace("-", "", $periodo);
         $cedula = $asesor;
 
         return $data_asesores = $this->recuadoPorDias($cedula, $periodo);
-    }
+    } */
+
+        public function recuadoPorDiasCartera($periodo, $asesor)
+{
+    $periodo = str_replace("-", "", $periodo);
+    $cedula  = $asesor;
+
+    // recuadoPorDias() devuelve: ['data_asesores' => Collection, 'totales' => array]
+    $resp = $this->recuadoPorDias($cedula, $periodo);
+
+    // Normaliza para que el frontend reciba SIEMPRE:
+    // { rows: [ {..asesor..} ], totales: {..} }
+    $rows = collect(data_get($resp, 'data_asesores', []))->values();
+
+    $totales = [
+        'total_recaudo_dias'           => (float) data_get($resp, 'totales.total_recaudo_dias', 0),
+        'total_recaudo_dias_sin_flete' => (float) data_get($resp, 'totales.total_recaudo_dias_sin_flete', 0),
+        'total_comision_dias'          => (float) data_get($resp, 'totales.total_comision_dias', 0),
+    ];
+
+    return [
+        'rows'    => $rows,
+        'totales' => $totales,
+    ];
+}
+
     public function recuadoPorDias($cedula, $periodo)
     {
         $data_asesores = User::select(
@@ -636,7 +633,7 @@ class CarteraController extends Controller
             AND RTRIM(bi_t351_1.[tercero_vend]) IN ('" . implode("','", $terceros_vendedores) . "')
         GROUP BY 
             RTRIM(bi_t351_1.[tercero_vend])
-    ");
+        ");
 
         $recaudos = collect($recaudos)->keyBy('tercero_vend');
 
@@ -751,7 +748,40 @@ class CarteraController extends Controller
                 $data_asesor->comision_76_a_85;
         }
 
-        return $data_asesores;
+        // TOTAL recaudo por días (con flete) y sin flete
+    $totales = [
+        'total_recaudo_dias' => (int) (
+            ($data_asesores->sum('recaudo_1_15') ?? 0) +
+            ($data_asesores->sum('recaudo_16_30') ?? 0) +
+            ($data_asesores->sum('recaudo_31_45') ?? 0) +
+            ($data_asesores->sum('recaudo_46_60') ?? 0) +
+            ($data_asesores->sum('recaudo_61_75') ?? 0) +
+            ($data_asesores->sum('recaudo_76_85') ?? 0) +
+            ($data_asesores->sum('recaudo_mayor_86') ?? 0)
+        ),
+
+        'total_recaudo_dias_sin_flete' => (int) (
+            ($data_asesores->sum('recaudo_1_a_15_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_16_a_30_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_31_a_45_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_46_a_60_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_61_a_75_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_76_a_85_sin_flete') ?? 0) +
+            ($data_asesores->sum('recaudo_mayor_86_sin_flete') ?? 0)
+        ),
+
+        'total_comision_dias' => (int) (
+            ($data_asesores->sum('comision_a_pagar') ?? 0)
+        ),
+    ];
+
+        return [
+            'data_asesores' => $data_asesores,
+            'totales' => $totales,
+        ];
+
+
+       // return $data_asesores;
     }
 
     public function porcentajeClientesImpactadosCredito(string $periodo, string $asesorCedula): float
@@ -792,10 +822,12 @@ class CarteraController extends Controller
          INNER JOIN t201_mm_clientes t201
            ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
          WHERE t461.f461_id_cia = 3
-           AND YEAR(t461.f461_id_fecha) = ?
-           AND MONTH(t461.f461_id_fecha) = ?
-           AND t201.f201_id_vendedor = ?
-           AND t201.f201_id_cond_pago IN ('30D','10D')",
+            AND YEAR(t461.f461_id_fecha) = ?
+            AND MONTH(t461.f461_id_fecha) = ?
+            AND t461.[f461_id_concepto] = '501'
+            AND t461.f461_id_clase_docto = '523'
+            AND t201.f201_id_vendedor = ?
+            AND t201.f201_id_cond_pago IN ('30D','10D')",
         [$year, $month, $asesorCedula]
     );
 

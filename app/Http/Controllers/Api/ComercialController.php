@@ -714,9 +714,22 @@ class ComercialController extends Controller
         $ventaOtrasVal = $sumCatField('otras', 'dinero');
 
         // 5) % cumplimiento
-        $pct = function (float $venta, float $presu): float {
+        /*$pct = function (float $venta, float $presu): float {
             if ($presu <= 0) return 0.0;
             return round(($venta * 100) / $presu, 2);
+        }; */
+
+        $pct = function ($valor, $total) {
+            // Normaliza "44,01" -> "44.01"
+            $valor = (float) str_replace(',', '.', (string) $valor);
+            $total = (float) str_replace(',', '.', (string) $total);
+
+            if ($total <= 0) return 0;
+
+            $p = ($valor / $total) * 100;
+
+            // Siempre hacia arriba, sin decimales
+            return (int) ceil($p);
         };
 
         $cumplLlantas    = $pct($ventaLlantasUnid,  $presuLlantas);
