@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\NoticiasController;
 use App\Http\Controllers\Api\BackorderController;
 use App\Http\Controllers\Api\MotivosVisitaController;
 use App\Http\Controllers\Api\ComercialController;
+use App\Http\Controllers\Api\IntegracionTiendaController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -25,6 +26,8 @@ Route::middleware('auth:sanctum')->get('/terceros/{id}', [TercerosController::cl
 Route::middleware('auth:sanctum')->get('/terceros/consulta/{codigo_asesor}/{nit}', [TercerosController::class, 'consultarTercero']);
 
 Route::middleware('auth:sanctum')->get('/productos', [ProductosController::class, 'index']);
+
+Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionTiendaController::class, 'index']);
 
 Route::middleware('auth:sanctum')->get('/promociones', [PromocionesController::class, 'index']);
 
