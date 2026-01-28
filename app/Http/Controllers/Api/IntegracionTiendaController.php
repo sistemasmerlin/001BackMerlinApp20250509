@@ -13,7 +13,7 @@ class IntegracionTiendaController extends Controller
         $result = DB::connection('sqlsrv')
             ->select("SELECT rtrim(t120.f120_referencia) sku
                 ,CONVERT(decimal(10), SUM(t400.f400_cant_existencia_1- t400.f400_cant_comprometida_1))  as disponible
-                ,CONVERT(decimal(10), (PRECIOS1.PrecioImp*1.25)) 'price'
+                ,CONVERT(decimal(10), (PRECIOS1.PrecioImp*1.22)) 'price'
                 FROM t400_cm_existencia t400
                     INNER JOIN t121_mc_items_extensiones t121
                         ON t400.f400_rowid_item_ext = t121.f121_rowid
