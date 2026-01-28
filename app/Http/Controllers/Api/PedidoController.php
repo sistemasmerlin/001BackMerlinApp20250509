@@ -612,6 +612,22 @@ class PedidoController extends Controller
             'Ñ' => 'N'
         ]);
 
+        $listaPrecioRaw = data_get($request->all(), 'sucursal.lista_precio');
+
+        // Normalizar lista de precio a string (ej: "202")
+        if (is_array($listaPrecioRaw)) {
+            $listaPrecio = (string) ($listaPrecioRaw['codigo'] ?? $listaPrecioRaw['id'] ?? $listaPrecioRaw['valor'] ?? '');
+        } elseif (is_object($listaPrecioRaw)) {
+            $listaPrecio = (string) ($listaPrecioRaw->codigo ?? $listaPrecioRaw->id ?? $listaPrecioRaw->valor ?? '');
+        } else {
+            $listaPrecio = (string) ($listaPrecioRaw ?? '');
+        }
+
+        $campoPrecioLista = 'precio_' . ($listaPrecio ?: '202'); // fallback si quieres
+        $precioUnitario = $producto['precio_1']
+            ?? ($producto[$campoPrecioLista] ?? null)
+            ?? ($producto['precio_202'] ?? 0); // último fallback
+
         DB::beginTransaction();
         try {
             $pedido = Pedido::create([
@@ -641,7 +657,8 @@ class PedidoController extends Controller
                     'marca' => $producto['marca'],
                     'descripcion' => $producto['descripcion'] ?? '',
                     'cantidad' => $producto['cantidad'],
-                    'precio_unitario' => $producto['precio_1'] ?? $producto['precio_202'],
+                    'precio_unitario' => $precioUnitario,
+                    //'precio_unitario' => $precioUnitario,'precio_unitario' => $producto['precio_1'] ?? $producto['precio_202'],
                     'descuento' => $producto['descuento'] ?? 0,
                     'subtotal' => $producto['subtotal'] ?? 0,
                 ]);
