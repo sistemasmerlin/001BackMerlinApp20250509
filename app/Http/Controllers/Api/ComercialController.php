@@ -576,7 +576,7 @@ class ComercialController extends Controller
                 ['min' => 110,  'max' => 119.00,  'factor' => 0.0066],
                 ['min' => 120,  'max' => 1000,    'factor' => 0.0071],
             ];
-        } else{
+        } else {
             $rangosRepuestos = [
                 ['min' => 0,    'max' => 14.99, 'factor' => 0.000],
                 ['min' => 15,   'max' => 84.99, 'factor' => 0.0058],
@@ -633,53 +633,55 @@ class ComercialController extends Controller
             ->sum('presupuesto');
 
         // 4) VENTAS desde SQL Server
-        $ventasRows = DB::connection('sqlsrv')->select(
-            "SELECT 
-            RTRIM(t461_1.[f_cod_vendedor]) AS vendedor,       -- cédula / código asesor
-            RTRIM(t461_1.[f_cod_vendedor]) AS cod_vendedor,   -- código asesor
-            CASE 
-                WHEN t106.[f106_descripcion] IN ('RINOVA TIRES', 'HAKUBA - ARMOR - WDT', 'CST TIRES')
-                    THEN 'LLANTAS'
-                WHEN t106.[f106_descripcion] IN ('PIRELLI', 'PIRELLI RADIAL')
-                    THEN 'PIRELLI'
-                WHEN t106.[f106_descripcion] IN ('RINOVA LIGHTING','RINOVA LIGHTING LED', 'RNV', 'BATERIAS RINOVA','KOYO', 'NARVA', 'PFI' , 'RINOVA - GOOD TUBE')
-                    THEN 'REPUESTOS'
-                ELSE 'OTRAS'
-            END AS categoria,
-            SUM(t461_1.[f_cant_base])       AS cantidad,
-            SUM(t461_1.[f_valor_sub_local]) AS dinero
-        FROM BI_T461_1 AS t461_1
-        LEFT JOIN [t120_mc_items]                   AS t120 ON t120.[f120_rowid] = t461_1.[f_rowid_item]
-        LEFT JOIN [t125_mc_items_criterios]         AS t125 ON t125.[f125_rowid_item] = t120.[f120_rowid]
-        LEFT JOIN [t105_mc_criterios_item_planes]   AS t105 ON t105.[f105_id] = t125.[f125_id_plan]
-        LEFT JOIN [t106_mc_criterios_item_mayores]  AS t106 ON t106.[f106_id] = t125.[f125_id_criterio_mayor]
-        WHERE 
-            t461_1.[f_id_cia] = 3
-            AND t461_1.[f_co] = '003'
-            AND t461_1.[f_parametro_biable] = 3
-            AND t106.[f106_id_plan] = '003'
-            AND t106.[f106_id_cia] = '3'
-            AND t120.[f120_id_cia] = '3'
-            AND t125.[f125_id_plan] = '003'
-            AND t125.[f125_id_cia] = '3'
-            AND t105.[f105_id_cia] = '3'
-            AND t106.[f106_descripcion] NOT IN ('ZFLETE','NO APLICA')
-            AND t461_1.f_periodo = ?
-            AND t461_1.[f_cod_vendedor] = ?
-        GROUP BY 
-            t461_1.[f_cod_vendedor],
-            CASE 
-                WHEN t106.[f106_descripcion] IN ('RINOVA TIRES', 'HAKUBA - ARMOR - WDT', 'CST TIRES')
-                    THEN 'LLANTAS'
-                WHEN t106.[f106_descripcion] IN ('PIRELLI', 'PIRELLI RADIAL')
-                    THEN 'PIRELLI'
-                WHEN t106.[f106_descripcion] IN ('RINOVA LIGHTING','RINOVA LIGHTING LED', 'RNV', 'BATERIAS RINOVA','KOYO', 'NARVA', 'PFI' , 'RINOVA - GOOD TUBE')
-                    THEN 'REPUESTOS'
-                ELSE 'OTRAS'
-            END
-        ",
-            [$periodo, $codigo_asesor]
-        );
+
+        $ventasRows = DB::connection('sqlsrv')->select("
+WITH base AS (
+    SELECT
+        RTRIM(t461_1.[f_cod_vendedor]) AS vendedor,
+        CASE
+            WHEN t106.[f106_descripcion] IN (
+                'RINOVA TIRES','HAKUBA - ARMOR - WDT','CST TIRES','CST ATV','CST E-SCOOTER',
+                'FORERUNNER','WDT BIKE','WDT TUBE','WDT E-SCOOTER','RINOVA ATV','WDT','WORCRAFT'
+            ) THEN 'LLANTAS'
+
+            WHEN t106.[f106_descripcion] IN ('PIRELLI','PIRELLI RADIAL')
+            THEN 'PIRELLI'
+
+            WHEN t106.[f106_descripcion] IN (
+                'RINOVA LIGHTING','RINOVA LIGHTING LED','RNV','BATERIAS RINOVA','KOYO','NARVA','PFI','RINOVA - GOOD TUBE'
+            ) THEN 'REPUESTOS'
+
+            ELSE 'OTRAS'
+        END AS categoria,
+        t461_1.[f_cant_base]       AS cantidad,
+        t461_1.[f_valor_sub_local] AS dinero
+    FROM BI_T461_1 AS t461_1
+    LEFT JOIN [t120_mc_items]                  AS t120 ON t120.[f120_rowid] = t461_1.[f_rowid_item]
+    LEFT JOIN [t125_mc_items_criterios]        AS t125 ON t125.[f125_rowid_item] = t120.[f120_rowid]
+    LEFT JOIN [t105_mc_criterios_item_planes]  AS t105 ON t105.[f105_id] = t125.[f125_id_plan]
+    LEFT JOIN [t106_mc_criterios_item_mayores] AS t106 ON t106.[f106_id] = t125.[f125_id_criterio_mayor]
+    WHERE
+        t461_1.[f_id_cia] = 3
+        AND t461_1.[f_co] = '003'
+        AND t461_1.[f_parametro_biable] = 3
+        AND t106.[f106_id_plan] = '003'
+        AND t106.[f106_id_cia] = '3'
+        AND t120.[f120_id_cia] = '3'
+        AND t125.[f125_id_plan] = '003'
+        AND t125.[f125_id_cia] = '3'
+        AND t105.[f105_id_cia] = '3'
+        AND t106.[f106_descripcion] NOT IN ('ZFLETE','NO APLICA')
+        AND t461_1.f_periodo = ?
+        AND t461_1.[f_cod_vendedor] = ?
+)
+SELECT
+    vendedor,
+    categoria,
+    SUM(cantidad) AS cantidad,
+    SUM(dinero)   AS dinero
+FROM base
+GROUP BY vendedor, categoria
+", [$periodo, $codigo_asesor]);
 
         // Agrupamos ventas por categoría para tener suma de unidades y de valor
         $ventasGrouped = collect($ventasRows)->groupBy(function ($row) {

@@ -4,28 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class PresupuestoComercialController extends Controller
+class InformesComercialController extends Controller
 {
-    public function plantilla()
-    {
-        $csv = implode("\n", [
-            'periodo,codigo_asesor,tipo_presupuesto,presupuesto,marca,categoria,clasificacion_asesor',
-            '202509,A001,valor,15000000,RINOVA,llantas,A',
-            '202509,A001,unidades,120,RINOVA,llantas,A',
-            '202509,A002,valor,8000000,,repuestos,B',
-        ]);
+    public function ventasPeriodo(Request $request, $id){
 
-        return response()->streamDownload(
-            fn()=>print($csv),
-            'plantilla_presupuestos.csv',
-            ['Content-Type' => 'text/csv']
-        );
-    }
-
-    public function cumplimiento(Request $request, $id){
-
-        $periodo =  $request->input('periodo'); 
+    $periodo =  $request->input('periodo'); 
     
         $result = DB::connection('sqlsrv')
         ->select("SELECT bi_t461.f_periodo AS periodo, 
@@ -53,11 +38,12 @@ class PresupuestoComercialController extends Controller
             AND bi_t461.f_parametro_biable = 3
             AND t105.f105_id_cia = bi_t461.f_id_cia
             AND t106.f106_id_cia = bi_t461.f_id_cia
-            AND bi_t461.f_periodo = '$periodo'
+            AND bi_t461.f_periodo = '202602'
             GROUP BY f_periodo, f_vendedor, t106.f106_descripcion");
 
         return response()->json([
             'ventas' => $result,
         ]);
     }
+
 }

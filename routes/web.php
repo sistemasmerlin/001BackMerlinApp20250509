@@ -86,7 +86,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/cartera/intereses/calcular', [InteresesCarteraController::class, 'calcularInteresesDiarios'])->name('cartera.intereses.calcular');
 
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
+    
+    Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });
-
 
 require __DIR__ . '/auth.php';
