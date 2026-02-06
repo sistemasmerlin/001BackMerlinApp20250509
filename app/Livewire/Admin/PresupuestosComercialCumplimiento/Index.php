@@ -9,24 +9,24 @@ use Illuminate\Support\Collection;
 use App\Models\PresupuestoComercial;
 use App\Models\User;
 
+// ...
+
 class Index extends Component
 {
     public string $periodo = '';
     public array $periodos = [];
 
-    // Data cruda (detalle)
     public array $rows = [];
 
-    // KPIs globales
     public float $totalVenta = 0;
     public float $totalPresupuesto = 0;
     public float $cumplimientoTotal = 0;
 
-    // Tablas
-    public array $ventaPorMarca = [];   // global por marca
-    public array $asesores = [];        // acordeón: asesor -> marcas
+    public array $ventaPorMarca = [];
+    public array $asesores = [];
 
-    public ?string $openAsesor = null;
+    public ?string $openAsesor = null;     // 👈 para el acordeón
+    public string $periodoLabel = '';      // 👈 “Febrero 2026”
 
     public function mount(?string $periodo = null)
     {
@@ -37,6 +37,7 @@ class Index extends Component
 
     public function updatedPeriodo()
     {
+        $this->openAsesor = null; // cierra acordeón al cambiar periodo
         $this->cargar();
     }
 
@@ -44,15 +45,19 @@ class Index extends Component
     {
         $this->openAsesor = ($this->openAsesor === $vendedor) ? null : $vendedor;
     }
+
     private function buildPeriodos(int $meses = 12): array
     {
+        Carbon::setLocale('es'); // 👈 español
+
         $out = [];
         $base = Carbon::now()->startOfMonth();
 
         for ($i = 0; $i < $meses; $i++) {
-            $p = $base->copy()->subMonths($i)->format('Ym');
-            $label = $base->copy()->subMonths($i)->translatedFormat('F Y');
-            $out[] = ['value' => $p, 'label' => ucfirst($label)];
+            $dt = $base->copy()->subMonths($i);
+            $p = $dt->format('Ym'); // 202602
+            $label = ucfirst($dt->translatedFormat('F Y')); // Febrero 2026
+            $out[] = ['value' => $p, 'label' => $label];
         }
 
         return $out;
@@ -65,12 +70,15 @@ class Index extends Component
 
     public function cargar()
     {
+        Carbon::setLocale('es');
+        $this->periodoLabel = ucfirst(
+            Carbon::createFromFormat('Ym', $this->periodo)->translatedFormat('F Y')
+        );
+
         /** @var PresupuestoComercialController $ctrl */
         $ctrl = app(PresupuestoComercialController::class);
-
         $data = collect($ctrl->cumplimientoData($this->periodo));
 
-        // 1) Normaliza detalle
         $this->rows = $data->map(fn ($r) => [
             'periodo'  => (string) ($r->periodo ?? ''),
             'vendedor' => trim((string) ($r->vendedor ?? '')),
@@ -80,28 +88,18 @@ class Index extends Component
 
         $col = collect($this->rows);
 
-        // 2) Totales globales
         $this->totalVenta = (float) $col->sum('venta');
 
-        // 3) Presupuesto global (todos los asesores + todas las marcas)
         $this->totalPresupuesto = (float) PresupuestoComercial::query()
             ->where('periodo', $this->periodo)
             ->sum('presupuesto');
 
         $this->cumplimientoTotal = $this->pct($this->totalVenta, $this->totalPresupuesto);
 
-        // 4) Venta global por marca (NO requiere presupuesto)
-        $this->ventaPorMarca = $col
-            ->groupBy('marca')
-            ->map(fn (Collection $g, $marca) => [
-                'marca' => $marca,
-                'venta' => (float) $g->sum('venta'),
-            ])
-            ->sortByDesc('venta')
-            ->values()
-            ->all();
+        $this->ventaPorMarca = $col->groupBy('marca')
+            ->map(fn ($g, $marca) => ['marca' => $marca, 'venta' => (float) $g->sum('venta')])
+            ->sortByDesc('venta')->values()->all();
 
-        // 5) Vincular vendedor -> nombre asesor
         $vendedores = $col->pluck('vendedor')->filter()->unique()->values()->all();
 
         $mapNombres = User::query()
@@ -110,31 +108,21 @@ class Index extends Component
             ->map(fn($n) => trim((string)$n))
             ->toArray();
 
-        // 6) Acordeón por asesor con detalle por marca
-        $this->asesores = $col
-            ->groupBy('vendedor')
-            ->map(function (Collection $g, $vendedor) use ($mapNombres) {
-                $totalAsesor = (float) $g->sum('venta');
+        $this->asesores = $col->groupBy('vendedor')
+            ->map(function ($g, $vendedor) use ($mapNombres) {
 
                 $marcas = $g->groupBy('marca')
-                    ->map(fn (Collection $x, $marca) => [
-                        'marca' => $marca,
-                        'venta' => (float) $x->sum('venta'),
-                    ])
-                    ->sortByDesc('venta')
-                    ->values()
-                    ->all();
+                    ->map(fn ($x, $marca) => ['marca' => $marca, 'venta' => (float) $x->sum('venta')])
+                    ->sortByDesc('venta')->values()->all();
 
                 return [
                     'vendedor' => $vendedor,
                     'nombre'   => $mapNombres[$vendedor] ?? 'Sin nombre',
-                    'venta'    => $totalAsesor,
+                    'venta'    => (float) $g->sum('venta'),
                     'marcas'   => $marcas,
                 ];
             })
-            ->sortByDesc('venta')
-            ->values()
-            ->all();
+            ->sortByDesc('venta')->values()->all();
     }
 
     public function render()
@@ -142,3 +130,4 @@ class Index extends Component
         return view('livewire.admin.presupuestos-comercial-cumplimiento.index');
     }
 }
+
