@@ -17,6 +17,7 @@ use App\Livewire\Admin\MotivosVisitas\Index as MotivosVisitasIndex;
 use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
+use App\Livewire\Admin\PresupuestosComercialCumplimiento\Index as PresupuestosComercialCumplimientoIndex;
 use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesIndex;
 use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
 
@@ -81,13 +82,16 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/relacion/asesores', RelacionAsesoresIndex::class)->name('relacion.asesores.index');
 
+    Route::get('/presupuestos-comerciales/cumplimiento', PresupuestosComercialCumplimientoIndex::class)
+        ->name('presupuestos.comercial.cumplimiento');
+        
     Route::get('/enviar-envio/{id}', [PedidoController::class, 'enviarPedido'])->name('pedidos.enviar');
 
     Route::get('/cartera/intereses/calcular', [InteresesCarteraController::class, 'calcularInteresesDiarios'])->name('cartera.intereses.calcular');
 
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
     
-    Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
+   // Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });
 
 require __DIR__ . '/auth.php';

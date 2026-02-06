@@ -127,6 +127,15 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
+                    @can('Ver cumplimiento presupuesto comercial')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('presupuestos.comercial.cumplimiento')" :current="request()->routeIs('presupuestos.comercial.cumplimiento')" wire:navigate>
+                            {{ __('Cumplimiento Presupuesto Comercial') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+
                 </div>
             @endcan
             @can('Logistica')
