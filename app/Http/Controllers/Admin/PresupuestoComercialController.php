@@ -18,7 +18,7 @@ class PresupuestoComercialController extends Controller
         ]);
 
         return response()->streamDownload(
-            fn () => print($csv),
+            fn() => print($csv),
             'plantilla_presupuestos.csv',
             ['Content-Type' => 'text/csv']
         );
@@ -61,14 +61,45 @@ class PresupuestoComercialController extends Controller
         ", [$periodo]);
     }
 
-    /**
-     * Si igual quieres endpoint JSON (opcional)
-     */
+    public function comprometidosData(): array
+    {
+        return DB::connection('sqlsrv')->select("
+            SELECT
+                t106.f106_descripcion AS marca,
+                SUM(ISNULL(t431.f431_cant1_comprometida, 0)) AS unidades_comprometidas,
+                SUM(ISNULL(t431.f431_vlr_bruto, 0) - ISNULL(t431.f431_vlr_dscto_linea, 0)) AS valor_bruto_menos_dscto_linea
+            FROM t431_cm_pv_movto t431
+            LEFT JOIN t121_mc_items_extensiones t121
+                ON t431.f431_rowid_item_ext = t121.f121_rowid
+            LEFT JOIN t120_mc_items t120
+                ON t120.f120_rowid = t121.f121_rowid_item
+            LEFT JOIN t125_mc_items_criterios t125
+                ON t125.f125_rowid_item = t120.f120_rowid
+            AND t125.f125_id_cia = t120.f120_id_cia
+            AND t125.f125_id_plan = '003'
+            INNER JOIN t106_mc_criterios_item_mayores t106
+                ON t106.f106_id = t125.f125_id_criterio_mayor
+            AND t106.f106_id_plan = t125.f125_id_plan
+            AND t106.f106_id_plan = '003'
+            AND t106.f106_id_cia = t125.f125_id_cia
+            LEFT JOIN t430_cm_pv_docto t430
+                ON t431.f431_rowid_pv_docto = t430.f430_rowid
+            LEFT JOIN t054_mm_estados t054
+                ON t054.f054_id = t430.f430_ind_estado
+            AND t054.f054_id_grupo_clase_docto = 502
+            WHERE t430.f430_id_cia = 3
+            AND t431.f431_id_cia = 3
+            AND t054.f054_descripcion = 'Comprometido'
+            GROUP BY t106.f106_descripcion
+            ORDER BY valor_bruto_menos_dscto_linea DESC;");
+    }
+
     public function cumplimientoJson(Request $request)
     {
         $periodo = preg_replace('/\D/', '', (string) $request->input('periodo', now()->format('Ym')));
         return response()->json([
             'ventas' => $this->cumplimientoData($periodo),
+            'comprometidos' => $this->comprometidosData(),
         ]);
     }
 }
