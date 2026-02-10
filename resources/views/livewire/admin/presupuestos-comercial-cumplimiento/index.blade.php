@@ -39,12 +39,21 @@
                     </div>
                 </div>
 
-                <div class="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-3">
+                <div class="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-4">
                     {{-- Presupuesto --}}
                     <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
                         <div class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Presupuesto</div>
                         <div class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
                             {{ number_format($totalPresupuesto, 0, ',', '.') }}
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                            Unidades vendidas
+                        </div>
+                        <div class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
+                            {{ number_format($totalUnidades, 0, ',', '.') }}
                         </div>
                     </div>
 
@@ -97,6 +106,7 @@
                     <thead class="text-xs uppercase bg-zinc-100 text-zinc-900 dark:bg-zinc-900/60 dark:text-zinc-100">
                         <tr>
                             <th class="px-5 py-3">Marca</th>
+                            <th class="px-5 py-3 text-right">Unidades</th>
                             <th class="px-5 py-3 text-right">Venta</th>
                         </tr>
                     </thead>
@@ -106,6 +116,9 @@
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
                                 <td class="px-5 py-3 font-semibold text-zinc-900 dark:text-white">
                                     {{ $r['marca'] }}
+                                </td>
+                                <td class="px-5 py-3 text-right font-semibold">
+                                    {{ number_format($r['unidades'], 0, ',', '.') }}
                                 </td>
                                 <td class="px-5 py-3 text-right font-semibold {{ $r['venta'] < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
                                     {{ number_format($r['venta'], 0, ',', '.') }}
@@ -175,6 +188,7 @@
                                         <thead class="text-xs uppercase bg-white/70 text-zinc-900 dark:bg-zinc-950/40 dark:text-zinc-100">
                                             <tr>
                                                 <th class="px-4 py-2">Marca</th>
+                                                <th class="px-4 py-2 text-right">Unidades</th>
                                                 <th class="px-4 py-2 text-right">Venta</th>
                                             </tr>
                                         </thead>
@@ -183,6 +197,9 @@
                                                 <tr class="hover:bg-white/70 dark:hover:bg-zinc-950/40">
                                                     <td class="px-4 py-2 font-semibold text-zinc-900 dark:text-white">
                                                         {{ $m['marca'] }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-right font-semibold">
+                                                        {{ number_format($m['unidades'] ?? 0, 0, ',', '.') }}
                                                     </td>
                                                     <td class="px-4 py-2 text-right font-semibold {{ $m['venta'] < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
                                                         {{ number_format($m['venta'], 0, ',', '.') }}
@@ -257,7 +274,4 @@
             </div>
         @endif
     </div>
-
-
-
 </div>

@@ -35,7 +35,8 @@ class PresupuestoComercialController extends Controller
                 bi_t461.f_periodo AS periodo,
                 bi_t461.f_vendedor AS vendedor,
                 t106.f106_descripcion AS marca,
-                SUM(bi_t461.f_valor_sub_local) AS venta
+                SUM(bi_t461.f_valor_sub_local) AS venta,
+                SUM(bi_t461.f_cant_base) AS unidades
             FROM BI_T461_1 AS bi_t461
             LEFT JOIN t120_mc_items AS t120
                 ON t120.f120_rowid = bi_t461.f_rowid_item

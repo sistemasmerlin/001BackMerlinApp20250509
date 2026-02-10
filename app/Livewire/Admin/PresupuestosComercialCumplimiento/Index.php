@@ -9,12 +9,15 @@ use Illuminate\Support\Collection;
 use App\Models\PresupuestoComercial;
 use App\Models\User;
 
+
 class Index extends Component
 {
     public string $periodo = '';
     public array $periodos = [];
 
-    // Data cruda (detalle)
+    public float $totalUnidades = 0;
+
+    public array $ventaPorMarcaUnidades = [];
     public array $rows = [];
 
     // KPIs globales
@@ -102,17 +105,19 @@ class Index extends Component
         // 1) Ventas
         $data = collect($ctrl->cumplimientoData($this->periodo));
 
-        $this->rows = $data->map(fn ($r) => [
+        $this->rows = $data->map(fn($r) => [
             'periodo'  => (string) ($r->periodo ?? ''),
             'vendedor' => trim((string) ($r->vendedor ?? '')),
             'marca'    => trim((string) ($r->marca ?? '')),
             'venta'    => (float)  ($r->venta ?? 0),
+            'unidades'  => (float) ($r->unidades ?? 0),
         ])->values()->all();
 
         $col = collect($this->rows);
 
         // 2) Totales globales
         $this->totalVenta = (float) $col->sum('venta');
+        $this->totalUnidades = (float) $col->sum('unidades');
 
         $this->totalPresupuesto = (float) PresupuestoComercial::query()
             ->where('periodo', $this->periodo)
@@ -123,13 +128,19 @@ class Index extends Component
         // 3) Venta por marca
         $this->ventaPorMarca = $col
             ->groupBy('marca')
-            ->map(fn (Collection $g, $marca) => [
-                'marca' => $marca,
-                'venta' => (float) $g->sum('venta'),
+            ->map(fn(Collection $g, $marca) => [
+                'marca'    => (string) $marca,
+                'venta'    => (float) $g->sum('venta'),
+                'unidades' => (float) $g->sum('unidades'),
             ])
             ->sortByDesc('venta')
             ->values()
             ->all();
+
+        $this->ventaPorMarcaUnidades = $col
+            ->groupBy('marca')
+            ->map(fn($g, $marca) => ['marca' => $marca, 'unidades' => (float) $g->sum('unidades')])
+            ->sortByDesc('unidades')->values()->all();
 
         // 4) Mapa vendedor -> nombre
         $vendedores = $col->pluck('vendedor')->filter()->unique()->values()->all();
@@ -141,27 +152,30 @@ class Index extends Component
             ->toArray();
 
         // 5) Acordeón por asesor
+
         $this->asesores = $col
             ->groupBy('vendedor')
             ->map(function (Collection $g, $vendedor) use ($mapNombres) {
 
                 $marcas = $g->groupBy('marca')
-                    ->map(fn (Collection $x, $marca) => [
-                        'marca' => $marca,
-                        'venta' => (float) $x->sum('venta'),
+                    ->map(fn(Collection $x, $marca) => [
+                        'marca'    => (string) $marca,
+                        'venta'    => (float) $x->sum('venta'),
+                        'unidades' => (float) $x->sum('unidades'),
                     ])
-                    ->sortByDesc('venta')
+                    ->sortByDesc('venta') // si quieres por unidades: ->sortByDesc('unidades')
                     ->values()
                     ->all();
 
                 return [
-                    'vendedor' => (string)$vendedor,
+                    'vendedor' => (string) $vendedor,
                     'nombre'   => $mapNombres[$vendedor] ?? 'Sin nombre',
                     'venta'    => (float) $g->sum('venta'),
+                    'unidades' => (float) $g->sum('unidades'),
                     'marcas'   => $marcas,
                 ];
             })
-            ->sortByDesc('venta')
+            ->sortByDesc('venta') // si quieres ranking por unidades: ->sortByDesc('unidades')
             ->values()
             ->all();
     }

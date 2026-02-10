@@ -18,6 +18,7 @@ use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
 use App\Livewire\Admin\PresupuestosComercialCumplimiento\Index as PresupuestosComercialCumplimientoIndex;
+use App\Livewire\Admin\VentasUnidadesValorPorMes\Index as VentasUnidadesValorPorMesIndex;
 use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesIndex;
 use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
 
@@ -84,6 +85,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/presupuestos-comerciales/cumplimiento', PresupuestosComercialCumplimientoIndex::class)
         ->name('presupuestos.comercial.cumplimiento');
+
+    Route::get('/presupuestos-comerciales/ventas/unidades', VentasUnidadesValorPorMesIndex::class)
+            ->name('presupuestos.ventas.unidades');
         
     Route::get('/enviar-envio/{id}', [PedidoController::class, 'enviarPedido'])->name('pedidos.enviar');
 

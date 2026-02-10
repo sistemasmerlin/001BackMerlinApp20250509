@@ -136,6 +136,13 @@
                     </div>
                     @endcan
 
+                    @can('Ver cumplimiento presupuesto comercial')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('presupuestos.ventas.unidades')" :current="request()->routeIs('presupuestos.ventas.unidades')" wire:navigate>
+                            {{ __('Ventas por mes (Unidades y Valor)') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
             @can('Logistica')
