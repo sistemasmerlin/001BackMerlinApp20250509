@@ -55,36 +55,26 @@
         </div>
     </div>
 
-    <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
-    <div>
-        <div class="text-sm font-semibold text-zinc-900 dark:text-white">Pivot — Unidades</div>
-        <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-            Filas: asesor · Columnas: marca · Total por fila y por marca
-        </div>
-    </div>
-
-    <button
-        type="button"
-        wire:click="descargarUnidades"
-        wire:loading.attr="disabled"
-        class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900
-               hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/40"
-    >
-        <span wire:loading.remove wire:target="descargarUnidades">Descargar Excel</span>
-        <span wire:loading wire:target="descargarUnidades">Generando...</span>
-    </button>
-</div>
-
-
-    {{-- TABLA UNIDADES --}}
+    {{-- UNIDADES --}}
     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
             <div>
-                <div class="text-sm font-semibold text-zinc-900 dark:text-white">Información — Unidades</div>
+                <div class="text-sm font-semibold text-zinc-900 dark:text-white">Pivot — Unidades</div>
                 <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
                     Filas: asesor · Columnas: marca · Total por fila y por marca
                 </div>
             </div>
+
+            <button
+                type="button"
+                wire:click="descargarUnidades"
+                wire:loading.attr="disabled"
+                class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900
+                       hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/40"
+            >
+                <span wire:loading.remove wire:target="descargarUnidades">Descargar Excel</span>
+                <span wire:loading wire:target="descargarUnidades">Generando...</span>
+            </button>
         </div>
 
         <div class="overflow-x-auto">
@@ -126,7 +116,6 @@
                     @endforelse
                 </tbody>
 
-                {{-- Footer totales por marca --}}
                 @if(!empty($tablaUnidades))
                     <tfoot class="bg-zinc-50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800">
                         <tr>
@@ -150,28 +139,7 @@
         </div>
     </div>
 
-    <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
-    <div>
-        <div class="text-sm font-semibold text-zinc-900 dark:text-white">Información — Valor</div>
-        <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-            Filas: asesor · Columnas: marca · Total por fila y por marca
-        </div>
-    </div>
-
-    <button
-        type="button"
-        wire:click="descargarValor"
-        wire:loading.attr="disabled"
-        class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900
-               hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/40"
-    >
-        <span wire:loading.remove wire:target="descargarValor">Descargar Excel</span>
-        <span wire:loading wire:target="descargarValor">Generando...</span>
-    </button>
-</div>
-
-
-    {{-- TABLA VALOR --}}
+    {{-- VALOR --}}
     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
             <div>
@@ -180,6 +148,17 @@
                     Filas: asesor · Columnas: marca · Total por fila y por marca
                 </div>
             </div>
+
+            <button
+                type="button"
+                wire:click="descargarValor"
+                wire:loading.attr="disabled"
+                class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900
+                       hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/40"
+            >
+                <span wire:loading.remove wire:target="descargarValor">Descargar Excel</span>
+                <span wire:loading wire:target="descargarValor">Generando...</span>
+            </button>
         </div>
 
         <div class="overflow-x-auto">
@@ -221,7 +200,6 @@
                     @endforelse
                 </tbody>
 
-                {{-- Footer totales por marca --}}
                 @if(!empty($tablaValor))
                     <tfoot class="bg-zinc-50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800">
                         <tr>
@@ -244,5 +222,88 @@
             </table>
         </div>
     </div>
+
+    
+    {{-- CUMPLIMIENTO MIX (UNIDADES + VALOR SEGÚN MARCA) --}}
+<div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+
+    <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div class="text-sm font-semibold text-zinc-900 dark:text-white">
+            Cumplimiento por asesor y marca
+        </div>
+        <div class="text-xs text-zinc-600 dark:text-zinc-300">
+            Llantas / Pirelli = Unidades · Repuestos = Valor
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+
+            <thead class="bg-zinc-100 dark:bg-zinc-900/60">
+                <tr>
+                    <th class="px-3 py-2 sticky left-0 bg-zinc-100 dark:bg-zinc-900/60 z-20">
+                        Asesor
+                    </th>
+
+                    @foreach($marcas as $marca)
+                        <th colspan="3" class="px-3 py-2 text-center whitespace-nowrap">
+                            {{ $marca }}
+                        </th>
+                    @endforeach
+
+                    <th class="px-3 py-2 text-right">TOTAL %</th>
+                </tr>
+
+                <tr class="bg-zinc-50 dark:bg-zinc-900/30">
+                    <th class="px-3 py-2 sticky left-0 bg-zinc-50 dark:bg-zinc-900/30"></th>
+
+                    @foreach($marcas as $marca)
+                        <th class="px-3 py-2 text-right">Presu</th>
+                        <th class="px-3 py-2 text-right">Real</th>
+                        <th class="px-3 py-2 text-right">%</th>
+                    @endforeach
+
+                    <th></th>
+                </tr>
+            </thead>
+
+<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+    @foreach($tablaCumplMix as $row)
+        <tr>
+            <td class="px-3 py-2 sticky left-0 bg-white dark:bg-zinc-950 z-10">
+                <div class="font-semibold">{{ $row['nombre'] }}</div>
+                <div class="text-[11px] text-zinc-500">{{ $row['vendedor'] }}</div>
+            </td>
+
+            @foreach($marcas as $marca)
+                @php
+                    $c = $row['cells'][$marca] ?? ['presu'=>0,'real'=>0,'pct'=>0,'modo'=>''];
+                @endphp
+
+                <td class="px-3 py-2 text-right">
+                    {{ number_format($c['presu'], 0, ',', '.') }}
+                </td>
+
+                <td class="px-3 py-2 text-right">
+                    {{ number_format($c['real'], 0, ',', '.') }}
+                </td>
+
+                <td class="px-3 py-2 text-right font-semibold
+                    {{ $c['pct'] >= 100 ? 'text-emerald-600' : ($c['pct'] >= 80 ? 'text-amber-500' : 'text-rose-600') }}">
+                    {{ number_format($c['pct'], 2, ',', '.') }}%
+                </td>
+            @endforeach
+
+            <td class="px-3 py-2 text-right font-bold">
+                {{ number_format($row['tot_pct'], 2, ',', '.') }}%
+            </td>
+        </tr>
+    @endforeach
+</tbody>
+
+        </table>
+    </div>
+</div>
+
 
 </div>

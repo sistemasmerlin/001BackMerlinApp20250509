@@ -7,10 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Http\Controllers\Admin\PresupuestoComercialController;
 use App\Models\User;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PivotVentasPorMesExport;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-
+use App\Models\PresupuestoComercial;
 
 class Index extends Component
 {
@@ -21,7 +18,7 @@ class Index extends Component
     // marcas (columnas) en orden
     public array $marcas = [];
 
-    // tablas pivot
+    // tablas pivot simples
     public array $tablaUnidades = []; // filas por asesor
     public array $tablaValor = [];    // filas por asesor
 
@@ -32,6 +29,9 @@ class Index extends Component
     // totales generales
     public float $totalUnidades = 0;
     public float $totalValor = 0;
+
+    // ✅ NUEVO: tabla mix cumplimiento (por marca: presu/real/% según regla unidades/valor)
+    public array $tablaCumplMix = []; // filas por asesor
 
     public function mount(?string $periodo = null)
     {
@@ -63,6 +63,28 @@ class Index extends Component
         return $out;
     }
 
+    private function pct(float $real, float $presu): float
+    {
+        return $presu > 0 ? round(($real / $presu) * 100, 2) : 0;
+    }
+
+    /**
+     * ✅ Regla negocio:
+     * - Llantas + Pirelli => UNIDADES
+     * - Repuestos => VALOR
+     *
+     * Ajusta aquí si tus marcas/categorías vienen con otros nombres.
+     */
+    private function marcaEsUnidades(string $marca): bool
+    {
+        $m = strtoupper(trim($marca));
+
+        // marcas / categorías que cuentan por unidades
+        return str_contains($m, 'RINOVA TIRES')
+            || str_contains($m, 'PIRELLI')
+            || str_contains($m, 'LLANTA');
+    }
+
     public function cargar(): void
     {
         Carbon::setLocale('es');
@@ -73,7 +95,7 @@ class Index extends Component
         /** @var PresupuestoComercialController $ctrl */
         $ctrl = app(PresupuestoComercialController::class);
 
-        // Data cruda desde SQL (periodo, vendedor, marca, venta, unidades)
+        // 1) Data ventas cruda desde SQL (vendedor, marca, venta, unidades)
         $rows = collect($ctrl->cumplimientoData($this->periodo))
             ->map(fn($r) => [
                 'vendedor' => trim((string)($r->vendedor ?? '')),
@@ -81,14 +103,15 @@ class Index extends Component
                 'venta'    => (float)($r->venta ?? 0),
                 'unidades' => (float)($r->unidades ?? 0),
             ])
-            ->filter(fn($r) => $r['vendedor'] !== '' && $r['marca'] !== '');
+            ->filter(fn($r) => $r['vendedor'] !== '' && $r['marca'] !== '')
+            ->values();
 
         // Totales generales
         $this->totalValor = (float) $rows->sum('venta');
         $this->totalUnidades = (float) $rows->sum('unidades');
 
-        // Ordenar marcas por valor total desc (para que el pivot quede “bonito”)
-        $marcaOrder = $rows->groupBy('marca')
+        // Orden de marcas por valor desc (para que quede “bonito”)
+        $this->marcas = $rows->groupBy('marca')
             ->map(fn(Collection $g, $marca) => [
                 'marca' => (string)$marca,
                 'valor' => (float)$g->sum('venta'),
@@ -97,8 +120,6 @@ class Index extends Component
             ->pluck('marca')
             ->values()
             ->all();
-
-        $this->marcas = $marcaOrder;
 
         // Map vendedor -> nombre
         $vendedores = $rows->pluck('vendedor')->unique()->values()->all();
@@ -109,8 +130,7 @@ class Index extends Component
             ->map(fn($n) => trim((string)$n))
             ->toArray();
 
-        // Construcción del pivot por asesor
-        // base: [vendedor => [marca => ['venta'=>x, 'unidades'=>y]]]
+        // 2) Pivot simple por asesor
         $byVendedor = $rows->groupBy('vendedor');
 
         $tablaUnidades = [];
@@ -123,8 +143,6 @@ class Index extends Component
             foreach ($this->marcas as $marca) {
                 $sub = $g->firstWhere('marca', $marca);
 
-                // OJO: firstWhere solo da 1 fila si ya viene agrupado. Pero tu SQL ya agrupa por vendedor+marca,
-                // así que está perfecto. Si algún día viniera desagrupado, cambia por sum() filtrando.
                 $u = (float)($sub['unidades'] ?? 0);
                 $v = (float)($sub['venta'] ?? 0);
 
@@ -132,25 +150,21 @@ class Index extends Component
                 $cellsValor[$marca] = $v;
             }
 
-            $rowTotalU = array_sum($cellsUnidades);
-            $rowTotalV = array_sum($cellsValor);
-
             $tablaUnidades[] = [
                 'vendedor' => (string)$vendedor,
                 'nombre'   => $mapNombres[$vendedor] ?? 'Sin nombre',
                 'cells'    => $cellsUnidades,
-                'total'    => (float)$rowTotalU,
+                'total'    => (float) array_sum($cellsUnidades),
             ];
 
             $tablaValor[] = [
                 'vendedor' => (string)$vendedor,
                 'nombre'   => $mapNombres[$vendedor] ?? 'Sin nombre',
                 'cells'    => $cellsValor,
-                'total'    => (float)$rowTotalV,
+                'total'    => (float) array_sum($cellsValor),
             ];
         }
 
-        // Ordenar asesores por total desc (en valor y unidades)
         $this->tablaUnidades = collect($tablaUnidades)->sortByDesc('total')->values()->all();
         $this->tablaValor = collect($tablaValor)->sortByDesc('total')->values()->all();
 
@@ -161,37 +175,79 @@ class Index extends Component
             $totU[$marca] = (float) $rows->where('marca', $marca)->sum('unidades');
             $totV[$marca] = (float) $rows->where('marca', $marca)->sum('venta');
         }
-
         $this->totalesUnidadesPorMarca = $totU;
         $this->totalesValorPorMarca = $totV;
+
+        // ============================================================
+        // ✅ 3) TABLA CUMPLIMIENTO MIX (Presu/Real/% por marca)
+        // - presupuesto sale de presupuestos_comerciales (periodo, asesor, marca)
+        // - real: unidades para llantas/pirelli, venta para repuestos
+        // ============================================================
+
+        // Presupuesto por asesor+marca (sum por si hay varias filas)
+        $presuMap = PresupuestoComercial::query()
+            ->where('periodo', $this->periodo)
+            ->select('codigo_asesor', 'marca', 'presupuesto')
+            ->get()
+            ->map(fn($p) => [
+                'vendedor' => trim((string)($p->codigo_asesor ?? '')),
+                'marca'    => trim((string)($p->marca ?? '')),
+                'presu'    => (float)($p->presupuesto ?? 0),
+            ])
+            ->filter(fn($r) => $r['vendedor'] !== '' && $r['marca'] !== '')
+            ->groupBy(fn($r) => $r['vendedor'].'|'.$r['marca'])
+            ->map(fn($g) => (float) $g->sum('presu'))
+            ->toArray();
+
+        $tablaCumpl = [];
+
+        foreach ($vendedores as $vend) {
+            $cells = [];
+            $totalPresu = 0.0;
+            $totalReal  = 0.0;
+
+            foreach ($this->marcas as $marca) {
+                $key = $vend.'|'.$marca;
+
+                $presupuesto = (float)($presuMap[$key] ?? 0);
+
+                // real según regla de negocio
+                if ($this->marcaEsUnidades($marca)) {
+                    $real = (float) $rows
+                        ->where('vendedor', $vend)
+                        ->where('marca', $marca)
+                        ->sum('unidades');
+                } else {
+                    $real = (float) $rows
+                        ->where('vendedor', $vend)
+                        ->where('marca', $marca)
+                        ->sum('venta');
+                }
+
+                $cells[$marca] = [
+                    'presu' => $presupuesto,
+                    'real'  => $real,
+                    'pct'   => $this->pct($real, $presupuesto),
+                    'modo'  => $this->marcaEsUnidades($marca) ? 'UNIDADES' : 'VALOR',
+                ];
+
+                $totalPresu += $presupuesto;
+                $totalReal  += $real;
+            }
+
+            $tablaCumpl[] = [
+                'vendedor'  => (string)$vend,
+                'nombre'    => $mapNombres[$vend] ?? 'Sin nombre',
+                'cells'     => $cells,
+                'tot_presu' => (float) $totalPresu,
+                'tot_real'  => (float) $totalReal,
+                'tot_pct'   => $this->pct($totalReal, $totalPresu),
+            ];
+        }
+
+        // orden por "real" total
+        $this->tablaCumplMix = collect($tablaCumpl)->sortByDesc('tot_real')->values()->all();
     }
-
-    public function descargarUnidades(): BinaryFileResponse
-{
-    // Asegura que esté actualizado
-    $this->cargar();
-
-    $file = "pivot_unidades_{$this->periodo}.xlsx";
-
-    return Excel::download(
-        new PivotVentasPorMesExport($this->marcas, $this->tablaUnidades, 'Unidades'),
-        $file
-    );
-}
-
-public function descargarValor(): BinaryFileResponse
-{
-    $this->cargar();
-
-    $file = "pivot_valor_{$this->periodo}.xlsx";
-
-    return Excel::download(
-        new PivotVentasPorMesExport($this->marcas, $this->tablaValor, 'Valor'),
-        $file
-    );
-}
-
-    
 
     public function render()
     {

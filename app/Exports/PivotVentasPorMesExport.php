@@ -2,52 +2,62 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PivotVentasPorMesExport implements FromArray, WithHeadings, ShouldAutoSize, WithTitle
+class PivotVentasPorMesExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize, WithStyles
 {
     public function __construct(
         private array $marcas,
-        private array $tabla,      // tablaUnidades o tablaValor
-        private string $tituloHoja // "Unidades" o "Valor"
+        private array $tabla,
+        private string $titulo = 'Pivot'
     ) {}
 
     public function title(): string
     {
-        return $this->tituloHoja;
+        return $this->titulo;
     }
 
     public function headings(): array
     {
-        return array_merge(
-            ['Asesor', 'Código'],
-            $this->marcas,
-            ['TOTAL']
-        );
+        // Asesor | COD | <marcas...> | TOTAL
+        return array_merge(['ASESOR', 'CODIGO'], $this->marcas, ['TOTAL']);
     }
 
-    public function array(): array
+    public function collection()
     {
         $out = [];
 
         foreach ($this->tabla as $row) {
-            $line = [
+            $fila = [
                 $row['nombre'] ?? '',
                 $row['vendedor'] ?? '',
             ];
 
             foreach ($this->marcas as $marca) {
-                $line[] = (float)($row['cells'][$marca] ?? 0);
+                $fila[] = (float) ($row['cells'][$marca] ?? 0);
             }
 
-            $line[] = (float)($row['total'] ?? 0);
-
-            $out[] = $line;
+            $fila[] = (float) ($row['total'] ?? 0);
+            $out[] = $fila;
         }
 
-        return $out;
+        return new Collection($out);
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        // Header bold
+        $sheet->getStyle('1:1')->getFont()->setBold(true);
+
+        // Congelar encabezado
+        $sheet->freezePane('A2');
+
+        return [];
     }
 }

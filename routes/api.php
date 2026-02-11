@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\BackorderController;
 use App\Http\Controllers\Api\MotivosVisitaController;
 use App\Http\Controllers\Api\ComercialController;
 use App\Http\Controllers\Api\IntegracionTiendaController;
+use App\Http\Controllers\Api\PQRSController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -86,3 +87,5 @@ Route::middleware('auth:sanctum')->get(
 
 
 
+Route::middleware('auth:sanctum')->get('/pqrs/consulta-productos/{query}', [PQRSController::class, 'consultaProductos']);
+Route::middleware('auth:sanctum')->get('/pqrs/consulta-factura/{query}', [PQRSController::class, 'consultaFactura']);

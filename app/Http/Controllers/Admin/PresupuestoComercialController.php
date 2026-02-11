@@ -30,8 +30,8 @@ class PresupuestoComercialController extends Controller
      */
     public function cumplimientoData(string $periodo): array
     {
-        return DB::connection('sqlsrv')->select("
-            SELECT
+        return DB::connection('sqlsrv')
+        ->select("SELECT
                 bi_t461.f_periodo AS periodo,
                 bi_t461.f_vendedor AS vendedor,
                 t106.f106_descripcion AS marca,
