@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 use App\Http\Controllers\Admin\PresupuestoComercialController;
 use App\Models\User;
 use App\Models\PresupuestoComercial;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PivotVentasPorMesExport;
+use App\Exports\CumplimientoMixExport;
 
 class Index extends Component
 {
@@ -81,7 +84,16 @@ class Index extends Component
 
         // marcas / categorías que cuentan por unidades
         return str_contains($m, 'RINOVA TIRES')
+            || str_contains($m, 'CST TIRES')
+            || str_contains($m, 'WORCRAFT')
+            || str_contains($m, 'FORERUNNER')
+            || str_contains($m, 'WDT TUBE ')
+            || str_contains($m, 'WDT E-SCOOTER ')
+            || str_contains($m, 'CST E-SCOOTER')
+            || str_contains($m, 'PIRELLI RADIAL')
+            || str_contains($m, 'WDT BIKE')
             || str_contains($m, 'PIRELLI')
+            || str_contains($m, 'HAKUBA - ARMOR - WDT ')
             || str_contains($m, 'LLANTA');
     }
 
@@ -195,7 +207,7 @@ class Index extends Component
                 'presu'    => (float)($p->presupuesto ?? 0),
             ])
             ->filter(fn($r) => $r['vendedor'] !== '' && $r['marca'] !== '')
-            ->groupBy(fn($r) => $r['vendedor'].'|'.$r['marca'])
+            ->groupBy(fn($r) => $r['vendedor'] . '|' . $r['marca'])
             ->map(fn($g) => (float) $g->sum('presu'))
             ->toArray();
 
@@ -207,7 +219,7 @@ class Index extends Component
             $totalReal  = 0.0;
 
             foreach ($this->marcas as $marca) {
-                $key = $vend.'|'.$marca;
+                $key = $vend . '|' . $marca;
 
                 $presupuesto = (float)($presuMap[$key] ?? 0);
 
@@ -247,6 +259,49 @@ class Index extends Component
 
         // orden por "real" total
         $this->tablaCumplMix = collect($tablaCumpl)->sortByDesc('tot_real')->values()->all();
+    }
+
+    public function descargarUnidades()
+    {
+        $file = "ventas_unidades_{$this->periodo}.xlsx";
+
+        return Excel::download(
+            new PivotVentasPorMesExport(
+                marcas: $this->marcas,
+                tabla: $this->tablaUnidades,
+                titulo: 'Unidades'
+            ),
+            $file
+        );
+    }
+
+    // ✅ NUEVO: Descargar Excel Valor
+    public function descargarValor()
+    {
+        $file = "ventas_valor_{$this->periodo}.xlsx";
+
+        return Excel::download(
+            new PivotVentasPorMesExport(
+                marcas: $this->marcas,
+                tabla: $this->tablaValor,
+                titulo: 'Valor'
+            ),
+            $file
+        );
+    }
+
+    public function descargarCumplMix()
+    {
+        $file = "cumplimiento_mix_{$this->periodo}.xlsx";
+
+        return Excel::download(
+            new CumplimientoMixExport(
+                marcas: $this->marcas,
+                tabla: $this->tablaCumplMix,
+                titulo: 'Cumplimiento Mix'
+            ),
+            $file
+        );
     }
 
     public function render()

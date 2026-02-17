@@ -82,6 +82,7 @@
                 <thead class="text-xs uppercase bg-zinc-100 text-zinc-900 dark:bg-zinc-900/60 dark:text-zinc-100">
                     <tr>
                         <th class="px-4 py-3 sticky left-0 bg-zinc-100 dark:bg-zinc-900/60 z-10">Asesor</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Código</th> 
                         @foreach($marcas as $marca)
                             <th class="px-4 py-3 text-right whitespace-nowrap">{{ $marca }}</th>
                         @endforeach
@@ -94,6 +95,8 @@
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
                             <td class="px-4 py-3 sticky left-0 bg-white dark:bg-zinc-950 z-10">
                                 <div class="font-semibold text-zinc-900 dark:text-white">{{ $row['nombre'] }}</div>
+                            </td>
+                            <td class="px-4 py-3 sticky left-0 bg-white dark:bg-zinc-950 z-10">
                                 <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">{{ $row['vendedor'] }}</div>
                             </td>
 
@@ -109,7 +112,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ 2 + count($marcas) }}" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                            <td colspan="{{ 3 + count($marcas) }}" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
                                 Sin datos
                             </td>
                         </tr>
@@ -122,6 +125,8 @@
                             <th class="px-4 py-3 sticky left-0 bg-zinc-50 dark:bg-zinc-900/30 z-10 text-zinc-900 dark:text-white">
                                 TOTAL
                             </th>
+
+                            <th class="px-4 py-3 text-left text-zinc-900 dark:text-white">—</th> 
 
                             @foreach($marcas as $marca)
                                 <th class="px-4 py-3 text-right text-zinc-900 dark:text-white">
@@ -166,6 +171,7 @@
                 <thead class="text-xs uppercase bg-zinc-100 text-zinc-900 dark:bg-zinc-900/60 dark:text-zinc-100">
                     <tr>
                         <th class="px-4 py-3 sticky left-0 bg-zinc-100 dark:bg-zinc-900/60 z-10">Asesor</th>
+                        <th class="px-3 py-2 text-left whitespace-nowrap">Código</th> 
                         @foreach($marcas as $marca)
                             <th class="px-4 py-3 text-right whitespace-nowrap">{{ $marca }}</th>
                         @endforeach
@@ -178,6 +184,8 @@
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
                             <td class="px-4 py-3 sticky left-0 bg-white dark:bg-zinc-950 z-10">
                                 <div class="font-semibold text-zinc-900 dark:text-white">{{ $row['nombre'] }}</div>
+                            </td>
+                            <td class="px-4 py-3 sticky left-0 bg-white dark:bg-zinc-950 z-10">
                                 <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">{{ $row['vendedor'] }}</div>
                             </td>
 
@@ -193,7 +201,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ 2 + count($marcas) }}" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                            <td colspan="{{ 3 + count($marcas) }}" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
                                 Sin datos
                             </td>
                         </tr>
@@ -227,7 +235,8 @@
     {{-- CUMPLIMIENTO MIX (UNIDADES + VALOR SEGÚN MARCA) --}}
 <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
 
-    <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+<div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+    <div>
         <div class="text-sm font-semibold text-zinc-900 dark:text-white">
             Cumplimiento por asesor y marca
         </div>
@@ -235,6 +244,19 @@
             Llantas / Pirelli = Unidades · Repuestos = Valor
         </div>
     </div>
+
+    <button
+        type="button"
+        wire:click="descargarCumplMix"
+        wire:loading.attr="disabled"
+        class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900
+               hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/40"
+    >
+        <span wire:loading.remove wire:target="descargarCumplMix">Descargar Excel</span>
+        <span wire:loading wire:target="descargarCumplMix">Generando...</span>
+    </button>
+</div>
+
 
     <div class="overflow-x-auto">
         <table class="min-w-full text-xs">
@@ -244,6 +266,7 @@
                     <th class="px-3 py-2 sticky left-0 bg-zinc-100 dark:bg-zinc-900/60 z-20">
                         Asesor
                     </th>
+                    <th class="px-3 py-2 text-left whitespace-nowrap">Código</th>
 
                     @foreach($marcas as $marca)
                         <th colspan="3" class="px-3 py-2 text-center whitespace-nowrap">
@@ -256,7 +279,7 @@
 
                 <tr class="bg-zinc-50 dark:bg-zinc-900/30">
                     <th class="px-3 py-2 sticky left-0 bg-zinc-50 dark:bg-zinc-900/30"></th>
-
+                    <th class="px-3 py-2 bg-zinc-50 dark:bg-zinc-900/30"></th>
                     @foreach($marcas as $marca)
                         <th class="px-3 py-2 text-right">Presu</th>
                         <th class="px-3 py-2 text-right">Real</th>
@@ -272,7 +295,9 @@
         <tr>
             <td class="px-3 py-2 sticky left-0 bg-white dark:bg-zinc-950 z-10">
                 <div class="font-semibold">{{ $row['nombre'] }}</div>
-                <div class="text-[11px] text-zinc-500">{{ $row['vendedor'] }}</div>
+            </td>
+            <td class="px-3 py-2 sticky left-0 bg-white dark:bg-zinc-950 z-10">
+                <div class="font-semibold">{{ $row['vendedor'] }}</div>
             </td>
 
             @foreach($marcas as $marca)
