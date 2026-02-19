@@ -143,6 +143,14 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
+                    @can('Ver cumplimiento presupuesto comercial')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('presupuesto.efectividad.clientes')" :current="request()->routeIs('presupuesto.efectividad.clientes')" wire:navigate>
+                            {{ __('Efectividad en ventas') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                 </div>
             @endcan
             @can('Logistica')
@@ -201,6 +209,30 @@
                     @endcan
                 </div>
             @endcan
+
+                {{-- <div x-data="{ open: false }" class="px-4">
+                    <button
+                        @click="open = !open"
+                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
+                    >
+                    <flux:icon name="wallet" class="h-5 w-5" />
+                        <span>{{ __('SAC') }}</span>
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                    </button>
+
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pqrs.responsables')" :current="request()->routeIs('pqrs.responsables.*')" wire:navigate>
+                            {{ __('Responsables') }}
+                        </flux:navlist.item>
+                    </div>
+                                        <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pqrs.catalogos')" :current="request()->routeIs('pqrs.catalogos.*')" wire:navigate>
+                            {{ __('Catalogos') }}
+                        </flux:navlist.item>
+                    </div>
+                </div> --}}
+                
                 <!-- <flux:navlist variant="outline">
                     <flux:navlist.item :href="route('terceros.index')" :current="request()->routeIs('terceros.*')" wire:navigate>
                                 {{ __('Terceros') }}

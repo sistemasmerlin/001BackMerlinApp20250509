@@ -18,10 +18,12 @@ use App\Livewire\Admin\ReporteVisitas\Index as ReporteVisitasIndex;
 use App\Livewire\Admin\Promociones\Detalle;
 use App\Livewire\Admin\RelacionAsesores\Index as RelacionAsesoresIndex;
 use App\Livewire\Admin\PresupuestosComercialCumplimiento\Index as PresupuestosComercialCumplimientoIndex;
+use App\Livewire\Admin\EfectividadClientes\Index as EfectividadClientesIndex;
 use App\Livewire\Admin\VentasUnidadesValorPorMes\Index as VentasUnidadesValorPorMesIndex;
 use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesIndex;
 use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
-
+use App\Livewire\Admin\Pqrs\Responsables\Index as PqrsResponsablesIndex;
+use App\Livewire\Admin\Pqrs\Catalogos\Index as PqrsCatalogosIndex;
 use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
 use App\Http\Controllers\Admin\PedidoController;
@@ -48,11 +50,19 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
+
+Route::middleware(['auth'])->prefix('admin/pqrs')->group(function () {
+    Route::get('/responsables', PqrsResponsablesIndex::class)->name('pqrs.responsables');
+    Route::get('/catalogos', PqrsCatalogosIndex::class)->name('pqrs.catalogos');
+});
+
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/usuarios', UsuariosIndex::class)->middleware('can:Usuarios')->name('usuarios.index');
     Route::get('/roles', RolesIndex::class)->name('roles.index');
     Route::get('/permisos', PermisosIndex::class)->name('permisos.index');
     Route::get('/presupuesto', PresupuestosComercialesIndex::class)->name('presupuesto.index');
+    
+    Route::get('/presupuesto/efectividad-clientes', EfectividadClientesIndex::class)->name('presupuesto.efectividad.clientes');
 
     Route::get('/terceros', TercerosIndex::class)->name('terceros.index');
     Route::get('/terceros/consultar', [TercerosController::class, 'index']);

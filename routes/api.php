@@ -89,3 +89,4 @@ Route::middleware('auth:sanctum')->get(
 
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-productos/{query}', [PQRSController::class, 'consultaProductos']);
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-factura/{query}', [PQRSController::class, 'consultaFactura']);
+Route::middleware('auth:sanctum')->get('/pqrs/consulta-causales', [PQRSController::class, 'causalesAsesores']);

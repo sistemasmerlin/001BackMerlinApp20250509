@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PqrsCausal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -110,5 +111,21 @@ class PQRSController extends Controller
             'success' => true,
             'facturas' => $result,
         ]);
+    }
+
+    public function causalesAsesores(){
+
+        $causales = PqrsCausal::query()
+        ->with(['submotivo.motivo', 'responsable'])
+        ->where('visible_asesor', 1)
+        ->orderBy('submotivo_id')
+        ->orderBy('orden')
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'causales' => $causales,
+        ]);
+
     }
 }

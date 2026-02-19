@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class InformesComercialController extends Controller
 {
-    public function ventasPeriodo(Request $request, $id){
+    public function ventasPeriodo(Request $request, $id)
+    {
 
-    $periodo =  $request->input('periodo'); 
-    
+        $periodo =  $request->input('periodo');
+
         $result = DB::connection('sqlsrv')
-        ->select("SELECT bi_t461.f_periodo AS periodo, 
+            ->select("SELECT bi_t461.f_periodo AS periodo, 
             bi_t461.f_vendedor AS vendedor, 
             t106.f106_descripcion AS marca,
             SUM([f_valor_sub_local]) AS venta
@@ -46,4 +47,45 @@ class InformesComercialController extends Controller
         ]);
     }
 
+
+    public function cumplimientoEfectividad(Request $request)
+    {
+        $periodo = (string) $request->get('periodo', '');
+        if (!preg_match('/^\d{6}$/', $periodo)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Periodo inválido. Usa formato YYYYMM (ej: 202601).'
+            ], 422);
+        }
+
+        $anio = (int) substr($periodo, 0, 4);
+        $mes  = (int) substr($periodo, 4, 2);
+
+        $clientesPorAsesor = DB::connection('sqlsrv')->select("
+        SELECT t201.f201_id_vendedor, COUNT(DISTINCT t200.f200_nit) AS total_clientes
+        FROM t200_mm_terceros t200
+        LEFT JOIN t201_mm_clientes t201
+            ON t200.f200_rowid = t201.f201_rowid_tercero
+        WHERE t200.f200_id_cia = 3
+            AND t201.f201_id_cia = 3
+            AND t200.f200_ind_cliente = 1
+            AND t200.f200_ind_estado = 1
+            AND t201.f201_id_cond_pago IN ('30D','10D','15D','30E')
+        GROUP BY t201.f201_id_vendedor
+    ");
+
+        $ventasPorAsesor = DB::connection('sqlsrv')->select("
+        SELECT t201.f201_id_vendedor, COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
+        FROM t461_cm_docto_factura_venta t461
+        INNER JOIN t201_mm_clientes t201
+            ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
+        WHERE t461.f461_id_cia = 3
+            AND YEAR(t461.f461_id_fecha) = ?
+            AND MONTH(t461.f461_id_fecha) = ?
+            AND t461.f461_id_concepto = '501'
+            AND t461.f461_id_clase_docto = '523'
+            AND t201.f201_id_cond_pago IN ('30D','10D','15D','30E')
+        GROUP BY t201.f201_id_vendedor
+    ", [$anio, $mes]);
+    }
 }
