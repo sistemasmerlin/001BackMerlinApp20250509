@@ -62,7 +62,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/permisos', PermisosIndex::class)->name('permisos.index');
     Route::get('/presupuesto', PresupuestosComercialesIndex::class)->name('presupuesto.index');
     
-    Route::get('/presupuesto/efectividad-clientes', EfectividadClientesIndex::class)->name('presupuesto.efectividad.clientes');
+    Route::get('/efectividad-clientes', EfectividadClientesIndex::class)->name('efectividad.clientes');
 
     Route::get('/terceros', TercerosIndex::class)->name('terceros.index');
     Route::get('/terceros/consultar', [TercerosController::class, 'index']);

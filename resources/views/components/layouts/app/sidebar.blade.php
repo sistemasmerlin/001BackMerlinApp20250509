@@ -144,10 +144,10 @@
                     </div>
                     @endcan
 
-                    @can('Ver cumplimiento presupuesto comercial')
+                    @can('Ver efectividad clientes')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('presupuesto.efectividad.clientes')" :current="request()->routeIs('presupuesto.efectividad.clientes')" wire:navigate>
-                            {{ __('Efectividad en ventas') }}
+                        <flux:navlist.item :href="route('efectividad.clientes')" :current="request()->routeIs('efectividad.clientes')" wire:navigate>
+                            {{ __('Efectividad clientes') }}
                         </flux:navlist.item>
                     </div>
                     @endcan
