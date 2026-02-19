@@ -210,7 +210,8 @@
                 </div>
             @endcan
 
-                {{-- <div x-data="{ open: false }" class="px-4">
+            @can('Administrar SAC')
+                <div x-data="{ open: false }" class="px-4">
                     <button
                         @click="open = !open"
                         class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
@@ -231,8 +232,8 @@
                             {{ __('Catalogos') }}
                         </flux:navlist.item>
                     </div>
-                </div> --}}
-                
+                </div> 
+            @endcan
                 <!-- <flux:navlist variant="outline">
                     <flux:navlist.item :href="route('terceros.index')" :current="request()->routeIs('terceros.*')" wire:navigate>
                                 {{ __('Terceros') }}
