@@ -90,3 +90,6 @@ Route::middleware('auth:sanctum')->get(
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-productos/{query}', [PQRSController::class, 'consultaProductos']);
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-factura/{query}', [PQRSController::class, 'consultaFactura']);
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-causales', [PQRSController::class, 'causalesAsesores']);
+Route::middleware('auth:sanctum')->post('/pqrs/guardar', [PQRSController::class, 'store']); 
+Route::middleware('auth:sanctum')->post('/pqrs/departamentos', [PQRSController::class, 'departamentos']); 
+Route::middleware('auth:sanctum')->post('/pqrs/ciudades', [PQRSController::class, 'ciudadesPorDepartamento']); 

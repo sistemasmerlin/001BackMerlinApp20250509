@@ -6,6 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\PqrsCausal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StorePqrsRequest;
+use App\Models\FleteCiudad;
+use App\Models\Pqrs;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class PQRSController extends Controller
 {
@@ -113,19 +120,124 @@ class PQRSController extends Controller
         ]);
     }
 
-    public function causalesAsesores(){
+    public function causalesAsesores()
+    {
 
         $causales = PqrsCausal::query()
-        ->with(['submotivo.motivo', 'responsable'])
-        ->where('visible_asesor', 1)
-        ->orderBy('submotivo_id')
-        ->orderBy('orden')
-        ->get();
+            ->with(['submotivo.motivo', 'responsable'])
+            ->where('visible_asesor', 1)
+            ->orderBy('submotivo_id')
+            ->orderBy('orden')
+            ->get();
 
         return response()->json([
             'success' => true,
             'causales' => $causales,
         ]);
+    }
 
+    public function departamentos()
+    {
+        $rows = FleteCiudad::query()
+            ->select('cod_depto', 'depto')
+            ->where('estado', 1)
+            ->groupBy('cod_depto', 'depto')
+            ->orderBy('cod_depto')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function ciudadesPorDepartamento(Request $request)
+    {
+        $codDepto = trim((string)$request->get('cod_depto'));
+
+        if ($codDepto === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Falta cod_depto',
+                'data' => [],
+            ], 422);
+        }
+
+        $rows = FleteCiudad::query()
+            ->select('cod_ciudad', 'ciudad', 'cod_depto')
+            ->where('estado', 1)
+            ->where('cod_depto', $codDepto)
+            ->orderBy('cod_ciudad')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function store(StorePqrsRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $cliente  = $data['cliente']  ?? [];
+        $sucursal = $data['sucursal'] ?? [];
+        $pqrsIn   = $data['pqrs']     ?? [];
+        $asesorIn = $data['asesor']   ?? [];
+
+        // ✅ Punto de envío 000 (siempre)
+        $puntos = $sucursal['puntos_envio'] ?? $sucursal['puntosEnvio'] ?? $sucursal['puntos'] ?? [];
+        $punto000 = collect(is_array($puntos) ? $puntos : [])
+            ->first(fn($p) => (string)($p['punto_envio_id'] ?? $p['puntoEnvioId'] ?? '') === '000');
+
+        // ✅ Correo editable viene en el ROOT del payload
+        $correoCliente = trim((string)($data['correo_cliente'] ?? ''));
+
+        // ✅ Asesor: viene desde Ionic (storage.usuario) o fallback a sucursal
+        $codAsesor    = trim((string)($asesorIn['codigo_asesor'] ?? $sucursal['id_vendedor'] ?? ''));
+        $nombreAsesor = trim((string)($asesorIn['nombre'] ?? ''));
+        $correoAsesor = trim((string)($asesorIn['correo'] ?? ''));
+
+        $encabezado = [
+            'nit'          => (string)($cliente['nit'] ?? $cliente['f200_nit'] ?? ''),
+            'razon_social' => (string)($cliente['razon_social'] ?? $cliente['f200_razon_social'] ?? $cliente['nombre_establecimiento'] ?? ''),
+
+            'departamento' => (string)($punto000['departamento'] ?? ''),
+            'ciudad'       => (string)($punto000['ciudad'] ?? ''),
+            'direccion'    => (string)($punto000['direccion'] ?? ''),
+            'telefono'     => (string)($punto000['telefono'] ?? ''),
+
+            // ✅ correo editable (si no viene, usa el del punto 000)
+            'correo_cliente' => $correoCliente !== '' ? $correoCliente : (string)($punto000['email'] ?? ''),
+
+            // ✅ asesor
+            'cod_asesor'    => $codAsesor,
+            'nombre_asesor' => $nombreAsesor,
+            'correo_asesor' => $correoAsesor,
+
+            // ✅ estado/fechas
+            'estado'         => $data['estado'] ?? 'creada',
+            'fecha_creacion' => now(),
+
+            // ✅ quién crea (si tienes auth por Sanctum)
+            'creado_por'     => optional(Auth::user())->id,
+        ];
+
+        // (opcional) trim a strings
+        foreach ($encabezado as $k => $v) {
+            if (is_string($v)) $encabezado[$k] = trim($v);
+        }
+
+        $pqrs = Pqrs::create($encabezado);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PQRS creada correctamente.',
+            'data' => [
+                'id' => $pqrs->id,
+                'estado' => $pqrs->estado,
+                'created_at' => $pqrs->created_at,
+            ],
+        ], 201);
     }
 }

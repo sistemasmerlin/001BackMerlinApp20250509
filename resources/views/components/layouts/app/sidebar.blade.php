@@ -223,13 +223,26 @@
                     </button>
 
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pqrs.responsables')" :current="request()->routeIs('pqrs.responsables.*')" wire:navigate>
-                            {{ __('Responsables') }}
+                        <flux:navlist.item :href="route('pqrs.inicio')" :current="request()->routeIs(' pqrs.inicio.*')" wire:navigate>
+                            {{ __('PQRS') }}
                         </flux:navlist.item>
                     </div>
-                                        <div x-show="open" class="ms-6 mt-1 space-y-1">
+
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('pqrs.catalogos')" :current="request()->routeIs('pqrs.catalogos.*')" wire:navigate>
                             {{ __('Catalogos') }}
+                        </flux:navlist.item>
+                    </div>
+
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pqrs.transportadoras')" :current="request()->routeIs('pqrs.transportadoras.*')" wire:navigate>
+                            {{ __('Transportadoras') }}
+                        </flux:navlist.item>
+                    </div>
+
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('pqrs.orm')" :current="request()->routeIs('pqrs.orm.*')" wire:navigate>
+                            {{ __('Ordenes de recogida') }}
                         </flux:navlist.item>
                     </div>
                 </div> 

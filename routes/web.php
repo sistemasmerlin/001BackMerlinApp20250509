@@ -24,6 +24,9 @@ use App\Livewire\Admin\PresupuestosComerciales\Index as PresupuestosComercialesI
 use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
 use App\Livewire\Admin\Pqrs\Responsables\Index as PqrsResponsablesIndex;
 use App\Livewire\Admin\Pqrs\Catalogos\Index as PqrsCatalogosIndex;
+use App\Livewire\Admin\Pqrs\Solicitudes\Index as PqrsSolicitudesIndex;
+use App\Livewire\Admin\Pqrs\Orm\Index as PqrsOrmIndex;
+use App\Livewire\Admin\Pqrs\Transportadoras\Index as PqrsTransportadorasIndex;
 use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
 use App\Http\Controllers\Admin\PedidoController;
@@ -54,6 +57,10 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->prefix('admin/pqrs')->group(function () {
     Route::get('/responsables', PqrsResponsablesIndex::class)->name('pqrs.responsables');
     Route::get('/catalogos', PqrsCatalogosIndex::class)->name('pqrs.catalogos');
+    Route::get('/orm', PqrsOrmIndex::class)->name('pqrs.orm');
+    Route::get('/transportadoras', PqrsTransportadorasIndex::class)->name('pqrs.transportadoras');
+    Route::get('', PqrsSolicitudesIndex::class)->name('pqrs.inicio');
+
 });
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
@@ -105,6 +112,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
     
+
+    Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
+
+
+
    // Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });
 
