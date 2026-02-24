@@ -9,10 +9,14 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StorePqrsRequest;
 use App\Models\FleteCiudad;
 use App\Models\Pqrs;
+use App\Models\Orm;
+use App\Models\PqrsProducto;
+use App\Models\PqrsProductoAdjunto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class PQRSController extends Controller
 {
@@ -180,24 +184,50 @@ class PQRSController extends Controller
     {
         $data = $request->validated();
 
-        $cliente  = $data['cliente']  ?? [];
-        $sucursal = $data['sucursal'] ?? [];
-        $pqrsIn   = $data['pqrs']     ?? [];
-        $asesorIn = $data['asesor']   ?? [];
+        \Log::info('validated keys', array_keys($data));
+        \Log::info('producto sample', $data['productos'][0] ?? null);
 
-        // ✅ Punto de envío 000 (siempre)
+        $cliente       = $data['cliente']  ?? [];
+        $sucursal      = $data['sucursal'] ?? [];
+        $pqrsIn        = $data['pqrs']     ?? [];
+        $asesorIn      = $data['asesor']   ?? [];
+        $modo          = (string)($data['modoAplicacion'] ?? '');
+        $direccionEnvio = $data['direccion_envio'] ?? null;
+
+        // ✅ Punto 000 (para datos base)
         $puntos = $sucursal['puntos_envio'] ?? $sucursal['puntosEnvio'] ?? $sucursal['puntos'] ?? [];
         $punto000 = collect(is_array($puntos) ? $puntos : [])
             ->first(fn($p) => (string)($p['punto_envio_id'] ?? $p['puntoEnvioId'] ?? '') === '000');
 
-        // ✅ Correo editable viene en el ROOT del payload
+        // ✅ correo editable viene en ROOT
         $correoCliente = trim((string)($data['correo_cliente'] ?? ''));
 
-        // ✅ Asesor: viene desde Ionic (storage.usuario) o fallback a sucursal
+        // ✅ Asesor (ojo: en payload viene "correo", NO "correo_asesor")
         $codAsesor    = trim((string)($asesorIn['codigo_asesor'] ?? $sucursal['id_vendedor'] ?? ''));
         $nombreAsesor = trim((string)($asesorIn['nombre'] ?? ''));
         $correoAsesor = trim((string)($asesorIn['correo'] ?? ''));
 
+        // ✅ Determinar si requiere recogida
+        $requiereRecogida = false;
+
+        if ($modo === 'productos') {
+            $productos = $data['productos'] ?? [];
+            $requiereRecogida = collect(is_array($productos) ? $productos : [])
+                ->contains(fn($p) => (bool)($p['requiereRecogida'] ?? false));
+        } elseif ($modo === 'factura') {
+            $factura = $data['factura'] ?? [];
+            $requiereRecogida = (bool)($factura['requiereRecogida'] ?? false);
+        }
+
+        // ✅ Si requiere recogida => debe venir direccion_envio
+        if ($requiereRecogida && empty($direccionEnvio)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Requiere recogida, pero no llegó direccion_envio.',
+            ], 422);
+        }
+
+        // ✅ Encabezado PQRS
         $encabezado = [
             'nit'          => (string)($cliente['nit'] ?? $cliente['f200_nit'] ?? ''),
             'razon_social' => (string)($cliente['razon_social'] ?? $cliente['f200_razon_social'] ?? $cliente['nombre_establecimiento'] ?? ''),
@@ -207,37 +237,268 @@ class PQRSController extends Controller
             'direccion'    => (string)($punto000['direccion'] ?? ''),
             'telefono'     => (string)($punto000['telefono'] ?? ''),
 
-            // ✅ correo editable (si no viene, usa el del punto 000)
-            'correo_cliente' => $correoCliente !== '' ? $correoCliente : (string)($punto000['email'] ?? ''),
+            'correo_cliente' => $correoCliente !== '' ? $correoCliente : (string)($punto000['email'] ?? $punto000['correo'] ?? ''),
 
-            // ✅ asesor
             'cod_asesor'    => $codAsesor,
             'nombre_asesor' => $nombreAsesor,
             'correo_asesor' => $correoAsesor,
 
-            // ✅ estado/fechas
+            // campos de tu form PQRS si los guardas
+            'tipo'       => (string)($pqrsIn['tipo'] ?? ''),
+            'prioridad'  => (string)($pqrsIn['prioridad'] ?? 'media'),
+            'asunto'     => (string)($pqrsIn['asunto'] ?? ''),
+            'descripcion' => (string)($pqrsIn['descripcion'] ?? ''),
+
             'estado'         => $data['estado'] ?? 'creada',
             'fecha_creacion' => now(),
-
-            // ✅ quién crea (si tienes auth por Sanctum)
             'creado_por'     => optional(Auth::user())->id,
         ];
 
-        // (opcional) trim a strings
         foreach ($encabezado as $k => $v) {
             if (is_string($v)) $encabezado[$k] = trim($v);
         }
 
+        $ormId = null;
+        $pqrs = null;
+
+        \Log::info('PQRS store - modo', ['modo' => $modo]);
+        \Log::info('PQRS store - requiereRecogida', ['requiereRecogida' => $requiereRecogida]);
+        \Log::info('PQRS store - direccion_envio', ['direccion_envio' => $direccionEnvio]);
+
+
+try {
+
+    // ✅ define los arrays antes del transaction
+    $productos = ($modo === 'productos') ? ($data['productos'] ?? []) : [];
+    $factura   = ($modo === 'factura') ? ($data['factura'] ?? []) : [];
+
+    DB::transaction(function () use (
+        &$pqrs,
+        &$ormId,
+        $encabezado,
+        $requiereRecogida,
+        $direccionEnvio,
+        $modo,
+        $productos,   // ✅ ahora sí existe adentro
+        $factura
+    ) {
+
         $pqrs = Pqrs::create($encabezado);
+
+        // ✅ ORM
+        if ($requiereRecogida) {
+            $norm = $this->normalizarDireccionEnvioDesdeApp($direccionEnvio);
+
+            $orm = Orm::create([
+                'pqrs_id'      => $pqrs->id,
+                'estado'       => 'creada',
+                'nit'          => $encabezado['nit'] ?? null,
+                'razon_social' => $encabezado['razon_social'] ?? null,
+                'direccion'    => $norm['direccion'] ?? null,
+                'departamento' => $norm['departamento'] ?? null,
+                'ciudad'       => $norm['ciudad'] ?? null,
+                'telefono'     => $norm['telefono'] ?? null,
+            ]);
+
+            $ormId = $orm->id;
+        }
+
+        // ✅ Guardar productos
+        if ($modo === 'productos') {
+
+            foreach ($productos as $p) {
+
+                $causalId = (int)($p['causal_id'] ?? 0);
+                if ($causalId <= 0) {
+                    throw new \RuntimeException("Falta causal_id en producto.");
+                }
+
+                $causal = PqrsCausal::query()->findOrFail($causalId);
+
+                if (!(bool)$causal->visible_asesor) {
+                    throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
+                }
+
+                $requiereAdjunto = (bool)$causal->requiere_adjunto;
+                $permiteRecogida = (bool)$causal->permite_recogida;
+
+                // ✅ adjuntos vienen como [{name,mime,base64}]
+                $adjuntos = $p['adjuntos'] ?? [];
+
+                if ($requiereAdjunto && empty($adjuntos)) {
+                    throw new \RuntimeException("La causal '{$causal->nombre}' requiere adjunto.");
+                }
+
+                $requiereRecogidaProducto = (bool)($p['requiereRecogida'] ?? false);
+
+                if ($requiereRecogidaProducto && !$permiteRecogida) {
+                    throw new \RuntimeException("La causal '{$causal->nombre}' no permite recogida.");
+                }
+
+                // ✅ parse fecha YYYYMMDD (ej 20260210)
+                $fecha = null;
+                if (!empty($p['fecha'])) {
+                    $s = trim((string)$p['fecha']);
+                    if (preg_match('/^\d{8}$/', $s)) {
+                        $fecha = Carbon::createFromFormat('Ymd', $s)->toDateString();
+                    } else {
+                        // fallback si llega ISO
+                        $fecha = Carbon::parse($s)->toDateString();
+                    }
+                }
+
+                // ✅ tus llaves reales del payload
+                $precio = (float)($p['precio'] ?? 0);
+                $bruto  = (float)($p['bruto'] ?? 0);
+                $imp    = (float)($p['iva'] ?? 0);
+                $neto   = (float)($p['neto'] ?? 0);
+
+                $prod = PqrsProducto::create([
+                    'pqrs_id'        => $pqrs->id,
+
+                    'causal_id'      => $causal->id,
+                    'responsable_id' => $causal->responsable_id,
+                    'submotivo_id'   => $causal->submotivo_id,
+
+                    'tipo_docto'     => (string)($p['tipo_docto'] ?? null),
+                    'nro_docto'      => (string)($p['nro_docto'] ?? null),
+                    'fecha'          => $fecha,
+
+                    'referencia'      => trim((string)($p['referencia'] ?? null)),
+                    'descripcion_ref' => (string)($p['descripcion'] ?? null),
+
+                    'unidades_solicitadas' => (float)($p['unidadesSolicitadas'] ?? 0),
+
+                    'precio_unitario' => $precio,
+                    'valor_bruto'     => $bruto,
+                    'valor_imp'       => $imp,
+                    'valor_neto'      => $neto,
+
+                    'requiere_recogida'  => $requiereRecogidaProducto,
+                    'solicitud_recogida' => $requiereRecogidaProducto ? 1 : 0,
+                ]);
+
+                // ✅ adjuntos: guardar en disk public + DB
+                if (!empty($adjuntos)) {
+
+                    $ref = $prod->referencia ?: 'sin_ref';
+                    $dir = "pqrs/{$pqrs->id}/productos/{$prod->id}_{$ref}";
+
+                    foreach ($adjuntos as $a) {
+
+                        // si accidentalmente llega un File/obj raro, lo saltamos
+                        if (!is_array($a)) continue;
+
+                        $name = (string)($a['name'] ?? 'archivo');
+                        $mime = (string)($a['mime'] ?? 'application/octet-stream');
+                        $b64  = (string)($a['base64'] ?? '');
+
+                        if ($b64 === '') continue;
+
+                        $saved = $this->guardarAdjuntoBase64Public($dir, $name, $b64);
+
+                        PqrsProductoAdjunto::create([
+                            'pqrs_producto_id' => $prod->id,
+                            'original_name'    => $name,
+                            'mime'             => $mime,
+                            'size'             => $saved['size'] ?? null,
+                            'path'             => $saved['path'],
+                        ]);
+                    }
+                }
+            }
+        }
+
+    });
+
+} catch (\Throwable $e) {
+    \Log::error('PQRS store ERROR', [
+        'msg' => $e->getMessage(),
+        'line' => $e->getLine(),
+        'file' => $e->getFile(),
+    ]);
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Error creando PQRS/ORM',
+        'error' => $e->getMessage(),
+    ], 500);
+}
 
         return response()->json([
             'success' => true,
-            'message' => 'PQRS creada correctamente.',
+            'message' => $ormId ? 'PQRS creada y ORM generada correctamente.' : 'PQRS creada correctamente.',
             'data' => [
-                'id' => $pqrs->id,
-                'estado' => $pqrs->estado,
+                'id'         => $pqrs->id,
+                'estado'     => $pqrs->estado,
+                'orm_id'     => $ormId,
                 'created_at' => $pqrs->created_at,
             ],
         ], 201);
+    }
+
+    /**
+     * ✅ Normaliza direccion_envio que llega tal cual desde Ionic:
+     * direccion_envio: { tipo: "punto"|"manual", data: { ... } }
+     */
+    private function normalizarDireccionEnvioDesdeApp(?array $direccionEnvio): array
+    {
+        $tipo = (string)($direccionEnvio['tipo'] ?? '');
+        $d    = $direccionEnvio['data'] ?? [];
+
+        // En tu payload punto_envio_id viene dentro de data
+        if ($tipo === 'punto') {
+            return [
+                'tipo_direccion' => 'punto',
+                'punto_envio_id' => trim((string)($d['punto_envio_id'] ?? $d['puntoEnvioId'] ?? '')),
+
+                'direccion'      => trim((string)($d['direccion'] ?? '')),
+                'departamento'   => trim((string)($d['departamento'] ?? $d['depto'] ?? '')),
+                'ciudad'         => trim((string)($d['ciudad'] ?? '')),
+                'cod_depto'      => trim((string)($d['cod_depto'] ?? '')),
+                'cod_ciudad'     => trim((string)($d['cod_ciudad'] ?? '')),
+                'telefono'       => trim((string)($d['telefono'] ?? '')),
+                'contacto'       => trim((string)($d['contacto'] ?? '')),
+            ];
+        }
+
+        // manual
+        return [
+            'tipo_direccion' => 'manual',
+            'punto_envio_id' => null,
+
+            'direccion'      => trim((string)($d['direccion'] ?? '')),
+            'departamento'   => trim((string)($d['depto'] ?? $d['departamento'] ?? '')),
+            'ciudad'         => trim((string)($d['ciudad'] ?? '')),
+            'cod_depto'      => trim((string)($d['cod_depto'] ?? '')),
+            'cod_ciudad'     => trim((string)($d['cod_ciudad'] ?? '')),
+            'telefono'       => trim((string)($d['telefono'] ?? '')),
+            'contacto'       => trim((string)($d['contacto'] ?? '')),
+        ];
+    }
+
+    private function guardarAdjuntoBase64Public(string $dir, string $originalName, string $base64): array
+    {
+        // soporta "data:...;base64,XXXX"
+        if (str_contains($base64, ',')) {
+            $base64 = explode(',', $base64, 2)[1];
+        }
+
+        $binary = base64_decode($base64, true);
+        if ($binary === false) {
+            throw new \RuntimeException("Base64 inválido para adjunto: {$originalName}");
+        }
+
+        $safeName = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $originalName) ?: 'archivo';
+        $filename = now()->format('Ymd_His') . '_' . uniqid() . '_' . $safeName;
+
+        $path = trim($dir, '/') . '/' . $filename;
+
+        Storage::disk('public')->put($path, $binary);
+
+        return [
+            'path' => $path,
+            'size' => strlen($binary),
+        ];
     }
 }
