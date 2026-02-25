@@ -25,6 +25,7 @@ use App\Livewire\Admin\PresupuestosCartera\Index as PresupuestosCarteraIndex;
 use App\Livewire\Admin\Pqrs\Responsables\Index as PqrsResponsablesIndex;
 use App\Livewire\Admin\Pqrs\Catalogos\Index as PqrsCatalogosIndex;
 use App\Livewire\Admin\Pqrs\Solicitudes\Index as PqrsSolicitudesIndex;
+use App\Livewire\Admin\Pqrs\Solicitudes\Detalles as PqrsSolicitudesDetalles;
 use App\Livewire\Admin\Pqrs\Orm\Index as PqrsOrmIndex;
 use App\Livewire\Admin\Pqrs\Transportadoras\Index as PqrsTransportadorasIndex;
 use App\Http\Controllers\Admin\TercerosController;
@@ -60,6 +61,7 @@ Route::middleware(['auth'])->prefix('admin/pqrs')->group(function () {
     Route::get('/orm', PqrsOrmIndex::class)->name('pqrs.orm');
     Route::get('/transportadoras', PqrsTransportadorasIndex::class)->name('pqrs.transportadoras');
     Route::get('', PqrsSolicitudesIndex::class)->name('pqrs.inicio');
+    Route::get('/detalle/{pqrs}', PqrsSolicitudesDetalles::class)->name('pqrs.detalle');
 
 });
 

@@ -129,8 +129,8 @@
 
                             <td class="px-4 py-3 text-right">
                                 {{-- Por ahora solo botón placeholder --}}
-                                <a href="#"
-                                   class="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">
+                                <a href="{{ route('pqrs.detalle', $r->id) }}"
+                                class="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">
                                     Ver
                                 </a>
                             </td>

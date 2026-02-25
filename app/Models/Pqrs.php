@@ -43,10 +43,14 @@ class Pqrs extends Model
         'fecha_cierre'   => 'datetime',
         'valor_acuerdo'  => 'decimal:2',
     ];
+    public function orm()
+    {
+        return $this->hasOne(Orm::class, 'pqrs_id');
+    }
 
-    // Relación futura (cuando exista la tabla pqrs_orms)
-    // public function orm()
-    // {
-    //     return $this->belongsTo(PqrsOrm::class, 'orm_id');
-    // }
+    // ✅ Productos (ajusta el modelo y FK si tu tabla se llama distinto)
+    public function productos()
+    {
+        return $this->hasMany(PqrsProducto::class, 'pqrs_id');
+    }
 }
