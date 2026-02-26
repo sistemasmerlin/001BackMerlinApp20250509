@@ -116,7 +116,7 @@ public function recuadoPresupuesto(Request $request)
         $factor = 1;
     } elseif ($efectividad > 45) {
         $factor = 0.90;
-    } elseif  ($efectividad > 40) {
+    } elseif  ($efectividad > 39) {
         $factor = 0.80;
     } else {
         $factor = 0.0; // menor o igual a 40 => 0
