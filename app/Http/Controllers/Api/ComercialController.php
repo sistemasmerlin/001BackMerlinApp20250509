@@ -578,25 +578,25 @@ class ComercialController extends Controller
             ];
         } else {
             $rangosRepuestos = [
-                ['min' => 0,    'max' => 14.99, 'factor' => 0.000],
-                ['min' => 15,   'max' => 84.99, 'factor' => 0.0058],
-                ['min' => 85,   'max' => 89.99, 'factor' => 0.0062],
-                ['min' => 90,   'max' => 94.99, 'factor' => 0.0066],
-                ['min' => 95,   'max' => 99.99,  'factor' => 0.0070],
-                ['min' => 100,  'max' => 109.99,  'factor' => 0.0074],
-                ['min' => 110,  'max' => 119.00,  'factor' => 0.0079],
-                ['min' => 120,  'max' => 1000,    'factor' => 0.0084],
+                ['min' => 0,    'max' => 79.99, 'factor' => 0.000],
+                ['min' => 80,   'max' => 84.99, 'factor' => 0.0034],
+                ['min' => 85,   'max' => 89.99, 'factor' => 0.0038],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0042],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0046],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0050],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0055],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0060],
             ];
 
             $rangosLlantas = [
-                ['min' => 0,    'max' => 14.99, 'factor' => 0.00],
-                ['min' => 15,   'max' => 34.99, 'factor' => 0.0045],
-                ['min' => 35,   'max' => 89.99, 'factor' => 0.0049],
-                ['min' => 90,   'max' => 94.99, 'factor' => 0.0053],
-                ['min' => 95,   'max' => 99.99,  'factor' => 0.0057],
-                ['min' => 100,  'max' => 109.99,  'factor' => 0.0061],
-                ['min' => 110,  'max' => 119.00,  'factor' => 0.0066],
-                ['min' => 120,  'max' => 1000,    'factor' => 0.0071],
+                ['min' => 0,    'max' => 79.99, 'factor' => 0.000],
+                ['min' => 80,   'max' => 84.99, 'factor' => 0.0025],
+                ['min' => 85,   'max' => 89.99, 'factor' => 0.0029],
+                ['min' => 90,   'max' => 94.99, 'factor' => 0.0033],
+                ['min' => 95,   'max' => 99.99,  'factor' => 0.0037],
+                ['min' => 100,  'max' => 109.99,  'factor' => 0.0041],
+                ['min' => 110,  'max' => 119.00,  'factor' => 0.0046],
+                ['min' => 120,  'max' => 1000,    'factor' => 0.0051],
             ];
         }
 
@@ -749,9 +749,11 @@ GROUP BY vendedor, categoria
 
         $valor_a_pagar_pirelli = 0;
 
-        if ($pct($ventaPirelliUnid, $presuPirelli) >= 80) {
-            $valor_a_pagar_pirelli = (($ventaPirreliVal / 100) * 1.5);
-        }
+        $valor_a_pagar_pirelli = (($ventaPirreliVal / 100) * 1.5);
+
+        // if ($pct($ventaPirelliUnid, $presuPirelli) >= 80) {
+        //     $valor_a_pagar_pirelli = (($ventaPirreliVal / 100) * 1.5);
+        // }
 
         $respuesta = [
             'asesor'  => $codigo_asesor,
