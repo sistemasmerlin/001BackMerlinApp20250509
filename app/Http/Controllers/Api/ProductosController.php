@@ -131,6 +131,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA TIRES' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA PARTS' THEN 'Partes'
                     WHEN rtrim(t106.f106_descripcion) = 'NARVA' THEN 'Iluminacion'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA - GOOD TUBE' THEN 'Neumaticos'
                     WHEN rtrim(t106.f106_descripcion) = 'PFI' THEN 'Rodamientos'
@@ -193,6 +194,7 @@ class ProductosController extends Controller
                             'PIRELLI RADIAL',
                             'BATERIAS RINOVA',
                             'RINOVA LIGHTING',
+                            'RINOVA PARTS',
                             'CST TIRES',
                             'CST ATV',
                             'CST E-SCOOTER',
