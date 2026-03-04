@@ -191,6 +191,44 @@ class Pedido {
              if($xmlResult->printTipoError == 0){
                 $mensaje = "Xml enviado con exito!";
                 $status = "success";
+            }else{
+    $status = "error";
+
+    // 1) intenta leer el XML de respuesta (varía según WS)
+    $raw = null;
+
+    // a) si viene directo como string
+    if (isset($xmlResult->ImportarXMLResult)) {
+        $raw = $xmlResult->ImportarXMLResult;
+    }
+
+    // b) si viene dentro de ->any
+    if (is_object($raw) && isset($raw->any)) {
+        $raw = $raw->any;
+    }
+
+    // 2) si NO hay raw, al menos devuelve algo útil
+    if (!$raw) {
+        $mensaje = "Siesa devolvió error, pero no se encontró detalle en la respuesta.";
+    } else {
+        // 3) intenta parsear y sacar f_detalle / mensaje
+        try {
+            $xmlObject = simplexml_load_string($raw, "SimpleXMLElement", LIBXML_NOCDATA);
+
+            // OJO: esto depende del XML real. Dejamos varios intentos:
+            $detalle = (string)($xmlObject->NewDataSet->Table->f_detalle ?? '');
+            if (!$detalle) {
+                $detalle = (string)($xmlObject->NewDataSet->Table->detalle ?? '');
+            }
+            if (!$detalle) {
+                $detalle = trim(strip_tags($raw)); // fallback feo pero útil
+            }
+
+            $mensaje = $detalle ?: "Siesa devolvió error pero no fue posible extraer el mensaje.";
+        } catch (\Throwable $e) {
+            $mensaje = "Error en Siesa (no se pudo parsear respuesta): " . $e->getMessage();
+        }
+    }
             }
 
     	}catch(SoapFault $fault) {

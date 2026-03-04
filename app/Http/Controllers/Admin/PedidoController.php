@@ -88,7 +88,7 @@ class PedidoController extends Controller
                 DB::rollBack();
 
                 return back()->with([
-                    'error'   => 'Error al generar XML',
+                    'error'   => $resultadoXml['mensaje'],
                     'mensaje' => $resultadoXml['mensaje'] ?? 'Error no especificado',
                 ]);
             }
