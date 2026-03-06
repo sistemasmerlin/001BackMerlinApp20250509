@@ -106,8 +106,6 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '511073504' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073505' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073506' THEN '4'
-                    WHEN rtrim(t120.f120_referencia) = '511073507' THEN '10'
-                    WHEN rtrim(t120.f120_referencia) = '511073508' THEN '10'
                     WHEN rtrim(t120.f120_referencia) = '511073509' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073510' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073511' THEN '4'
@@ -140,6 +138,15 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '511073817' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073815' THEN '4'
                     WHEN rtrim(t120.f120_referencia) = '511073816' THEN '4'
+                    WHEN rtrim(t120.f120_referencia) = '511073507' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511073508' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511020300' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511010200' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511020302' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511020307' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511020306' THEN '10'
+                    WHEN rtrim(t120.f120_referencia) = '511011301' THEN '10'
+
                 ELSE '1' END AS minimo_venta
                 ,CASE
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA LIGHTING LED' THEN 'RINOVA LIGHTING'
