@@ -77,7 +77,25 @@
                         <td class="px-4 py-2 border-t-2"><strong>{{ $pedido->prefijo }}</strong></td>
                         @endif
 
-                        <td class="px-4 py-2 border-t-2"><strong>{{ $pedido->orden_compra }}</strong></td>
+                        @if($pedido->prefijo == 'PES')                 
+                        <td class="px-4 py-2 border-t-2">
+                            <strong>{{ $pedido->orden_compra }}</strong>
+
+                            <br>
+
+                            <button
+                                wire:click="generarNuevaOc({{ $pedido->id }})"
+                                class="px-3 py-1 bg-gray-500 hover:bg-gray-700 text-white font-semibold rounded-lg mt-2"
+                                onclick="return confirm('¿Deseas cambiar a nueva OC?')">
+                                Cambiar OC
+                            </button>
+                        </td>
+                        @else                        
+                        <td class="px-4 py-2 border-t-2">
+                            <strong>{{ $pedido->orden_compra }}</strong>
+                        </td>
+                        @endif
+
                         <td class="px-6 py-4  border-t-2"><strong>{{ $pedido->nit }}</strong> - {{ $pedido->razon_social }}</td>
                         <td class="px-6 py-4 border-t-2">
                             @can('Enviar Pedido Especial')

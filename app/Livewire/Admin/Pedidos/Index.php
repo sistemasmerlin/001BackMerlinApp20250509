@@ -28,7 +28,6 @@ class Index extends Component
     public $mensajeCliente = '';
     public $fecha_inicio;
     public $fecha_final;
-
     public function mount()
     {
         /* $this->pedidos = Pedido::with('direccionEnvio')->orderBy('id', 'desc')->get(); */
@@ -66,6 +65,30 @@ class Index extends Component
         $cotizacion->delete();
 
         session()->flash('success', 'Cotizacion eliminada correctamente');
+
+        return redirect()->route('pedidos.index');
+    }
+
+    public function generarNuevaOc($id)
+    {
+        $pedido = Pedido::find($id);
+
+        if (! $pedido) {
+            session()->flash('error', 'Pedido no encontrado.');
+            return;
+        }
+
+        $oc = (string) $pedido->orden_compra;
+
+        if (strlen($oc) < 2) {
+            session()->flash('warning', 'La orden de compra no tiene el formato esperado.');
+            return;
+        }
+
+        $pedido->orden_compra = '99' . substr($oc, 2);
+        $pedido->save();
+
+        session()->flash('success', 'Nueva orden de compra generada correctamente.');
 
         return redirect()->route('pedidos.index');
     }
