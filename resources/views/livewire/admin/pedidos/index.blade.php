@@ -47,6 +47,7 @@
                     <tr>
                         <th class="px-4 py-3">Id</th>
                         <th class="px-4 py-3">Prefijo</th>
+                        <th class="px-4 py-3">OC</th>
                         <th class="px-4 py-3">Nit Cliente</th>
                         <th class="px-4 py-3">Cambiar Cliente</th>
                         <th class="px-4 py-3">Confirma Cliente Creado</th>
@@ -76,6 +77,7 @@
                         <td class="px-4 py-2 border-t-2"><strong>{{ $pedido->prefijo }}</strong></td>
                         @endif
 
+                        <td class="px-4 py-2 border-t-2"><strong>{{ $pedido->orden_compra }}</strong></td>
                         <td class="px-6 py-4  border-t-2"><strong>{{ $pedido->nit }}</strong> - {{ $pedido->razon_social }}</td>
                         <td class="px-6 py-4 border-t-2">
                             @can('Enviar Pedido Especial')
