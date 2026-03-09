@@ -117,19 +117,7 @@ class FacturasController extends Controller
     {
 
 
-        if($prefijo == 'FVM'){
-
-        $body = [
-            "Key" => "12177dc3ec45485eada8014a6d1d32ca",
-            "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
-            "Filters" => [
-                "DocumentoTipoEstandar" => "facturadeventa",
-                "EmpresaNit" => "9013683375",
-                "DocumentoNumeroCompleto" => $prefijo.$consecutivo,
-            ]
-        ];
-
-        }elseif($prefijo == 'CNC'){
+        if($prefijo == 'CNC'){
             $body = [
                 "Key" => "12177dc3ec45485eada8014a6d1d32ca",
                 "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
@@ -139,6 +127,17 @@ class FacturasController extends Controller
                     "DocumentoNumeroCompleto" => $consecutivo,
                 ]
             ];
+        }else{
+            $body = [
+                "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+                "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+                "Filters" => [
+                    "DocumentoTipoEstandar" => "facturadeventa",
+                    "EmpresaNit" => "9013683375",
+                    "DocumentoNumeroCompleto" => $prefijo.$consecutivo,
+                ]
+            ];
+
         }
 
 
