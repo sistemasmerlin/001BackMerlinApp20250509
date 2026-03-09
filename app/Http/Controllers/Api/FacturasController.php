@@ -15,7 +15,7 @@ class FacturasController extends Controller
         ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
-            ELSE 'N/A' end as prefijo_fe
+            ELSE 'CNC' end as prefijo_fe
             ,[f_nrodocto] consecutivo
             ,[f_fecha] fecha
             ,[f_estado] estado
@@ -49,7 +49,7 @@ class FacturasController extends Controller
 
             WHERE [f_id_cia] = 3
             AND [f_parametro_biable] = 3
-            AND [f_id_tipo_docto] = 'FVM'
+            AND [f_id_tipo_docto] IN ('FVM','CNC')
 
             AND t210.f210_id = '$codigo_asesor'
             ORDER BY [f_nrodocto] DESC;");
@@ -67,7 +67,7 @@ class FacturasController extends Controller
         ->select("SELECT TOP (20) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
-            ELSE 'N/A' end as prefijo_fe
+            ELSE 'CNC' end as prefijo_fe
             ,[f_nrodocto] consecutivo
             ,[f_fecha] fecha
             ,[f_estado] estado
@@ -101,7 +101,7 @@ class FacturasController extends Controller
 
             WHERE [f_id_cia] = 3
             AND [f_parametro_biable] = 3
-            AND [f_id_tipo_docto] = 'FVM'
+            AND [f_id_tipo_docto] IN ('FVM','CNC')
 
             AND [f_cliente_fact] = '$nit'
             ORDER BY [f_nrodocto] DESC;");
@@ -115,6 +115,10 @@ class FacturasController extends Controller
 
     public function consultarFactura($prefijo, $consecutivo)
     {
+
+
+        if($prefijo == 'FVM'){
+
         $body = [
             "Key" => "12177dc3ec45485eada8014a6d1d32ca",
             "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
@@ -124,6 +128,19 @@ class FacturasController extends Controller
                 "DocumentoNumeroCompleto" => $prefijo.$consecutivo,
             ]
         ];
+
+        }elseif($prefijo == 'CNC'){
+            $body = [
+                "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+                "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+                "Filters" => [
+                    "DocumentoTipoEstandar" => "nota",
+                    "EmpresaNit" => "9013683375",
+                    "DocumentoNumeroCompleto" => $consecutivo,
+                ]
+            ];
+        }
+
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -138,7 +155,7 @@ class FacturasController extends Controller
         ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
-            ELSE 'N/A' end as prefijo_fe
+            ELSE 'CNC' end as prefijo_fe
             ,[f_nrodocto] consecutivo
             ,[f_fecha] fecha
             ,[f_estado] estado
@@ -172,7 +189,7 @@ class FacturasController extends Controller
 
             WHERE [f_id_cia] = 3
             AND [f_parametro_biable] = 3
-            AND [f_id_tipo_docto] = 'FVM'
+            AND [f_id_tipo_docto] IN ('FVM', 'CNC')
 
             AND t210.f210_id = '$codigo_asesor'
 
