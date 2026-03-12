@@ -269,6 +269,7 @@ class ComercialController extends Controller
             'RINOVA LIGHTING'       => 'rinova_lighting',
             'RINOVA LIGHTING LED'   => 'rinova_lighting_led',
             'RINOVA - GOOD TUBE'    => 'good_tube',
+            'RINOVA PARTS'          => 'rinova_parts',
         ];
 
 
@@ -352,7 +353,7 @@ class ComercialController extends Controller
 
         $mapVentas = [
             // Unidades
-            'RINOVA TIRES'              => ['col' => 'venta_rinova_tires', 'tipo' => 'unidades', 'col_dinero' => 'venta_dinero_rinova_tires'],
+            'RINOVA TIRES'              => ['col' => 'venta_rinova_tires', 'tipo' => 'unidades'],
             'PIRELLI'                   => ['col' => 'venta_pirelli', 'tipo' => 'unidades'],
             'CST TIRES'                 => ['col' => 'venta_cst_tires', 'tipo' => 'unidades'],
             'CST ATV'                   => ['col' => 'venta_cst_atv', 'tipo' => 'unidades'],
@@ -374,6 +375,7 @@ class ComercialController extends Controller
             'RINOVA LIGHTING'        => ['col' => 'venta_rinova_lighting', 'tipo' => 'dinero'],
             'RINOVA LIGHTING LED'    => ['col' => 'venta_rinova_lighting_led', 'tipo' => 'dinero'],
             'RINOVA - GOOD TUBE'              => ['col' => 'venta_good_tube', 'tipo' => 'dinero'],
+            'RINOVA PARTS'              => ['col' => 'venta_rinova_parts', 'tipo' => 'dinero'],
         ];
 
         $wdtToHakuba = ['WDT BIKE', 'WDT TUBE', 'WDT E-SCOOTER', 'HAKUBA - ARMOR - WDT', 'FORERUNNER', 'RINOVA ATV', 'WDT'];
@@ -433,7 +435,7 @@ class ComercialController extends Controller
                     WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT')
                     THEN [f_cant_base] ELSE 0 END)) AS llantas,
                 CONVERT(int, SUM(CASE 
-                    WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','RINOVA - GOOD TUBE')
+                    WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS')
                     THEN [f_valor_sub_local] ELSE 0 END)) AS accesorios
             FROM BI_T461_1 AS t461_1
             LEFT JOIN [t120_mc_items]               AS t120 ON t120.[f120_rowid] = t461_1.[f_rowid_item]
@@ -488,6 +490,7 @@ class ComercialController extends Controller
             $u->cumplimiento_venta_rinova_lighting_led  = $pct($u->venta_rinova_lighting_led, (float) ($u->rinova_lighting_led ?? 0));
             $u->cumplimiento_venta_narva                = $pct($u->venta_narva,               (float) ($u->narva ?? 0));
             $u->cumplimiento_venta_good_tube            = $pct($u->venta_good_tube,           (float) ($u->good_tube ?? 0));
+            $u->cumplimiento_venta_rinova_parts           = $pct($u->venta_rinova_parts ,           (float) ($u->rinova_parts  ?? 0));
 
             // Cumplimientos por categorías
             $u->cumplimiento_venta_total_llantas     = $pct($u->venta_total_llantas,    (float) ($u->total_llantas ?? 0));
@@ -648,7 +651,7 @@ WITH base AS (
             THEN 'PIRELLI'
 
             WHEN t106.[f106_descripcion] IN (
-                'RINOVA LIGHTING','RINOVA LIGHTING LED','RNV','BATERIAS RINOVA','KOYO','NARVA','PFI','RINOVA - GOOD TUBE'
+                'RINOVA LIGHTING','RINOVA LIGHTING LED','RNV','BATERIAS RINOVA','KOYO','NARVA','PFI','RINOVA - GOOD TUBE', 'RINOVA PARTS'
             ) THEN 'REPUESTOS'
 
             ELSE 'OTRAS'
