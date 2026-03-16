@@ -118,18 +118,11 @@ class Index extends Component
         // 2) Totales globales
         $this->totalVenta = (float) $col->sum('venta');
         $this->totalUnidades = (float) $col->sum('unidades');
-        
-        $totalGeneral = (float) PresupuestoComercial::query()
+
+        $this->totalPresupuesto = (float) PresupuestoComercial::query()
             ->where('periodo', $this->periodo)
-            ->where('categoria', 'total')
+            ->where('categoria', 'total','pirelli') 
             ->sum('presupuesto');
-
-        $totalPirelli = (float) PresupuestoComercial::query()
-            ->where('periodo', $this->periodo)
-            ->where('categoria', 'like', '%pirelli%')
-            ->sum(DB::raw('presupuesto * 190000'));
-
-        $this->totalPresupuesto = $totalGeneral + $totalPirelli;
 
         $this->cumplimientoTotal = $this->pct($this->totalVenta, $this->totalPresupuesto);
 
