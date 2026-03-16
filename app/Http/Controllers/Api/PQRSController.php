@@ -201,6 +201,7 @@ class PQRSController extends Controller
 
         // ✅ correo editable viene en ROOT
         $correoCliente = trim((string)($data['correo_cliente'] ?? ''));
+        $telefonoCliente = trim((string)($data['telefono_cliente'] ?? ''));
 
         // ✅ Asesor (ojo: en payload viene "correo", NO "correo_asesor")
         $codAsesor    = trim((string)($asesorIn['codigo_asesor'] ?? $sucursal['id_vendedor'] ?? ''));
@@ -235,7 +236,9 @@ class PQRSController extends Controller
             'departamento' => (string)($punto000['departamento'] ?? ''),
             'ciudad'       => (string)($punto000['ciudad'] ?? ''),
             'direccion'    => (string)($punto000['direccion'] ?? ''),
-            'telefono'     => (string)($punto000['telefono'] ?? ''),
+            'telefono' => $telefonoCliente !== '' 
+                ? $telefonoCliente 
+                : (string)($punto000['telefono'] ?? ''),
 
             'correo_cliente' => $correoCliente !== '' ? $correoCliente : (string)($punto000['email'] ?? $punto000['correo'] ?? ''),
 

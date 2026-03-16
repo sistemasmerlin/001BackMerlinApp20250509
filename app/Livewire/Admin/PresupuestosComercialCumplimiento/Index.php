@@ -121,7 +121,7 @@ class Index extends Component
 
         $this->totalPresupuesto = (float) PresupuestoComercial::query()
             ->where('periodo', $this->periodo)
-            ->where('categoria', 'total') 
+            ->where('categoria', 'total','pirelli') 
             ->sum('presupuesto');
 
         $this->cumplimientoTotal = $this->pct($this->totalVenta, $this->totalPresupuesto);

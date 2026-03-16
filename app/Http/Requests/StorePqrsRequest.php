@@ -20,6 +20,7 @@ class StorePqrsRequest extends FormRequest
             'asesor' => ['nullable', 'array'],
             'modoAplicacion' => ['required', 'in:productos,factura'],
             'correo_cliente' => ['nullable', 'string', 'max:150'],
+            'telefono_cliente' => ['required', 'string'],
 
             // ✅ direccion_envio (solo si hay recogida)
             'direccion_envio' => ['nullable', 'array'],
@@ -28,20 +29,21 @@ class StorePqrsRequest extends FormRequest
 
             'productos' => ['nullable', 'array'],
 
-            'productos.*.referencia' => ['nullable', 'string', 'max:50'],
-            'productos.*.tipo_docto' => ['nullable', 'string', 'max:10'],
-            'productos.*.nro_docto'  => ['nullable', 'string', 'max:30'],
-            'productos.*.fecha'      => ['nullable'],
+            'productos.*.referencia' => ['required', 'string', 'max:50'],
+            'productos.*.descripcion' => ['required', 'string', 'max:250'],
+            'productos.*.tipo_docto' => ['required', 'string', 'max:10'],
+            'productos.*.nro_docto'  => ['required', 'string', 'max:30'],
+            'productos.*.fecha'      => ['required'],
 
-            'productos.*.unidadesSolicitadas' => ['nullable', 'numeric', 'min:0.0001'],
+            'productos.*.unidadesSolicitadas' => ['required', 'numeric', 'min:0.0001'],
 
             // ✅ nuevo
             'productos.*.causal_id'  => ['required', 'integer', 'exists:pqrs_causales,id'],
 
             // opcional si lo mandas (yo lo dejaría opcional)
-            'productos.*.submotivo_id' => ['nullable', 'integer'],
+            'productos.*.submotivo_id' => ['required', 'integer'],
 
-            'productos.*.requiereRecogida' => ['nullable', 'boolean'],
+            'productos.*.requiereRecogida' => ['required', 'boolean'],
 
             'productos.*.adjuntos' => ['nullable', 'array'],
             'productos.*.adjuntos.*.name'   => ['required_with:productos.*.adjuntos', 'string'],
