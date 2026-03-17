@@ -28,12 +28,22 @@ class PqrsProducto extends Model
         'valor_neto',
         'requiere_recogida',
         'solicitud_recogida',
+        'estado',
+        'revisado_por',
+        'fecha_revision',
+        'comentario_revision',
+        'estado_orm',
+        'orm_revisada_por',
+        'orm_fecha_revision',
+        'orm_comentario_revision',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'requiere_recogida' => 'boolean',
         'unidades_solicitadas' => 'decimal:4',
+        'fecha_revision' => 'datetime',
+        'orm_fecha_revision' => 'datetime',
         'precio_unitario' => 'decimal:4',
         'valor_bruto' => 'decimal:4',
         'valor_imp' => 'decimal:4',

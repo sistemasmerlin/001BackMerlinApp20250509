@@ -1,207 +1,472 @@
-<div class="p-6 space-y-6 text-black">
+<div class="p-8 bg-white text-black space-y-10">
 
     {{-- HEADER --}}
-    <div class="flex items-center justify-between border-b pb-4">
-        <div>
-            <h1 class="text-2xl font-bold text-black">
-                PQRS #{{ $pqrs->id }}
-            </h1>
-            <p class="text-sm font-medium text-black">
-                {{ $pqrs->razon_social }} — NIT: {{ $pqrs->nit }}
-            </p>
-        </div>
+<div class="flex flex-col gap-4">
+    <a href="{{ route('pqrs.inicio') }}"
+       class="w-full inline-flex justify-center items-center rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 transition shadow-sm">
+        ← Volver
+    </a>
+</div>
 
-        <a href="{{ route('pqrs.inicio') }}"
-           class="border border-black px-4 py-2 text-sm font-semibold hover:bg-black hover:text-white transition">
-            ← Volver
-        </a>
+
+<section class="space-y-4">
+    <div>
+        <h1 class="text-3xl font-bold leading-tight">
+            PQRS #{{ $pqrs->id }}
+        </h1>
     </div>
 
-    {{-- ================= ENCABEZADO COMPLETO ================= --}}
-    <div class="border border-black p-5 space-y-4">
+    <div class="overflow-hidden rounded-xl border border-zinc-300 bg-white">
+        <table class="min-w-full text-sm text-black">
+            <tbody class="divide-y divide-zinc-200">
+                <tr>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold uppercase">Estado</div>
+                        <div class="mt-1 uppercase">{{ $pqrs->estado ?? '—' }}</div>
+                    </td>
 
-        <h2 class="font-bold text-lg border-b border-black pb-2">
-            Información General
-        </h2>
+                   <td class="px-5 py-4 align-top">
+                        <div class="text-sm font-bold uppercase"># DE PRODUCTOS</div>
+                        <div class="mt-2 text-lg">{{ $pqrs->productos?->count() ?? 0 }}</div>
+                    </td>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <td class="px-5 py-4 align-top">
+                        <div class="text-sm font-bold uppercase">TIENE ORM</div>
+                        <div class="mt-2 text-lg">{{ $pqrs->orm ? 'SI' : 'NO' }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold "> NIT</div>
+                        <div class="mt-1 uppercase">{{ $pqrs->nit }}</div>
+                    </td>
 
-            <div><strong>Estado:</strong> {{ $pqrs->estado }}</div>
-            <div><strong>Fecha creación:</strong> {{ optional($pqrs->fecha_creacion ?? $pqrs->created_at)->format('Y-m-d H:i') }}</div>
-            <div><strong>Fecha revisado:</strong> {{ optional($pqrs->fecha_revisado)->format('Y-m-d H:i') ?? '—' }}</div>
+                    <td class="px-5 py-4 align-top" colspan="2">
+                        <div class="font-bold uppercase">CLIENTE</div>
+                        <div class="mt-1 uppercase">{{ $pqrs->razon_social }}</div>
+                    </td>
+                </tr>
 
-            <div><strong>Fecha cierre:</strong> {{ optional($pqrs->fecha_cierre)->format('Y-m-d H:i') ?? '—' }}</div>
-            <div><strong>Asesor:</strong> {{ $pqrs->nombre_asesor }}</div>
-            <div><strong>Código asesor:</strong> {{ $pqrs->cod_asesor }}</div>
+                <tr>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Teléfono</div>
+                        <div class="mt-1">{{ $pqrs->telefono ?? '—' }}</div>
+                    </td>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Correo cliente</div>
+                        <div class="mt-1 break-all">{{ $pqrs->correo_cliente ?? '—' }}</div>
+                    </td>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Dirección</div>
+                        <div class="mt-1">
+                            {{ $pqrs->direccion ?? '—' }} — {{ $pqrs->ciudad ?? '—' }} — {{ $pqrs->departamento ?? '—' }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Fecha creación</div>
+                        <div class="mt-1">{{ optional($pqrs->created_at)->format('Y-m-d H:i') ?? '—' }}</div>
+                    </td>
 
-            <div><strong>Correo cliente:</strong> {{ $pqrs->correo_cliente }}</div>
-            <div><strong>Correo asesor:</strong> {{ $pqrs->correo_asesor }}</div>
-            <div><strong>Teléfono:</strong> {{ $pqrs->telefono }}</div>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Fecha revisado</div>
+                        <div class="mt-1">{{ optional($pqrs->fecha_revisado)->format('Y-m-d H:i') ?? '—' }}</div>
+                    </td>
 
-            <div class="md:col-span-2">
-                <strong>Dirección:</strong>
-                {{ $pqrs->direccion }} — {{ $pqrs->ciudad }} — {{ $pqrs->departamento }}
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Fecha cierre</div>
+                        <div class="mt-1">{{ optional($pqrs->fecha_cierre)->format('Y-m-d H:i') ?? '—' }}</div>
+                    </td>
+
+                    {{-- <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Número ORM</div>
+                        <div class="mt-1">{{ $pqrs->numero_orm ?? '—' }}</div>
+                    </td> --}}
+                </tr>
+
+                <tr>
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Asesor</div>
+                        <div class="mt-1">{{ $pqrs->nombre_asesor ?? '—' }}</div>
+                    </td>
+
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Código asesor</div>
+                        <div class="mt-1">{{ $pqrs->cod_asesor ?? '—' }}</div>
+                    </td>
+
+                    <td class="px-5 py-4 align-top">
+                        <div class="font-bold">Correo asesor</div>
+                        <div class="mt-1 break-all">{{ $pqrs->correo_asesor ?? '—' }}</div>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+    {{-- ACUERDO / CIERRE 
+    <section class="grid grid-cols-1 gap-10 md:grid-cols-2">
+        <div class="space-y-3">
+            <h2 class="text-2xl font-bold">Acuerdo</h2>
+
+            <div class="text-sm space-y-2">
+                <div><span class="font-bold">Tipo:</span> {{ $pqrs->tipo_acuerdo ?? '—' }}</div>
+                <div><span class="font-bold">Valor:</span> {{ $pqrs->valor_acuerdo ?? '—' }}</div>
+                <div><span class="font-bold">Nota:</span> {{ $pqrs->nota_acuerdo ?? '—' }}</div>
             </div>
-
-            <div><strong>Número ORM:</strong> {{ $pqrs->numero_orm ?? '—' }}</div>
-
-            <div><strong>Tipo acuerdo:</strong> {{ $pqrs->tipo_acuerdo ?? '—' }}</div>
-            <div><strong>Valor acuerdo:</strong> {{ $pqrs->valor_acuerdo ?? '—' }}</div>
-            <div><strong>Nota acuerdo:</strong> {{ $pqrs->nota_acuerdo ?? '—' }}</div>
-
-            <div><strong>Comentario cierre:</strong> {{ $pqrs->comentario_cierre ?? '—' }}</div>
-
         </div>
-    </div>
 
-{{-- ================= PRODUCTOS ================= --}}
-<div class="border border-black bg-white">
+        <div class="space-y-3">
+            <h2 class="text-2xl font-bold">Comentario de cierre</h2>
+            <div class="text-sm leading-relaxed">
+                {{ $pqrs->comentario_cierre ?? '—' }}
+            </div>
+        </div>
+    </section>
 
-    <div class="px-4 py-3 border-b border-black">
-        <h2 class="font-bold text-black">
-            Productos ({{ $pqrs->productos?->count() ?? 0 }})
-        </h2>
-    </div>
+    --}}
+    <br>
 
-    @if(($pqrs->productos?->count() ?? 0) > 0)
+    {{-- PRODUCTOS --}}
+    <section class="space-y-5">
+        <h1 class="text-3xl font-bold leading-tight">
+            PRODUCTOS ({{ $pqrs->productos?->count() ?? 0 }})
+        </h1>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm text-black">
-                <thead>
-                    <tr class="border-b border-black">
-                        <th class="px-4 py-3 text-left font-semibold">Referencia</th>
-                        <th class="px-4 py-3 text-left font-semibold">Documento</th>
-                        <th class="px-4 py-3 text-left font-semibold">Causal</th>
-                        <th class="px-4 py-3 text-left font-semibold">Recogida</th>
-                        <th class="px-4 py-3 text-left font-semibold">Adjuntos</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach($pqrs->productos as $p)
-                        <tr class="border-b border-black hover:bg-black hover:text-white transition">
-
-                            <td class="px-4 py-3 font-medium">
-                                {{ $p->referencia ?? '—' }}
-                                <div class="text-xs">
-                                    {{ $p->descripcion_ref ?? '' }}
-                                </div>
-                            </td>
-
-                            <td class="px-4 py-3">
-                                {{ $p->tipo_docto ?? '—' }}-{{ $p->nro_docto ?? '—' }}
-                                <div class="text-xs">
-                                    {{ $p->fecha ?? '' }}
-                                </div>
-                            </td>
-
-                            <td class="px-4 py-3">
-                                {{ $p->causal?->nombre ?? $p->causal_id ?? '—' }}
-                            </td>
-
-                            <td class="px-4 py-3 font-semibold">
-                                {{ (int)($p->requiere_recogida ?? 0) === 1 ? 'SI' : 'NO' }}
-                            </td>
-
-                            <td class="px-4 py-3">
-                                @php $adj = $p->adjuntos ?? collect(); @endphp
-
-                                @if($adj->count() > 0)
-                                    <div class="space-y-1">
-                                        @foreach($adj as $a)
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-medium">
-                                                    {{ $a->original_name ?? 'archivo' }}
-                                                </span>
-
-                                                @if(!empty($a->path))
-                                                    <a href="{{ asset('storage/'.$a->path) }}"
-                                                       target="_blank"
-                                                       class="underline font-semibold">
-                                                        Ver
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    —
-                                @endif
-                            </td>
-
+        <div class="rounded-xl border border-zinc-300 bg-white overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-[1500px] w-full text-sm text-black">
+                    <thead class="bg-zinc-100 border-b border-zinc-300">
+                        <tr class="text-left">
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Estado</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Referencia</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Descripción</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Unds</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Precio Unit</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Vl bruto</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Vl impuesto</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Vl neto</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Factura</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Causal</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Recogida</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Opciones</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Adjuntos</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody class="divide-y divide-zinc-200">
+                        @forelse($pqrs->productos as $p)
+                            <tr class="align-top hover:bg-zinc-50">
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    {{ $p->estado ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap font-medium">
+                                    {{ $p->referencia ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-4 min-w-[260px]">
+                                    {{ $p->descripcion_ref ?? 'Sin descripción' }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    {{ (int)($p->unidades_solicitadas ?? 0) }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-right">
+                                    {{ number_format((float)($p->precio_unitario ?? 0), 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-right">
+                                    {{ number_format((float)($p->valor_bruto ?? 0), 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-right">
+                                    {{ number_format((float)($p->valor_imp ?? 0), 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-right font-semibold">
+                                    {{ number_format((float)($p->valor_neto ?? 0), 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    {{ $p->tipo_docto ?? '—' }}-{{ $p->nro_docto ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-4 min-w-[220px]">
+                                    {{ $p->causal?->nombre ?? $p->causal_id ?? '—' }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    {{ (int)($p->requiere_recogida ?? 0) === 1 ? 'SI' : 'NO' }}
+                                </td>
+
+                                <td class="px-4 py-4 min-w-[220px]">
+                                    @if($this->puedeRevisarProducto($p))
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex flex-wrap gap-2">
+                                                <button wire:click="aprobarProducto({{ $p->id }})"
+                                                    class="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 transition">
+                                                    ✔ Aprobar
+                                                </button>
+
+                                                <button wire:click="rechazarProducto({{ $p->id }})"
+                                                    class="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                    ✖ Rechazar
+                                                </button>
+                                            </div>
+
+                                            @if((int)$p->requiere_recogida === 1)
+                                                <div class="flex flex-wrap gap-2">
+                                                    <button wire:click="aprobarOrmProducto({{ $p->id }})"
+                                                        class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                        🚚 ORM OK
+                                                    </button>
+
+                                                    <button wire:click="rechazarOrmProducto({{ $p->id }})"
+                                                        class="rounded-lg bg-orange-600 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition">
+                                                        🚫 ORM NO
+                                                    </button>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-zinc-400 text-xs">Sin acciones</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-4 min-w-[260px]">
+                                    @if($p->adjuntos->count())
+                                        <div class="flex flex-col gap-3">
+                                            @foreach($p->adjuntos as $adj)
+                                                <div class="rounded-lg border border-zinc-200 p-2 text-xs">
+                                                    <div class="font-semibold text-zinc-800">
+                                                        Producto ID: {{ $p->id }} | Adjunto ID: {{ $adj->id }}
+                                                    </div>
+
+                                                    <div class="text-zinc-500 break-all mb-2">
+                                                        {{ $adj->original_name }}
+                                                    </div>
+
+                                                    @if(str_starts_with($adj->mime, 'image/'))
+                                                        <a href="{{ asset('storage/' . $adj->path) }}" target="_blank">
+                                                            <img src="{{ asset('storage/' . $adj->path) }}"
+                                                                alt="Adjunto"
+                                                                class="h-24 w-24 rounded-lg object-cover border border-zinc-200">
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ asset('storage/' . $adj->path) }}"
+                                                        target="_blank"
+                                                        class="inline-flex items-center rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black">
+                                                            Ver archivo
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-zinc-400 text-xs">Sin adjuntos</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="12" class="px-4 py-8 text-center text-sm text-zinc-500">
+                                    No hay productos asociados.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+    </section>
+    {{-- ORM --}}
 
-    @else
-        <div class="p-4 text-black font-medium">
-            No hay productos asociados.
+    <section class="space-y-4">
+        @if($pqrs->orm)
+            <div>
+                <h1 class="text-3xl font-bold leading-tight">
+                    ORDEN DE RECOGIDA (ORM) #{{ $pqrs->orm->id ?? '—' }}
+                </h1>
+            </div>
+
+            <div class="overflow-hidden rounded-xl border border-zinc-300 bg-white">
+                <table class="min-w-full text-sm text-black">
+                    <tbody class="divide-y divide-zinc-200">
+                        <tr>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">ESTADO</div>
+                                <div class="mt-1">{{ $pqrs->orm->estado ?? '—' }}</div>
+                            </td>
+                        <td class="px-5 py-4 align-top" colspan="2">
+                                <div class="text-sm font-bold uppercase">CLIENTE</div>
+                                <div class="mt-2 text-lg">{{ $pqrs->orm->nit }} - {{ $pqrs->orm->razon_social }}</div>
+                            </td>
+
+                            <td class="px-5 py-4 align-top">
+                                <div class="text-sm font-bold uppercase">BOTONES</div>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <button
+                                        wire:click="abrirModalOrm"
+                                        class="rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black transition">
+                                        Editar ORM
+                                    </button>
+
+                                    @if($pqrs->orm && $pqrs->orm->estado !== 'en_bodega')
+                                        <button
+                                            wire:click="marcarEnBodega"
+                                            wire:confirm="¿Confirmas marcar esta ORM como en bodega?"
+                                            class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition">
+                                            Marcar en bodega
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 align-top" colspan="3">
+                                <div class="font-bold">DIRECCIÓN</div>
+                                <div class="mt-1">{{ $pqrs->orm->direccion ?? '—' }} ( {{ $pqrs->orm->ciudad ?? '—' }} - {{ $pqrs->orm->departamento ?? '—' }} )</div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">TELEFONO</div>
+                                <div class="mt-1">{{ $pqrs->orm->telefono ?? '—' }} </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">LIOS</div>
+                                <div class="mt-1">{{ $pqrs->orm->lios ?? '—' }} </div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">CAJAS</div>
+                                <div class="mt-1">{{ $pqrs->orm->cajas ?? '—' }} </div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">PESO</div>
+                                <div class="mt-1">{{ $pqrs->orm->peso ?? '—' }} </div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">VALOR DECLARADO</div>
+                                <div class="mt-1">{{ $pqrs->orm->valor_declarado ?? '—' }} </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 align-top" colspan="2">
+                                <div class="font-bold">TRANSPORTADORA</div>
+                                <div class="mt-1">{{ $pqrs->orm->transportadora?->razon_social  ?? '—' }}</div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">GUIA</div>
+                                <div class="mt-1">{{ $pqrs->orm->numero_guia ?? '—' }} </div>
+                            </td>
+                            <td class="px-5 py-4 align-top">
+                                <div class="font-bold">FECHA RECOGIDA PROGRAMADA</div>
+                                <div class="mt-1">{{ $pqrs->orm->fecha_recogida_programada ?? '—' }} </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 align-top" colspan="2">
+                                <div class="font-bold">FECHA LLEGADA A BODEGA</div>
+                                <div class="mt-1">{{ $pqrs->orm->fecha_llegada_bodega ?? '—' }}</div>
+                            </td>
+                            <td class="px-5 py-4 align-top" colspan="2">
+                                <div class="font-bold">RECIBO POR </div>
+                                <div class="mt-1"> {{ $pqrs->orm->usuarioRecibe?->name ?? '—' }} </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="rounded-xl border border-zinc-300 bg-white px-6 py-8 text-sm text-zinc-500">
+                Esta PQRS no tiene ORM asociada.
+            </div>
+        @endif
+    </section>
+
+
+@if($showModalOrm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b px-6 py-4">
+                <h3 class="text-lg font-bold text-zinc-900">Editar ORM</h3>
+                <button wire:click="cerrarModalOrm" class="text-zinc-500 hover:text-zinc-800">
+                    ✕
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Transportadora</label>
+                    <select wire:model="transportadora_id" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        <option value="">Seleccione</option>
+                        @foreach($transportadoras as $t)
+                            <option value="{{ $t->id }}">{{ $t->razon_social }}</option>
+                        @endforeach
+                    </select>
+                    @error('transportadora_id') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Número guía</label>
+                    <input type="text" wire:model="numero_guia" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                    @error('numero_guia') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Fecha recogida programada</label>
+                    <input type="datetime-local" wire:model="fecha_recogida_programada" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                    @error('fecha_recogida_programada') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Cajas</label>
+                    <input type="number" step="1" wire:model="cajas" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                    @error('cajas') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Líos</label>
+                    <input type="number" step="1" wire:model="lios" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                    @error('lios') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold">Peso</label>
+                    <input type="number" step="0.01" wire:model="peso" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                    @error('peso') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="mb-1 block text-sm font-semibold">Comentarios</label>
+                    <textarea wire:model="comentarios" rows="3" class="w-full rounded-lg border border-zinc-300 px-3 py-2"></textarea>
+                    @error('comentarios') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="md:col-span-2 rounded-lg bg-zinc-50 p-4 text-sm">
+                    <span class="font-semibold">Valor declarado calculado:</span>
+                    {{ number_format((float) $pqrs->productos()->where('estado', 'aprobado')->sum('valor_neto'), 0, ',', '.') }}
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 border-t px-6 py-4">
+                <button wire:click="cerrarModalOrm"
+                    class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">
+                    Cancelar
+                </button>
+
+                <button wire:click="guardarOrm"
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    Guardar ORM
+                </button>
+            </div>
         </div>
-    @endif
+    </div>
+@endif
 
-</div>
 
-
-{{-- ================= ORM ABAJO ================= --}}
-<div class="border border-black bg-white p-5 space-y-4">
-
-    <h2 class="font-bold text-lg border-b border-black pb-2 text-black">
-        Orden de Recogida (ORM)
-    </h2>
-
-    @if($pqrs->orm)
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-black">
-
-            <div><strong>Estado:</strong> {{ $pqrs->orm->estado }}</div>
-
-            <div>
-                <strong>Transportadora:</strong>
-                {{ $pqrs->orm->transportadora?->razon_social ?? '—' }}
-            </div>
-
-            <div>
-                <strong>Fecha programada:</strong>
-                {{ optional($pqrs->orm->fecha_recogida_programada)->format('Y-m-d') ?? '—' }}
-            </div>
-
-            <div>
-                <strong>Fecha recibido:</strong>
-                {{ optional($pqrs->orm->fecha_recibido_transportadora)->format('Y-m-d H:i') ?? '—' }}
-            </div>
-
-            <div><strong>LPS:</strong> {{ $pqrs->orm->lps ?? '—' }}</div>
-            <div><strong>Cajas:</strong> {{ $pqrs->orm->cajas ?? '—' }}</div>
-
-            <div><strong>Peso:</strong> {{ $pqrs->orm->peso ?? '—' }}</div>
-            <div><strong>Valor declarado:</strong> {{ $pqrs->orm->valor_declarado ?? '—' }}</div>
-
-            <div>
-                <strong>Usuario recibe:</strong>
-                {{ $pqrs->orm->usuarioRecibe?->name ?? '—' }}
-            </div>
-
-            <div class="md:col-span-3">
-                <strong>Dirección:</strong>
-                {{ $pqrs->orm->direccion ?? '—' }} —
-                {{ $pqrs->orm->ciudad ?? '—' }} —
-                {{ $pqrs->orm->departamento ?? '—' }}
-            </div>
-
-            <div class="md:col-span-3">
-                <strong>Comentarios:</strong>
-                {{ $pqrs->orm->comentarios ?? '—' }}
-            </div>
-
-        </div>
-
-    @else
-        <p class="text-black font-medium">
-            No tiene ORM asociada.
-        </p>
-    @endif
-
-</div>
 </div>

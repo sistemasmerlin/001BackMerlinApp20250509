@@ -20,11 +20,13 @@ class Orm extends Model
         'ciudad',
         'telefono',
         'transportadora_id',
-        'lps',
+        'lios',
         'cajas',
         'peso',
         'estado',
         'valor_declarado',
+        'numero_guia',
+        'fecha_llegada_bodega',
         'comentarios',
         'fecha_recogida_programada',
         'fecha_recibido_transportadora',
@@ -34,6 +36,7 @@ class Orm extends Model
     protected $casts = [
         'fecha_recogida_programada' => 'date',
         'fecha_recibido_transportadora' => 'datetime',
+        'fecha_llegada_bodega' => 'datetime',
         'peso' => 'decimal:2',
         'valor_declarado' => 'decimal:2',
     ];

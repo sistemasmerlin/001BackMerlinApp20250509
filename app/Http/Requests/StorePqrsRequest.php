@@ -34,6 +34,10 @@ class StorePqrsRequest extends FormRequest
             'productos.*.tipo_docto' => ['required', 'string', 'max:10'],
             'productos.*.nro_docto'  => ['required', 'string', 'max:30'],
             'productos.*.fecha'      => ['required'],
+            'productos.*.precio' => ['required', 'numeric', 'min:0'],
+            'productos.*.bruto'  => ['required', 'numeric', 'min:0'],
+            'productos.*.iva'    => ['required', 'numeric', 'min:0'],
+            'productos.*.neto'   => ['required', 'numeric', 'min:0'],
 
             'productos.*.unidadesSolicitadas' => ['required', 'numeric', 'min:0.0001'],
 

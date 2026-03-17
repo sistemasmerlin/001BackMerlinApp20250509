@@ -352,9 +352,13 @@ try {
 
                 // ✅ tus llaves reales del payload
                 $precio = (float)($p['precio'] ?? 0);
-                $bruto  = (float)($p['bruto'] ?? 0);
-                $imp    = (float)($p['iva'] ?? 0);
-                $neto   = (float)($p['neto'] ?? 0);
+                $bruto  = (float)($p['precio']*$p['unidadesSolicitadas'] ?? 0);
+                if($p['iva'] > 0){
+                    $imp = ((float)($bruto*1.19) - $bruto);
+                }else{
+                    $imp = 0;
+                }
+                $neto   = (float)($bruto+$imp  ?? 0);
 
                 $prod = PqrsProducto::create([
                     'pqrs_id'        => $pqrs->id,

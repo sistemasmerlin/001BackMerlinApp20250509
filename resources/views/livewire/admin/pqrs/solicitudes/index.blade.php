@@ -117,14 +117,14 @@
                                 <span class="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-700">
                                     {{ $r->estado ?? '—' }}
                                 </span>
-                            </td>
+                            </td> 
 
                             <td class="px-4 py-3 text-zinc-700">
                                 {{ optional($r->fecha_creacion)->format('Y-m-d H:i') ?? optional($r->created_at)->format('Y-m-d H:i') ?? '—' }}
                             </td>
 
                             <td class="px-4 py-3 text-zinc-700">
-                                {{ $r->numero_orm ?? '—' }}
+                                {{ $r->orm?->id ?? '—' }}
                             </td>
 
                             <td class="px-4 py-3 text-right">

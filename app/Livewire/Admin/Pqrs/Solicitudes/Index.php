@@ -59,6 +59,7 @@ class Index extends Component
         $asesor = trim($this->asesor);
 
         $rows = Pqrs::query()
+            ->with('orm:id,pqrs_id')
             ->select([
                 'id',
                 'nit',
@@ -77,13 +78,13 @@ class Index extends Component
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($qq) use ($q) {
                     $qq->where('nit', 'like', "%{$q}%")
-                       ->orWhere('razon_social', 'like', "%{$q}%");
+                    ->orWhere('razon_social', 'like', "%{$q}%");
                 });
             })
             ->when($asesor !== '', function ($query) use ($asesor) {
                 $query->where(function ($qq) use ($asesor) {
                     $qq->where('cod_asesor', 'like', "%{$asesor}%")
-                       ->orWhere('nombre_asesor', 'like', "%{$asesor}%");
+                    ->orWhere('nombre_asesor', 'like', "%{$asesor}%");
                 });
             })
             ->when($this->fechaInicio, function ($query) {
