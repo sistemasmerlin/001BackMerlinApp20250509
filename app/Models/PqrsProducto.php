@@ -36,6 +36,7 @@ class PqrsProducto extends Model
         'orm_revisada_por',
         'orm_fecha_revision',
         'orm_comentario_revision',
+        'notas'
     ];
 
     protected $casts = [

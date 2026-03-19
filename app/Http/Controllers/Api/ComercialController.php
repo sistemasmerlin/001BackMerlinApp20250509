@@ -22,7 +22,9 @@ class ComercialController extends Controller
 
         $year  = (int) substr($periodo, 0, 4);
         $month = (int) substr($periodo, 4, 2);
-        $asesor = (int) $asesor;
+        //$asesor = (int) $asesor;
+
+        $asesor = str_pad(preg_replace('/\D/', '', (string) $asesor), 4, '0', STR_PAD_LEFT);
 
         $datosAsesor = DB::connection('sqlsrv')
             ->selectOne("SELECT t210.f210_id as codigo_asesor,

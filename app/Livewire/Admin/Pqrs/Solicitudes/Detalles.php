@@ -174,7 +174,9 @@ class Detalles extends Component
         }
 
         $valorDeclarado = $this->pqrs->productos()
+            ->where('requiere_recogida', 1)
             ->where('estado', 'aprobado')
+            ->where('estado_orm', 'aprobada')
             ->sum('valor_neto');
 
         $estado = $orm->estado;
@@ -225,7 +227,9 @@ class Detalles extends Component
         }
 
         $valorDeclarado = $this->pqrs->productos()
+            ->where('requiere_recogida', 1)
             ->where('estado', 'aprobado')
+            ->where('estado_orm', 'aprobada')
             ->sum('valor_neto');
 
         $this->pqrs->orm->update([

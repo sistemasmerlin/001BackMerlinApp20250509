@@ -381,6 +381,8 @@ try {
                     'valor_imp'       => $imp,
                     'valor_neto'      => $neto,
 
+                    'notas' => filled($p['notas'] ?? null) ? trim($p['notas']) : null,
+
                     'requiere_recogida'  => $requiereRecogidaProducto,
                     'solicitud_recogida' => $requiereRecogidaProducto ? 1 : 0,
                 ]);

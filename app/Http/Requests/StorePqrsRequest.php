@@ -38,6 +38,7 @@ class StorePqrsRequest extends FormRequest
             'productos.*.bruto'  => ['required', 'numeric', 'min:0'],
             'productos.*.iva'    => ['required', 'numeric', 'min:0'],
             'productos.*.neto'   => ['required', 'numeric', 'min:0'],
+            'productos.*.notas' => ['nullable', 'string', 'max:2000'],
 
             'productos.*.unidadesSolicitadas' => ['required', 'numeric', 'min:0.0001'],
 

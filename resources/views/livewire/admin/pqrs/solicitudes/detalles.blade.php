@@ -152,6 +152,9 @@
                             <th class="px-4 py-3 font-bold whitespace-nowrap">Factura</th>
                             <th class="px-4 py-3 font-bold whitespace-nowrap">Causal</th>
                             <th class="px-4 py-3 font-bold whitespace-nowrap">Recogida</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Notas</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Estado recogida</th>
+                            <th class="px-4 py-3 font-bold whitespace-nowrap">Estado producto</th>
                             <th class="px-4 py-3 font-bold whitespace-nowrap">Opciones</th>
                             <th class="px-4 py-3 font-bold whitespace-nowrap">Adjuntos</th>
                         </tr>
@@ -204,39 +207,69 @@
                                     {{ (int)($p->requiere_recogida ?? 0) === 1 ? 'SI' : 'NO' }}
                                 </td>
 
-                                <td class="px-4 py-4 min-w-[220px]">
-                                    @if($this->puedeRevisarProducto($p))
-                                        <div class="flex flex-col gap-2">
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    {{ $p->notas ??  '-' }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    {{ $p->estado ??  '-' }}
+                                </td>
+
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    {{ $p->estado_orm ?? '-' }}
+                                </td>
+
+                                <td class="px-4 py-4 min-w-[240px]">
+                                    <div class="flex flex-col gap-2">
+                                        
+                                        {{-- ACCIONES PRODUCTO --}}
+                                        <div class="flex flex-wrap gap-2">
+                                            <button
+                                                wire:click="aprobarProducto({{ $p->id }})"
+                                                type="button"
+                                                class="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 transition">
+                                                ✔ Aprobar
+                                            </button>
+
+                                            <button
+                                                wire:click="rechazarProducto({{ $p->id }})"
+                                                type="button"
+                                                class="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                ✖ Rechazar
+                                            </button>
+                                        </div>
+
+                                        {{-- ACCIONES ORM --}}
+                                        @if((int)$p->requiere_recogida === 1)
                                             <div class="flex flex-wrap gap-2">
-                                                <button wire:click="aprobarProducto({{ $p->id }})"
-                                                    class="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 transition">
-                                                    ✔ Aprobar
+                                                <button
+                                                    wire:click="aprobarOrmProducto({{ $p->id }})"
+                                                    type="button"
+                                                    class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                    🚚 ORM OK
                                                 </button>
 
-                                                <button wire:click="rechazarProducto({{ $p->id }})"
-                                                    class="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
-                                                    ✖ Rechazar
+                                                <button
+                                                    wire:click="rechazarOrmProducto({{ $p->id }})"
+                                                    type="button"
+                                                    class="rounded-lg px-3 py-2 text-xs font-semibold text-white transition"
+                                                    style="background-color: #d97706;">
+                                                    🚫 ORM NO
                                                 </button>
                                             </div>
+                                        @endif
 
+                                        {{-- ESTADO ACTUAL --}}
+                                        <div class="text-[11px] text-zinc-500 pt-1">
+                                            Producto: <span class="font-semibold">{{ $p->estado ?? 'pendiente' }}</span>
                                             @if((int)$p->requiere_recogida === 1)
-                                                <div class="flex flex-wrap gap-2">
-                                                    <button wire:click="aprobarOrmProducto({{ $p->id }})"
-                                                        class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
-                                                        🚚 ORM OK
-                                                    </button>
-
-                                                    <button wire:click="rechazarOrmProducto({{ $p->id }})"
-                                                        class="rounded-lg bg-orange-600 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition">
-                                                        🚫 ORM NO
-                                                    </button>
-                                                </div>
+                                                <br>
+                                                ORM: <span class="font-semibold">{{ $p->estado_orm ?? 'pendiente' }}</span>
                                             @endif
                                         </div>
-                                    @else
-                                        <span class="text-zinc-400 text-xs">Sin acciones</span>
-                                    @endif
+                                    </div>
                                 </td>
+                                
                                 <td class="px-4 py-4 min-w-[260px]">
                                     @if($p->adjuntos->count())
                                         <div class="flex flex-col gap-3">
@@ -301,25 +334,28 @@
                                 <div class="font-bold">ESTADO</div>
                                 <div class="mt-1">{{ $pqrs->orm->estado ?? '—' }}</div>
                             </td>
-                        <td class="px-5 py-4 align-top" colspan="2">
+                            <td class="px-5 py-4 align-top" colspan="2">
                                 <div class="text-sm font-bold uppercase">CLIENTE</div>
                                 <div class="mt-2 text-lg">{{ $pqrs->orm->nit }} - {{ $pqrs->orm->razon_social }}</div>
                             </td>
-
                             <td class="px-5 py-4 align-top">
                                 <div class="text-sm font-bold uppercase">BOTONES</div>
-                                <div class="mt-2 flex flex-wrap gap-2">
+
+                                <div class="mt-3 flex flex-col md:flex-row flex-wrap gap-2">
                                     <button
+                                        type="button"
                                         wire:click="abrirModalOrm"
-                                        class="rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black transition">
+                                        class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black transition">
                                         Editar ORM
                                     </button>
 
                                     @if($pqrs->orm && $pqrs->orm->estado !== 'en_bodega')
                                         <button
+                                            type="button"
                                             wire:click="marcarEnBodega"
                                             wire:confirm="¿Confirmas marcar esta ORM como en bodega?"
-                                            class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition">
+                                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold text-white transition"
+                                            style="background-color: #ea580c;">
                                             Marcar en bodega
                                         </button>
                                     @endif
@@ -388,66 +424,77 @@
         @endif
     </section>
 
-
 @if($showModalOrm)
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-        <div class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+        <div class="w-full max-w-6xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+            
             <div class="flex items-center justify-between border-b px-6 py-4">
                 <h3 class="text-lg font-bold text-zinc-900">Editar ORM</h3>
-                <button wire:click="cerrarModalOrm" class="text-zinc-500 hover:text-zinc-800">
+                <button wire:click="cerrarModalOrm" class="text-zinc-500 hover:text-zinc-800 text-2xl leading-none">
                     ✕
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-                <div>
-                    <label class="mb-1 block text-sm font-semibold">Transportadora</label>
-                    <select wire:model="transportadora_id" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                        <option value="">Seleccione</option>
-                        @foreach($transportadoras as $t)
-                            <option value="{{ $t->id }}">{{ $t->razon_social }}</option>
-                        @endforeach
-                    </select>
-                    @error('transportadora_id') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Transportadora</label>
+                        <select wire:model="transportadora_id"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                            <option value="">Seleccione</option>
+                            @foreach($transportadoras as $t)
+                                <option value="{{ $t->id }}">{{ $t->razon_social }}</option>
+                            @endforeach
+                        </select>
+                        @error('transportadora_id') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Número guía</label>
+                        <input type="text" wire:model="numero_guia"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        @error('numero_guia') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Fecha recogida programada</label>
+                        <input type="datetime-local" wire:model="fecha_recogida_programada"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        @error('fecha_recogida_programada') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Cajas</label>
+                        <input type="number" step="1" wire:model="cajas"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        @error('cajas') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Líos</label>
+                        <input type="number" step="1" wire:model="lios"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        @error('lios') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold">Peso</label>
+                        <input type="number" step="0.01" wire:model="peso"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2">
+                        @error('peso') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">Número guía</label>
-                    <input type="text" wire:model="numero_guia" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                    @error('numero_guia') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    <label class="mb-2 block text-sm font-semibold">Comentarios</label>
+                    <textarea wire:model="comentarios" rows="4"
+                        class="w-full rounded-lg border border-zinc-300 px-3 py-2"></textarea>
+                    @error('comentarios') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
-                    <label class="mb-1 block text-sm font-semibold">Fecha recogida programada</label>
-                    <input type="datetime-local" wire:model="fecha_recogida_programada" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                    @error('fecha_recogida_programada') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-semibold">Cajas</label>
-                    <input type="number" step="1" wire:model="cajas" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                    @error('cajas') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-semibold">Líos</label>
-                    <input type="number" step="1" wire:model="lios" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                    @error('lios') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-semibold">Peso</label>
-                    <input type="number" step="0.01" wire:model="peso" class="w-full rounded-lg border border-zinc-300 px-3 py-2">
-                    @error('peso') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="mb-1 block text-sm font-semibold">Comentarios</label>
-                    <textarea wire:model="comentarios" rows="3" class="w-full rounded-lg border border-zinc-300 px-3 py-2"></textarea>
-                    @error('comentarios') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="md:col-span-2 rounded-lg bg-zinc-50 p-4 text-sm">
+                <div class="rounded-lg bg-zinc-50 p-4 text-sm">
                     <span class="font-semibold">Valor declarado calculado:</span>
                     {{ number_format((float) $pqrs->productos()->where('estado', 'aprobado')->sum('valor_neto'), 0, ',', '.') }}
                 </div>
