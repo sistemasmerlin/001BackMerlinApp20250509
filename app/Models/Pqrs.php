@@ -20,6 +20,7 @@ class Pqrs extends Model
         'telefono',
         'correo_cliente',
         'correo_asesor',
+        'tipo_pqrs',
         'cod_asesor',
         'nombre_asesor',
         'fecha_creacion',
@@ -52,5 +53,10 @@ class Pqrs extends Model
     public function productos()
     {
         return $this->hasMany(PqrsProducto::class, 'pqrs_id');
+    }
+
+    public function adjuntos()
+    {
+        return $this->hasMany(\App\Models\PqrsAdjunto::class, 'pqrs_id');
     }
 }

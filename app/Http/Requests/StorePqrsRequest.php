@@ -21,7 +21,6 @@ class StorePqrsRequest extends FormRequest
             'modoAplicacion' => ['required', 'in:productos,factura'],
             'correo_cliente' => ['nullable', 'string', 'max:150'],
             'telefono_cliente' => ['required', 'string'],
-
             // ✅ direccion_envio (solo si hay recogida)
             'direccion_envio' => ['nullable', 'array'],
             'direccion_envio.tipo' => ['nullable', 'in:punto,manual'],
@@ -56,12 +55,36 @@ class StorePqrsRequest extends FormRequest
             'productos.*.adjuntos.*.base64' => ['required_with:productos.*.adjuntos', 'string'],
 
             // ======= factura =======
+
             'factura' => ['nullable', 'array'],
+            'factura.motivo' => ['nullable', 'string'],
+            'factura.motivo2' => ['nullable', 'string'],
+            'factura.causal_id' => ['nullable', 'integer', 'exists:pqrs_causales,id'],
             'factura.requiereRecogida' => ['nullable', 'boolean'],
+            'factura.notas' => ['nullable', 'string'],
+
+            'factura.info' => ['nullable', 'array'],
+            'factura.info.numero' => ['nullable', 'string'],
+            'factura.info.total' => ['nullable', 'numeric'],
+            'factura.info.fecha' => ['nullable'],
+
+            'factura.items' => ['nullable', 'array'],
+            'factura.items.*.referencia' => ['nullable', 'string'],
+            'factura.items.*.descripcion' => ['nullable', 'string'],
+            'factura.items.*.tipo_docto' => ['nullable', 'string'],
+            'factura.items.*.nro_docto' => ['nullable', 'string'],
+            'factura.items.*.fecha' => ['nullable'],
+            'factura.items.*.cant_inv' => ['nullable', 'numeric'],
+            'factura.items.*.precio' => ['nullable', 'numeric'],
+            'factura.items.*.bruto' => ['nullable', 'numeric'],
+            'factura.items.*.iva' => ['nullable', 'numeric'],
+            'factura.items.*.neto' => ['nullable', 'numeric'],
+            'factura.items.*.unidadesSolicitadas' => ['nullable', 'numeric'],
+
             'factura.adjuntos' => ['nullable', 'array'],
-            'factura.adjuntos.*.name' => ['required_with:factura.adjuntos', 'string'],
-            'factura.adjuntos.*.mime' => ['required_with:factura.adjuntos', 'string'],
-            'factura.adjuntos.*.base64' => ['required_with:factura.adjuntos', 'string'],
+            'factura.adjuntos.*.name' => ['nullable', 'string'],
+            'factura.adjuntos.*.mime' => ['nullable', 'string'],
+            'factura.adjuntos.*.base64' => ['nullable', 'string'],
         ];
     }
 
