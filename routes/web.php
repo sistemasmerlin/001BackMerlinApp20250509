@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FacturasController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Livewire\Admin\Usuarios\Index as UsuariosIndex;
@@ -118,6 +119,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
 
 
+    Route::get('/admin/facturas/descargar/{prefijo}/{consecutivo}', 
+    [FacturasController::class, 'descargar']
+)->name('admin.facturas.descargar');
 
    // Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });

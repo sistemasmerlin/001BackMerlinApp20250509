@@ -114,12 +114,53 @@
 </section>
 
 
-
+<br>
+    @php
+        $facturasUnicas = $this->facturasUnicas();
+    @endphp
     <br>
+
+    <section class="space-y-5">
+        <h1 class="text-3xl font-bold leading-tight">
+            FACTURAS RELACIONADAS
+        </h1>
+
+        <div class="rounded-xl border border-zinc-300 bg-white overflow-hidden">
+            <div class="p-5">
+                @if($facturasUnicas->count())
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        @foreach($facturasUnicas as $fact)
+                            <div class="rounded-lg border border-zinc-200 p-4 text-sm bg-zinc-50">
+                                <div class="font-semibold text-zinc-800 mb-1">
+                                    {{ $fact['tipo_docto'] ?: 'DOC' }} - {{ $fact['nro_docto'] ?: '—' }}
+                                </div>
+
+                                <div class="text-zinc-500">
+                                    Fecha:
+                                    {{ $fact['fecha'] ? \Carbon\Carbon::parse($fact['fecha'])->format('Y-m-d') : '—' }}
+                                </div>
+                                <a
+                                    href="{{ route('admin.facturas.descargar', [
+                                        'prefijo' => $fact['tipo_docto'],
+                                        'consecutivo' => $fact['nro_docto']
+                                    ]) }}"
+                                    target="_blank"
+                                    class="inline-flex items-center rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-black">
+                                    Descargar factura
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <span class="text-zinc-400 text-sm">Sin facturas relacionadas</span>
+                @endif
+            </div>
+        </div>
+    </section>
 
 @if($pqrs->tipo_pqrs == 'factura')
 
-<section class="space-y-5">
+{{-- <section class="space-y-5">
     <h1 class="text-3xl font-bold leading-tight">
         ADJUNTOS GENERALES
     </h1>
@@ -163,7 +204,7 @@
             @endif
         </div>
     </div>
-</section>
+</section> --}}
 
 @endif
 
@@ -188,8 +229,8 @@
         </div>
     @endif
 
-    @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado' && $pqrs->orm == 'si')
-
+{{--     @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado' && $pqrs->orm == 'si')
+ --}}
     $pqrs->orm 
         <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
             <button
@@ -206,7 +247,7 @@
                 🚫 Rechazar ORM seleccionadas
             </button>
         </div>
-    @endif
+{{--     @endif --}}
 
         <h1 class="text-3xl font-bold leading-tight">
             PRODUCTOS ({{ $pqrs->productos?->count() ?? 0 }})
@@ -472,6 +513,16 @@
                                         class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black transition">
                                         Editar ORM
                                     </button>
+                                    
+                                    @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado')
+                                        <button
+                                            type="button"
+                                            wire:click="eliminarOrm"
+                                            wire:confirm="¿Seguro que deseas eliminar esta ORM? Esto limpiará también la información ORM en productos y PQRS."
+                                            class="inline-flex items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-xs font-semibold text-white hover:bg-red-800 transition">
+                                            Eliminar
+                                        </button>
+                                    @endif
 
                                     @if($pqrs->orm && $pqrs->orm->estado !== 'en_bodega')
                                         <button
@@ -511,7 +562,7 @@
                             </td>
                             <td class="px-5 py-4 align-top">
                                 <div class="font-bold">VALOR DECLARADO</div>
-                                <div class="mt-1">{{ $pqrs->orm->valor_declarado ?? '—' }} </div>
+                                <div class="mt-1">{{ number_format($pqrs->orm->valor_declarado) ?? '—' }} </div>
                             </td>
                         </tr>
                         <tr>

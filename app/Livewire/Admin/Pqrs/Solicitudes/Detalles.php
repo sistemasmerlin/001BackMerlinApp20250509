@@ -599,6 +599,66 @@ class Detalles extends Component
         ];
     }
 
+    public function eliminarOrm(): void
+    {
+        if (!$this->pqrs->orm) {
+            session()->flash('error', 'La PQRS no tiene ORM asociada.');
+            return;
+        }
+
+        // Si está cerrada, no permitir cambios
+        if ($this->pqrsEstaCerrada()) {
+            session()->flash('error', 'La PQRS está cerrada y no permite eliminar la ORM.');
+            return;
+        }
+
+        \DB::transaction(function () {
+            // 1. Eliminar ORM
+            $this->pqrs->orm->delete();
+
+            // 2. Limpiar campos ORM en productos
+            $this->pqrs->productos()->update([
+                'requiere_recogida' => 0,
+                'solicitud_recogida' => 0,
+                'estado_orm' => null,
+                'orm_revisada_por' => null,
+                'orm_fecha_revision' => null,
+                'orm_comentario_revision' => null,
+            ]);
+
+            // 3. Marcar PQRS sin ORM
+            $this->pqrs->update([
+                'pqrs_orm' => 'no',
+                'orm_id' => null,
+                'numero_orm' => null,
+            ]);
+        });
+
+        session()->flash('success', 'La ORM fue eliminada correctamente.');
+        $this->refrescar();
+    }
+
+    public function facturasUnicas()
+    {
+        return $this->pqrs->productos
+            ->map(function ($p) {
+                $tipo = trim((string)($p->tipo_docto ?? ''));
+                $numero = trim((string)($p->nro_docto ?? ''));
+                $fecha = $p->fecha;
+
+                return [
+                    'key' => $tipo . '|' . $numero,
+                    'tipo_docto' => $tipo,
+                    'nro_docto' => $numero,
+                    'fecha' => $fecha,
+                ];
+            })
+            ->filter(function ($f) {
+                return $f['tipo_docto'] !== '' || $f['nro_docto'] !== '';
+            })
+            ->unique('key')
+            ->values();
+    }
     public function render()
     {
         return view('livewire.admin.pqrs.solicitudes.detalles');

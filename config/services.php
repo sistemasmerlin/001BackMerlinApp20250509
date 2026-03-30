@@ -31,6 +31,13 @@ return [
     'google_maps' => [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
+
+    'numrot' => [
+        'key' => env('NUMROT_KEY'),
+        'secret' => env('NUMROT_SECRET'),
+        'empresa_nit' => env('NUMROT_EMPRESA_NIT'),
+        'url' => env('NUMROT_URL'),
+    ],
     
     'slack' => [
         'notifications' => [
