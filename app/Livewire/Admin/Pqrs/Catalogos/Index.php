@@ -50,7 +50,7 @@ class Index extends Component
     public int $causal_requiere_adjunto = 0; // 1/0
     public int $causal_dias_limite_factura = 0; // 0 = sin límite (si quieres)
     public int $causal_visible_asesor = 1; // 1/0
-
+    public int $causal_permite_recogida = 0; // 1/0
     // ------- Delete -------
     public ?int $deleteId = null;
     public string $deleteType = ''; // motivo|submotivo|causal
@@ -74,6 +74,8 @@ class Index extends Component
             'causal_requiere_adjunto' => ['required','integer','in:0,1'],
             'causal_dias_limite_factura' => ['required','integer','min:0','max:9999'],
             'causal_visible_asesor' => ['required','integer','in:0,1'],
+
+            'causal_permite_recogida' => ['required','integer','in:0,1'],
 
         ];
     }
@@ -221,6 +223,7 @@ class Index extends Component
             'causal_orden',
             'causal_activo',
             'causal_requiere_adjunto',
+            'causal_permite_recogida',
             'causal_dias_limite_factura',
             'causal_visible_asesor',
         ]);
@@ -230,6 +233,7 @@ class Index extends Component
         $this->causal_activo = 1;
         $this->causal_requiere_adjunto = 0;
         $this->causal_dias_limite_factura = 0;
+        $this->causal_permite_recogida = 0;
         $this->causal_visible_asesor = 1;
         $this->showCausalModal = true;
     }
@@ -248,6 +252,7 @@ class Index extends Component
         $this->causal_requiere_adjunto = (int) $c->requiere_adjunto;
         $this->causal_dias_limite_factura = (int) ($c->sla_dias ?? 0);
         $this->causal_visible_asesor = (int) $c->visible_asesor;
+        $this->causal_permite_recogida = (int) $c->permite_recogida;
 
         $this->showCausalModal = true;
     }
@@ -277,6 +282,7 @@ class Index extends Component
                 'requiere_adjunto' => (int) $this->causal_requiere_adjunto,
                 'sla_dias' => (int) $this->causal_dias_limite_factura,
                 'visible_asesor' => (int) $this->causal_visible_asesor,
+                'permite_recogida' => (int) $this->causal_permite_recogida,
                 'activo'           => (int) $this->causal_activo,
             ]
         );
