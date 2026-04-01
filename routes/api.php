@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\SolicitudCreditoController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TercerosController;
@@ -93,3 +94,8 @@ Route::middleware('auth:sanctum')->get('/pqrs/consulta-causales', [PQRSControlle
 Route::middleware('auth:sanctum')->post('/pqrs/guardar', [PQRSController::class, 'store']); 
 Route::middleware('auth:sanctum')->post('/pqrs/departamentos', [PQRSController::class, 'departamentos']); 
 Route::middleware('auth:sanctum')->post('/pqrs/ciudades', [PQRSController::class, 'ciudadesPorDepartamento']); 
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/solicitudes-credito', [SolicitudCreditoController::class, 'store']);
+});

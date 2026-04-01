@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\FacturasController;
+use App\Http\Controllers\Admin\SolicitudCreditoController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Livewire\Admin\Usuarios\Index as UsuariosIndex;
@@ -33,7 +34,9 @@ use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
 use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\PresupuestoComercialController;
+use App\Http\Controllers\Admin\SolicitudCredito;
 use App\Http\Controllers\Api\InteresesCarteraController;
+use App\Livewire\Admin\SolicitudesCredito\Index as SolicitudesCreditoIndex;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -55,6 +58,15 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
+
+Route::middleware(['auth'])->prefix('admin/solicitudes-credito')->group(function () {
+    Route::get('', SolicitudesCreditoIndex::class)->name('admin.solicitudes-credito.index');
+    Route::get('/{solicitud}/pdf/solicitud', [SolicitudCreditoController::class, 'pdfSolicitud'])->name('admin.solicitudes-credito.pdf.solicitud');
+    Route::get('/{solicitud}/pdf/tratamiento-datos', [SolicitudCreditoController::class, 'pdfTratamientoDatos'])->name('admin.solicitudes-credito.pdf.tratamiento');
+    Route::post('/{solicitud}/firmar/solicitud', [SolicitudCreditoController::class, 'enviarSolicitudAFirma'])->name('admin.solicitudes-credito.firmar.solicitud');
+    Route::get('/{solicitud}/pdf/unificado/ver', [SolicitudCreditoController::class, 'verPdfUnificado'])->name('admin.solicitudes-credito.pdf.unificado.ver');
+    Route::get('/{solicitud}/pdf/unificado/descargar', [SolicitudCreditoController::class, 'descargarPdfUnificado'])->name('admin.solicitudes-credito.pdf.unificado.descargar');    
+});
 
 Route::middleware(['auth'])->prefix('admin/pqrs')->group(function () {
     Route::get('/responsables', PqrsResponsablesIndex::class)->name('pqrs.responsables');

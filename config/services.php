@@ -38,6 +38,12 @@ return [
         'empresa_nit' => env('NUMROT_EMPRESA_NIT'),
         'url' => env('NUMROT_URL'),
     ],
+
+    'auco' => [
+        'base_url' => env('AUCO_BASE_URL', 'https://dev.auco.ai/v1.5/ext'),
+        'private_key' => env('AUCO_PRIVATE_KEY'),
+        'owner_email' => env('AUCO_OWNER_EMAIL'),
+    ],
     
     'slack' => [
         'notifications' => [
