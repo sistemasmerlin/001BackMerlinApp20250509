@@ -182,7 +182,7 @@ class Pedido {
                 $importar = '<Importar><NombreConexion>'.$nombreConexion.'</NombreConexion>
                 <IdCia>3</IdCia><Usuario>'.$usuario.'</Usuario><Clave>'.$clave.'</Clave><Datos><Linea>000000100000001003</Linea>'.$linea2.$filasProductos.'</Datos></Importar>';
         
-           return $importar;
+           //return $importar;
 
             $importacionXML = $client->ImportarXML(['pvstrDatos'=>$importar,'printTipoError'=>0]);
 
