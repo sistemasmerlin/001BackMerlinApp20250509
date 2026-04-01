@@ -274,6 +274,7 @@
                     <th class="px-3 py-2 text-center">Adjunto</th>
                     <th class="px-3 py-2 text-center">Días</th>
                     <th class="px-3 py-2 text-center">Visible para asesor</th>
+                    <th class="px-3 py-2 text-center">Permite ORM</th>
                     <th class="px-3 py-2 text-center">Activo</th>
                 </tr>
             </thead>
@@ -300,6 +301,9 @@
                         </td>
                         <td class="px-3 py-2 text-center">
                             {{ (int)($r->visible_asesor ?? 0) }}
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            {{ $r->permite_recogida ? 'Sí' : 'No' }}
                         </td>
                         <td class="px-3 py-2 text-center">
                             {{ $r->activo ? 'Sí' : 'No' }}
