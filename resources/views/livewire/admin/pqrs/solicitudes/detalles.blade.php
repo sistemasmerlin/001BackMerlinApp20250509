@@ -326,17 +326,17 @@
                                             wire:model="seleccionOrm">
                                     @endif
                                 </td>
-<td class="px-3 py-4 whitespace-nowrap text-center text-lg" title="Estado producto: {{ $p->estado ?? 'pendiente' }}">
-    {{ iconoEstadoPqrs($p->estado ?? 'pendiente') }}
-</td>
+                                <td class="px-3 py-4 whitespace-nowrap text-center text-lg" title="Estado producto: {{ $p->estado ?? 'pendiente' }}">
+                                    {{ iconoEstadoPqrs($p->estado ?? 'pendiente') }}
+                                </td>
 
-<td class="px-3 py-4 whitespace-nowrap text-center text-lg" title="Estado ORM: {{ $p->estado_orm ?? 'pendiente' }}">
-    @if((int)($p->requiere_recogida ?? 0) === 1)
-        {{ iconoEstadoPqrs($p->estado_orm ?? 'pendiente') }}
-    @else
-        —
-    @endif
-</td>
+                                <td class="px-3 py-4 whitespace-nowrap text-center text-lg" title="Estado ORM: {{ $p->estado_orm ?? 'pendiente' }}">
+                                    @if((int)($p->requiere_recogida ?? 0) === 1)
+                                        {{ iconoEstadoPqrs($p->estado_orm ?? 'pendiente') }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td class="px-4 py-4 whitespace-nowrap font-medium">
                                     {{ $p->referencia ?? '—' }}
                                 </td>
@@ -383,7 +383,10 @@
                                 <td class="px-4 py-4 min-w-[240px]">
                                     <div class="flex flex-col gap-2">
 
-                                        @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado')
+                                        @if(
+                                            strtolower((string)($pqrs->estado ?? '')) !== 'cerrado'
+                                            && $this->puedeRevisarProducto($p)
+                                        )
                                             <div class="flex flex-wrap gap-2">
                                                 <button
                                                     wire:click="aprobarProducto({{ $p->id }})"
@@ -418,9 +421,13 @@
                                                     </button>
                                                 </div>
                                             @endif
-                                        @else
+                                        @elseif(strtolower((string)($pqrs->estado ?? '')) === 'cerrado')
                                             <div class="text-xs font-semibold text-zinc-500">
                                                 PQRS cerrada
+                                            </div>
+                                        @else
+                                            <div class="text-xs font-semibold text-zinc-400">
+                                                Sin permiso para revisar
                                             </div>
                                         @endif
 
@@ -432,7 +439,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                </td>    
+                                </td>
                                 <td class="px-4 py-4 min-w-[260px]">
                                     @if($p->adjuntos->count())
                                         <div class="flex flex-col gap-3">
