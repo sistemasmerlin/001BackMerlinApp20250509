@@ -404,7 +404,7 @@
                         @error('causal_responsable_id') <small class="text-red-600">{{ $message }}</small> @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-sm font-semibold">Requiere adjunto</label>
                             <select class="{{ $sel }}" wire:model.defer="causal_requiere_adjunto">
@@ -412,6 +412,15 @@
                                 <option value="1">Sí</option>
                             </select>
                             @error('causal_requiere_adjunto') <small class="text-red-600">{{ $message }}</small> @enderror
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-semibold">Permite ORM</label>
+                            <select class="{{ $sel }}" wire:model.defer="causal_permite_recogida">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                            </select>
+                            @error('causal_permite_recogida') <small class="text-red-600">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="md:col-span-2">
@@ -426,14 +435,13 @@
 
                         <div>
                             <label class="text-sm font-semibold">Visible para asesor</label>
-                            <select class="form-control" wire:model.defer="causal_visible_asesor">
+                            <select class="{{ $sel }}" wire:model.defer="causal_visible_asesor">
                                 <option value="1">Sí (la ve el asesor)</option>
                                 <option value="0">No (solo interno)</option>
                             </select>
                             @error('causal_visible_asesor') <small class="text-red-600">{{ $message }}</small> @enderror
                         </div>
                     </div>
-
 
                     <div>
                         <label class="text-sm font-semibold">Nombre</label>
