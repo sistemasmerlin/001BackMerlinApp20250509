@@ -229,9 +229,8 @@
         </div>
     @endif
 
-{{--     @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado' && $pqrs->orm == 'si')
- --}}
-    $pqrs->orm 
+    @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado' && $pqrs->orm)
+
         <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
             <button
                 type="button"
@@ -247,7 +246,7 @@
                 🚫 Rechazar ORM seleccionadas
             </button>
         </div>
-{{--     @endif --}}
+    @endif
 
         <h1 class="text-3xl font-bold leading-tight">
             PRODUCTOS ({{ $pqrs->productos?->count() ?? 0 }})
