@@ -53,7 +53,8 @@ class TercerosController extends Controller
             AND f353_id_tipo_docto_cruce = 'FVM'
             AND DATEDIFF(DAY, [f353_fecha], GETDATE()) > 60) as facturasVencidas,
 
-            SUM(CAST(pedidos.pedidos AS FLOAT)) AS pedidos,
+            /*SUM(CAST(pedidos.pedidos AS FLOAT)) AS pedidos,*/
+            0 AS pedidos,
             SUM(CAST(cartera.cartera AS FLOAT)) AS cartera,
             AVG(CAST(pago.Dias_Prom_pago AS FLOAT)) AS pago,
 
@@ -76,7 +77,7 @@ class TercerosController extends Controller
                 AND LTRIM(RTRIM(f.f461_num_docto_referencia)) <> ''
             ORDER BY f.f461_ts DESC
         ) ult_factura
-        LEFT JOIN (
+        /*LEFT JOIN (
             SELECT t200.f200_rowid AS rowid, t201.f201_id_sucursal AS sucursal, SUM(v431_vlr_neto_pen_local) AS pedidos
             FROM t430_cm_pv_docto t430
             INNER JOIN t201_mm_clientes t201 ON t201.f201_rowid_tercero = t430.f430_rowid_tercero_fact
@@ -88,7 +89,7 @@ class TercerosController extends Controller
                 AND f430_id_grupo_clase_docto = 502
                 AND f430_ind_estado IN (2, 3)
             GROUP BY t200.f200_rowid, t201.f201_id_sucursal
-        ) pedidos ON pedidos.rowid = t200.f200_rowid AND pedidos.sucursal = t201.f201_id_sucursal
+        ) pedidos ON pedidos.rowid = t200.f200_rowid AND pedidos.sucursal = t201.f201_id_sucursal*/
         LEFT JOIN (
             SELECT t200.f200_rowid AS rowid, t201.f201_id_sucursal AS sucursal,
                 ISNULL(SUM(f353_total_db - f353_total_cr), 0) AS cartera
