@@ -362,6 +362,11 @@ class Detalles extends Component
             return;
         }
 
+        if ($this->pqrsEstaCerrada() || $this->ormEnBodega()) {
+            return;
+        }
+
+
         $orm = $this->pqrs->orm;
 
         $this->orm_id = $orm->id;
@@ -384,6 +389,15 @@ class Detalles extends Component
 
     public function guardarOrm(): void
     {
+        if (!$this->pqrs->orm) {
+            return;
+        }
+
+        if ($this->pqrsEstaCerrada() || $this->ormEnBodega()) {
+            session()->flash('error', 'La ORM en bodega no se puede editar.');
+            return;
+        }
+
         $rules = [
             'transportadora_id' => ['nullable', 'integer', 'exists:transportadoras,id'],
             'numero_guia' => ['nullable', 'string', 'max:100'],
@@ -518,6 +532,12 @@ class Detalles extends Component
     {
         return strtolower((string)($this->pqrs->estado ?? '')) === 'cerrado';
     }
+
+    public function ormEnBodega(): bool
+    {
+        return $this->pqrs->orm
+            && strtolower((string)($this->pqrs->orm->estado ?? '')) === 'en_bodega';
+    }
     public function abrirModalCerrar(): void
     {
         if (!$this->puedeCerrarPqrs()) {
@@ -634,9 +654,13 @@ class Detalles extends Component
             return;
         }
 
-        // Si está cerrada, no permitir cambios
         if ($this->pqrsEstaCerrada()) {
             session()->flash('error', 'La PQRS está cerrada y no permite eliminar la ORM.');
+            return;
+        }
+
+        if ($this->ormEnBodega()) {
+            session()->flash('error', 'La ORM en bodega no se puede eliminar.');
             return;
         }
 

@@ -511,44 +511,50 @@
                             </td>
                             <td class="px-5 py-4 align-top">
                                 <div class="text-sm font-bold uppercase">BOTONES</div>
-
                                 <div class="mt-3 flex flex-col md:flex-row flex-wrap gap-2">
-                                    <button
-                                        type="button"
-                                        wire:click="abrirModalOrm"
-                                        class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black transition">
-                                        Editar ORM
-                                    </button>
+                                    @if(
+                                        strtolower((string)($pqrs->estado ?? '')) !== 'cerrado'
+                                        && strtolower((string)($pqrs->orm->estado ?? '')) !== 'en_bodega'
+                                    )
+                                        <button
+                                            type="button"
+                                            wire:click="abrirModalOrm"
+                                            class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black transition">
+                                            Editar ORM
+                                        </button>
+                                    @endif
 
-                                    @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado')
+                                    @if(
+                                        strtolower((string)($pqrs->estado ?? '')) !== 'cerrado'
+                                        && strtolower((string)($pqrs->orm->estado ?? '')) !== 'en_bodega'
+                                    )
                                         <button
                                             type="button"
                                             wire:click="eliminarOrm"
                                             wire:confirm="¿Seguro que deseas eliminar esta ORM? Esto limpiará también la información ORM en productos y PQRS."
-                                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold shadow transition"
-                                            style="background-color:#dc2626; color:#fff;">
+                                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-red-700 transition">
                                             Eliminar
                                         </button>
+                                    @endif
 
-                                        @if($pqrs->orm && strtolower((string)($pqrs->orm->estado ?? '')) === 'programada')
-                                            <button
-                                                type="button"
-                                                wire:click="marcarRecogidaTransportadora"
-                                                wire:confirm="¿Confirmas marcar esta ORM como recogida por transportadora?"
-                                                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700 transition">
-                                                Marcar recogida transportadora
-                                            </button>
-                                        @endif
+                                    @if($pqrs->orm && strtolower((string)($pqrs->orm->estado ?? '')) === 'programada')
+                                        <button
+                                            type="button"
+                                            wire:click="marcarRecogidaTransportadora"
+                                            wire:confirm="¿Confirmas marcar esta ORM como recogida por transportadora?"
+                                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700 transition">
+                                            Marcar recogida transportadora
+                                        </button>
+                                    @endif
 
-                                        @if($pqrs->orm && strtolower((string)($pqrs->orm->estado ?? '')) === 'recogida_transportadora')
-                                            <button
-                                                type="button"
-                                                wire:click="marcarEnBodega"
-                                                wire:confirm="¿Confirmas marcar esta ORM como en bodega?"
-                                                class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-orange-700 transition">
-                                                Marcar en bodega
-                                            </button>
-                                        @endif
+                                    @if($pqrs->orm && strtolower((string)($pqrs->orm->estado ?? '')) === 'recogida_transportadora')
+                                        <button
+                                            type="button"
+                                            wire:click="marcarEnBodega"
+                                            wire:confirm="¿Confirmas marcar esta ORM como en bodega?"
+                                            class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-orange-700 transition">
+                                            Marcar en bodega
+                                        </button>
                                     @endif
                                 </div>
                             </td>
