@@ -30,12 +30,15 @@ class Orm extends Model
         'comentarios',
         'fecha_recogida_programada',
         'fecha_recibido_transportadora',
+        'fecha_recogida_transportadora',
+        'usuario_marca_recogida_transportadora_id',
         'usuario_recibe_id',
     ];
 
     protected $casts = [
         'fecha_recogida_programada' => 'date',
         'fecha_recibido_transportadora' => 'datetime',
+        'fecha_recogida_transportadora' => 'datetime',
         'fecha_llegada_bodega' => 'datetime',
         'peso' => 'decimal:2',
         'valor_declarado' => 'decimal:2',
@@ -54,5 +57,9 @@ class Orm extends Model
     public function usuarioRecibe()
     {
         return $this->belongsTo(User::class, 'usuario_recibe_id');
+    }
+    public function usuarioMarcaRecogidaTransportadora()
+    {
+        return $this->belongsTo(User::class, 'usuario_marca_recogida_transportadora_id');
     }
 }

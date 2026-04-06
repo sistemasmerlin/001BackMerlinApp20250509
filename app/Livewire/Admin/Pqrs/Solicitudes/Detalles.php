@@ -35,6 +35,7 @@ class Detalles extends Component
         $this->pqrs = $pqrs->load([
             'orm.transportadora',
             'orm.usuarioRecibe',
+            'orm.usuarioMarcaRecogidaTransportadora',
             'productos.responsable',
             'productos.causal',
             'productos.adjuntos',
@@ -332,6 +333,29 @@ class Detalles extends Component
         $this->refrescar();
     }
 
+    public function marcarRecogidaTransportadora(): void
+    {
+        if (!$this->pqrs->orm) {
+            return;
+        }
+
+        if ($this->pqrsEstaCerrada()) {
+            return;
+        }
+
+        if ($this->pqrs->orm->estado !== 'programada') {
+            return;
+        }
+
+        $this->pqrs->orm->update([
+            'estado' => 'recogida_transportadora',
+            'fecha_recogida_transportadora' => now(),
+            'usuario_marca_recogida_transportadora_id' => auth()->id(),
+        ]);
+
+        $this->refrescar();
+    }
+
     public function abrirModalOrm(): void
     {
         if (!$this->pqrs->orm) {
@@ -422,7 +446,11 @@ class Detalles extends Component
             return;
         }
 
-        if ($this->pqrs->orm->estado !== 'programada') {
+        if ($this->pqrsEstaCerrada()) {
+            return;
+        }
+
+        if ($this->pqrs->orm->estado !== 'recogida_transportadora') {
             return;
         }
 
