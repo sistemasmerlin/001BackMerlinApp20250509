@@ -20,6 +20,236 @@ use Illuminate\Support\Facades\Storage;
 
 class PQRSController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        // AJUSTA ESTE CAMPO SEGÚN TU TABLA users
+        $codAsesor = trim((string) ($user->codigo_asesor ?? ''));
+
+        if ($codAsesor === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'El usuario autenticado no tiene código de asesor configurado.',
+            ], 422);
+        }
+
+        $q = trim((string) $request->query('q', ''));
+        $fechaInicio = $request->query('fecha_inicio');
+        $fechaFin = $request->query('fecha_fin');
+        $limit = (int) $request->query('limit', 50);
+
+        if ($limit <= 0 || $limit > 100) {
+            $limit = 50;
+        }
+
+        $rows = Pqrs::query()
+            ->with('orm:id,pqrs_id,estado')
+            ->select([
+                'id',
+                'tipo_pqrs',
+                'nit',
+                'razon_social',
+                'telefono',
+                'correo_cliente',
+                'direccion',
+                'ciudad',
+                'departamento',
+                'cod_asesor',
+                'nombre_asesor',
+                'correo_asesor',
+                'estado',
+                'fecha_creacion',
+                'fecha_revisado',
+                'fecha_cierre',
+                'created_at',
+            ])
+            ->where('cod_asesor', $codAsesor)
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($qq) use ($q) {
+                    $qq->where('nit', 'like', "%{$q}%")
+                        ->orWhere('razon_social', 'like', "%{$q}%");
+                });
+            })
+            ->when($fechaInicio, function ($query) use ($fechaInicio) {
+                $query->whereDate('fecha_creacion', '>=', $fechaInicio);
+            })
+            ->when($fechaFin, function ($query) use ($fechaFin) {
+                $query->whereDate('fecha_creacion', '<=', $fechaFin);
+            })
+            ->orderByDesc('fecha_creacion')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(function ($pqrs) {
+                return [
+                    'id' => $pqrs->id,
+                    'tipo_pqrs' => $pqrs->tipo_pqrs,
+                    'nit' => $pqrs->nit,
+                    'razon_social' => $pqrs->razon_social,
+                    'telefono' => $pqrs->telefono,
+                    'correo_cliente' => $pqrs->correo_cliente,
+                    'direccion' => $pqrs->direccion,
+                    'ciudad' => $pqrs->ciudad,
+                    'departamento' => $pqrs->departamento,
+                    'cod_asesor' => $pqrs->cod_asesor,
+                    'nombre_asesor' => $pqrs->nombre_asesor,
+                    'correo_asesor' => $pqrs->correo_asesor,
+                    'estado' => $pqrs->estado,
+                    'fecha_creacion' => optional($pqrs->fecha_creacion)->format('Y-m-d H:i'),
+                    'fecha_revisado' => optional($pqrs->fecha_revisado)->format('Y-m-d H:i'),
+                    'fecha_cierre' => optional($pqrs->fecha_cierre)->format('Y-m-d H:i'),
+                    'created_at' => optional($pqrs->created_at)->format('Y-m-d H:i'),
+                    'tiene_orm' => (bool) $pqrs->orm,
+                    'orm_id' => $pqrs->orm?->id,
+                    'orm_estado' => $pqrs->orm?->estado,
+                ];
+            });
+
+        return response()->json([
+            'ok' => true,
+            'cod_asesor' => $codAsesor,
+            'data' => $rows,
+        ]);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $user = $request->user();
+
+        // AJUSTA ESTE CAMPO SEGÚN TU TABLA users
+        $codAsesor = trim((string) ($user->codigo_asesor ?? ''));
+
+        if ($codAsesor === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'El usuario autenticado no tiene código de asesor configurado.',
+            ], 422);
+        }
+
+        $pqrs = Pqrs::with([
+            'orm.transportadora',
+            'orm.usuarioRecibe',
+            'orm.usuarioMarcaRecogidaTransportadora',
+            'productos.causal',
+            'productos.adjuntos',
+            'adjuntos',
+        ])
+        ->where('id', $id)
+        ->where('cod_asesor', $codAsesor)
+        ->first();
+
+        if (!$pqrs) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'PQRS no encontrada o no pertenece al asesor autenticado.',
+            ], 404);
+        }
+
+        $facturas = $pqrs->productos
+            ->map(function ($p) {
+                $tipo = trim((string) ($p->tipo_docto ?? ''));
+                $numero = trim((string) ($p->nro_docto ?? ''));
+                $fecha = $p->fecha;
+
+                return [
+                    'key' => $tipo . '|' . $numero,
+                    'tipo_docto' => $tipo,
+                    'nro_docto' => $numero,
+                    'fecha' => $fecha ? \Carbon\Carbon::parse($fecha)->format('Y-m-d') : null,
+                ];
+            })
+            ->filter(fn($f) => $f['tipo_docto'] !== '' || $f['nro_docto'] !== '')
+            ->unique('key')
+            ->values()
+            ->toArray();
+
+        $productos = $pqrs->productos->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'referencia' => $p->referencia,
+                'descripcion_ref' => $p->descripcion_ref,
+                'unidades_solicitadas' => (float) $p->unidades_solicitadas,
+                'precio_unitario' => (float) $p->precio_unitario,
+                'valor_bruto' => (float) $p->valor_bruto,
+                'valor_imp' => (float) $p->valor_imp,
+                'valor_neto' => (float) $p->valor_neto,
+                'tipo_docto' => $p->tipo_docto,
+                'nro_docto' => $p->nro_docto,
+                'estado' => $p->estado,
+                'estado_orm' => $p->estado_orm,
+                'requiere_recogida' => (int) $p->requiere_recogida,
+                'notas' => $p->notas,
+                'causal' => [
+                    'id' => $p->causal?->id,
+                    'nombre' => $p->causal?->nombre,
+                ],
+                'adjuntos' => $p->adjuntos->map(function ($adj) {
+                    return [
+                        'id' => $adj->id,
+                        'original_name' => $adj->original_name,
+                        'mime' => $adj->mime,
+                        'path' => $adj->path,
+                        'url' => asset('storage/' . $adj->path),
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        return response()->json([
+            'ok' => true,
+            'cod_asesor' => $codAsesor,
+            'data' => [
+                'id' => $pqrs->id,
+                'tipo_pqrs' => $pqrs->tipo_pqrs,
+                'estado' => $pqrs->estado,
+                'nit' => $pqrs->nit,
+                'razon_social' => $pqrs->razon_social,
+                'telefono' => $pqrs->telefono,
+                'correo_cliente' => $pqrs->correo_cliente,
+                'direccion' => $pqrs->direccion,
+                'ciudad' => $pqrs->ciudad,
+                'departamento' => $pqrs->departamento,
+                'nombre_asesor' => $pqrs->nombre_asesor,
+                'cod_asesor' => $pqrs->cod_asesor,
+                'correo_asesor' => $pqrs->correo_asesor,
+                'fecha_creacion' => optional($pqrs->created_at)->format('Y-m-d H:i'),
+                'fecha_revisado' => optional($pqrs->fecha_revisado)->format('Y-m-d H:i'),
+                'fecha_cierre' => optional($pqrs->fecha_cierre)->format('Y-m-d H:i'),
+                'tipo_acuerdo' => $pqrs->tipo_acuerdo,
+                'nota_acuerdo' => $pqrs->nota_acuerdo,
+                'valor_acuerdo' => $pqrs->valor_acuerdo,
+                'comentario_cierre' => $pqrs->comentario_cierre,
+                'facturas' => $facturas,
+                'productos' => $productos,
+                'orm' => $pqrs->orm ? [
+                    'id' => $pqrs->orm->id,
+                    'estado' => $pqrs->orm->estado,
+                    'nit' => $pqrs->orm->nit,
+                    'razon_social' => $pqrs->orm->razon_social,
+                    'direccion' => $pqrs->orm->direccion,
+                    'departamento' => $pqrs->orm->departamento,
+                    'ciudad' => $pqrs->orm->ciudad,
+                    'telefono' => $pqrs->orm->telefono,
+                    'transportadora' => [
+                        'id' => $pqrs->orm->transportadora?->id,
+                        'razon_social' => $pqrs->orm->transportadora?->razon_social,
+                    ],
+                    'lios' => $pqrs->orm->lios,
+                    'cajas' => $pqrs->orm->cajas,
+                    'peso' => $pqrs->orm->peso,
+                    'valor_declarado' => $pqrs->orm->valor_declarado,
+                    'numero_guia' => $pqrs->orm->numero_guia,
+                    'comentarios' => $pqrs->orm->comentarios,
+                    'fecha_recogida_programada' => optional($pqrs->orm->fecha_recogida_programada)->format('Y-m-d H:i'),
+                    'fecha_recogida_transportadora' => optional($pqrs->orm->fecha_recogida_transportadora)->format('Y-m-d H:i'),
+                    'fecha_llegada_bodega' => optional($pqrs->orm->fecha_llegada_bodega)->format('Y-m-d H:i'),
+                    'usuario_marca_recogida_transportadora' => $pqrs->orm->usuarioMarcaRecogidaTransportadora?->name,
+                    'usuario_recibe' => $pqrs->orm->usuarioRecibe?->name,
+                ] : null,
+            ],
+        ]);
+    }
     public function consultaProductos(Request $request, $query)
     {
         $query = trim((string) $query);
