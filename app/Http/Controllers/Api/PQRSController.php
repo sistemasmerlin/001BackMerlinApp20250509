@@ -300,7 +300,6 @@ class PQRSController extends Controller
             'productos' => $result,
         ]);
     }
-
     public function consultaFactura(Request $request)
     {
         $nit  = trim((string) $request->get('nit'));
@@ -350,7 +349,6 @@ class PQRSController extends Controller
             'facturas' => $result,
         ]);
     }
-
     public function causalesAsesores()
     {
         $causales = PqrsCausal::query()
@@ -410,10 +408,6 @@ class PQRSController extends Controller
     {
         $data = $request->validated();
 
-\Log::info('validated keys', ['keys' => array_keys($data ?? [])]);
-\Log::info('producto sample', ['producto' => data_get($data, 'productos.0', [])]);
-\Log::info('factura sample', ['factura' => data_get($data, 'factura', [])]);
-
         $cliente        = $data['cliente'] ?? [];
         $sucursal       = $data['sucursal'] ?? [];
         $pqrsIn         = $data['pqrs'] ?? [];
@@ -427,6 +421,7 @@ class PQRSController extends Controller
 
         $correoCliente   = trim((string)($data['correo_cliente'] ?? ''));
         $telefonoCliente = trim((string)($data['telefono_cliente'] ?? ''));
+        $enviadoOtroAsesor = trim((string)($data['enviado_por_otro_usuario'] ?? 0));
 
         $codAsesor    = trim((string)($asesorIn['codigo_asesor'] ?? $sucursal['id_vendedor'] ?? ''));
         $nombreAsesor = trim((string)($asesorIn['nombre'] ?? ''));
@@ -453,7 +448,7 @@ class PQRSController extends Controller
         $encabezado = [
             'nit'          => (string)($cliente['nit'] ?? $cliente['f200_nit'] ?? ''),
             'razon_social' => (string)($cliente['razon_social'] ?? $cliente['f200_razon_social'] ?? $cliente['nombre_establecimiento'] ?? ''),
-
+            'enviado_otro_usuario' => $enviadoOtroAsesor,
             'departamento' => (string)($punto000['departamento'] ?? ''),
             'ciudad'       => (string)($punto000['ciudad'] ?? ''),
             'direccion'    => (string)($punto000['direccion'] ?? ''),

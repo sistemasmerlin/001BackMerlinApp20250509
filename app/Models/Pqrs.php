@@ -36,6 +36,7 @@ class Pqrs extends Model
         'creado_por',
         'revisado_por',
         'cerrado_por',
+        'enviado_otro_usuario',
     ];
 
     protected $casts = [
@@ -43,6 +44,7 @@ class Pqrs extends Model
         'fecha_revisado' => 'datetime',
         'fecha_cierre'   => 'datetime',
         'valor_acuerdo'  => 'decimal:2',
+        'enviado_otro_usuario' => 'boolean',
     ];
     public function orm()
     {

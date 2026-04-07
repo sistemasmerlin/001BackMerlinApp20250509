@@ -72,6 +72,7 @@ class Index extends Component
                 'fecha_creacion',
                 'fecha_revisado',
                 'fecha_cierre',
+                'enviado_otro_usuario',
                 'numero_orm',
                 'created_at',
             ])

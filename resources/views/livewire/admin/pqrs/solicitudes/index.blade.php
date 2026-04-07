@@ -76,6 +76,7 @@
                 <thead class="bg-zinc-50 text-zinc-600">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold">ID</th>
+                        <th class="px-4 py-3 text-left font-semibold">Extemporanea</th>
                         <th class="px-4 py-3 text-left font-semibold">Cliente</th>
                         <th class="px-4 py-3 text-left font-semibold">Ciudad</th>
                         <th class="px-4 py-3 text-left font-semibold">Asesor</th>
@@ -90,6 +91,12 @@
                     @forelse($rows as $r)
                         <tr class="hover:bg-zinc-50">
                             <td class="px-4 py-3 font-medium text-zinc-900">#{{ $r->id }}</td>
+
+                            <td class="px-4 py-3 font-medium text-zinc-900">
+                                
+                                {{ $r->enviado_otro_usuario ? 'SI' : 'NO' }}
+                                
+                            </td>
 
                             <td class="px-4 py-3">
                                 <div class="font-medium text-zinc-900">
