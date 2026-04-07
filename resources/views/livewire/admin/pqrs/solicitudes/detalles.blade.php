@@ -605,7 +605,7 @@
                             <td class="px-5 py-4 align-top" colspan="2">
                                 <div class="font-bold">FECHA RECOGIDA TRANSPORTADORA</div>
                                 <div class="mt-1">
-                                    {{ optional($pqrs->orm->fecha_recogida_transportadora)->format('Y-m-d H:i') ?? '—' }}
+                                    {{ optional($pqrs->orm->fecha_recogida_transportadora)->format('Y-m-d') ?? '—' }}
                                 </div>
                             </td>
                             <td class="px-5 py-4 align-top" colspan="2">
