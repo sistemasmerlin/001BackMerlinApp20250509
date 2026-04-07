@@ -605,7 +605,7 @@
                             <td class="px-5 py-4 align-top" colspan="2">
                                 <div class="font-bold">FECHA RECOGIDA TRANSPORTADORA</div>
                                 <div class="mt-1">
-                                    {{ optional($pqrs->orm->fecha_recogida_transportadora)->format('Y-m-d') ?? '—' }}
+                                    {{ optional($pqrs->orm->fecha_recogida_transportadora)->format('Y-m-d H:i') ?? '—' }}
                                 </div>
                             </td>
                             <td class="px-5 py-4 align-top" colspan="2">
@@ -757,7 +757,7 @@
 
                     <div>
                         <label class="mb-2 block text-sm font-semibold">Fecha recogida programada</label>
-                        <input type="datetime-local" wire:model="fecha_recogida_programada"
+                        <input type="date" wire:model="fecha_recogida_programada"
                             class="w-full rounded-lg border border-zinc-300 px-3 py-2">
                         @error('fecha_recogida_programada') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                     </div>
