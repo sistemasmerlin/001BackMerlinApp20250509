@@ -20,6 +20,7 @@ class StorePqrsRequest extends FormRequest
             'asesor' => ['nullable', 'array'],
             'modoAplicacion' => ['required', 'in:productos,factura'],
             'correo_cliente' => ['nullable', 'string', 'max:150'],
+            'enviado_por_otro_usuario' => ['required', 'boolean'],
             'telefono_cliente' => ['required', 'string'],
             // ✅ direccion_envio (solo si hay recogida)
             'direccion_envio' => ['nullable', 'array'],

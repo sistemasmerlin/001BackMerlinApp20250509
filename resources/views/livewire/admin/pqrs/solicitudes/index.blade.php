@@ -93,9 +93,10 @@
                             <td class="px-4 py-3 font-medium text-zinc-900">#{{ $r->id }}</td>
 
                             <td class="px-4 py-3 font-medium text-zinc-900">
-                                
-                                {{ $r->enviado_otro_usuario ? 'SI' : 'NO' }}
-                                
+                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold
+                                    {{ $r->enviado_otro_usuario ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }}">
+                                    {{ $r->enviado_otro_usuario ? 'SI' : 'NO' }}
+                                </span>
                             </td>
 
                             <td class="px-4 py-3">
