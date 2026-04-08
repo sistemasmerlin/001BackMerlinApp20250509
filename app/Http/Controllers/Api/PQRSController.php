@@ -369,6 +369,7 @@ class PQRSController extends Controller
         $rows = FleteCiudad::query()
             ->select('cod_depto', 'depto')
             ->where('estado', 1)
+            ->where('cod_depto', '!=' ,'00')
             ->groupBy('cod_depto', 'depto')
             ->orderBy('cod_depto')
             ->get();
