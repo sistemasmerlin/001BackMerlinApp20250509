@@ -188,6 +188,7 @@ class SolicitudCreditoController extends Controller
         Storage::disk($disk)->put($ruta, $pdfUnificado);
 
         // 4. enviar a firmar
+        /*
         $nombreFirmante = $solicitud->representante_legal ?: $solicitud->autorizacion_nombre_1;
         $emailFirmante = $solicitud->correo_electronico ?: $solicitud->autorizacion_correo;
 
@@ -204,7 +205,7 @@ class SolicitudCreditoController extends Controller
                 'message' => 'Solicitud guardada y PDF generado, pero no fue posible enviarlo a firma porque faltan datos del firmante.',
                 'data' => $solicitud->fresh(['referencias', 'direcciones']),
             ], 201);
-        }
+        } 
 
         $payloadAuco = [
             'name' => 'Solicitud de crédito - ' . ($solicitud->razon_social ?: 'Cliente'),
@@ -227,34 +228,34 @@ class SolicitudCreditoController extends Controller
             ],
             'file' => base64_encode($pdfUnificado),
         ];
-
+ 
         try {
             $response = Http::withHeaders([
                 'Authorization' => config('services.auco.private_key'),
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])->post(rtrim(config('services.auco.base_url'), '/') . '/document/upload', $payloadAuco);
-if (!$response->successful()) {
-    $errorAuco = [
-        'status' => $response->status(),
-        'body' => $response->json() ?: $response->body(),
-    ];
+            if (!$response->successful()) {
+                $errorAuco = [
+                    'status' => $response->status(),
+                    'body' => $response->json() ?: $response->body(),
+                ];
 
-    $solicitud->update([
-        'pdf_unificado_disk' => $disk,
-        'pdf_unificado_path' => $ruta,
-        'pdf_unificado_nombre' => $nombreArchivo,
-        'auco_status' => 'error_envio',
-        'auco_response' => $errorAuco,
-    ]);
+                $solicitud->update([
+                    'pdf_unificado_disk' => $disk,
+                    'pdf_unificado_path' => $ruta,
+                    'pdf_unificado_nombre' => $nombreArchivo,
+                    'auco_status' => 'error_envio',
+                    'auco_response' => $errorAuco,
+                ]);
 
-    return response()->json([
-        'ok' => false,
-        'message' => 'Solicitud guardada y PDF generado, pero falló el envío a firma.',
-        'error_auco' => $errorAuco,
-        'data' => $solicitud->fresh(['referencias', 'direcciones']),
-    ], 201);
-}
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Solicitud guardada y PDF generado, pero falló el envío a firma.',
+                    'error_auco' => $errorAuco,
+                    'data' => $solicitud->fresh(['referencias', 'direcciones']),
+                ], 201);
+            }
             $aucoData = $response->json();
 
             $solicitud->update([
@@ -286,7 +287,7 @@ if (!$response->successful()) {
                 'data' => $solicitud->fresh(['referencias', 'direcciones']),
             ], 201);
         }
-
+*/
         return response()->json([
             'ok' => true,
             'message' => 'Solicitud guardada, PDF generado, almacenado y enviado a firma correctamente.',

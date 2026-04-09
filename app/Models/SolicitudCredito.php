@@ -85,6 +85,7 @@ class SolicitudCredito extends Model
         'ventas_proyectadas_mes' => 'decimal:2',
         'cupo_sugerido' => 'decimal:2',
         'auco_response' => 'array',
+        'tipo_negocio' => 'array',
     ];
 
     public function referencias()
