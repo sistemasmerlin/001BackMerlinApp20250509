@@ -218,7 +218,7 @@
             <td style="width:33%; vertical-align:top;">
                 <table class="mini-box">
                     <tr><th colspan="2">TIPO DE NEGOCIO</th></tr>
-                    <tr><td>{{ $solicitud->tipo_negocio }}</td><td></td></tr>
+                    <tr><td>{{ is_array($solicitud->tipo_negocio) ? implode(', ', $solicitud->tipo_negocio) : $solicitud->tipo_negocio }}</td><td></td></tr>
                 </table>
             </td>
             <td style="width:33%; vertical-align:top;">

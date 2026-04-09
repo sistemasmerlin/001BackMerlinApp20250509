@@ -92,23 +92,23 @@
     <span class="field" style="min-width: 260px;">{{ $solicitud->autorizacion_razon_social ?: $solicitud->razon_social }}</span>,
     con NIT
     <span class="field" style="min-width: 120px;">{{ $solicitud->autorizacion_nit_cc ?: $solicitud->nit_cc }}</span>,
-    manifiesto que de conformidad con la Ley 1581 de 2012, el Decreto Reglamentario 1377 de 2013 y la política interna de manejo de la información implementada por GEES GLOBAL S.A.S., autorizo el tratamiento de mis datos personales conforme a las finalidades descritas en el presente documento. :contentReference[oaicite:4]{index=4}
+    manifiesto que de conformidad con la Ley 1581 de 2012, el Decreto Reglamentario 1377 de 2013 y la política interna de manejo de la información implementada por GEES GLOBAL S.A.S., autorizo el tratamiento de mis datos personales conforme a las finalidades descritas en el presente documento. 
 </div>
 
 <div class="block">
-    He sido informado de manera libre, previa, expresa e informada sobre la recolección, almacenamiento, uso, circulación, consulta, análisis, cesión, supresión y demás tratamientos aplicables a mis datos personales, en el marco de relaciones comerciales, contractuales, administrativas y legales con GEES GLOBAL S.A.S. También he sido informado de mis derechos como titular de los datos y de los canales habilitados para ejercerlos. :contentReference[oaicite:5]{index=5}
+    He sido informado de manera libre, previa, expresa e informada sobre la recolección, almacenamiento, uso, circulación, consulta, análisis, cesión, supresión y demás tratamientos aplicables a mis datos personales, en el marco de relaciones comerciales, contractuales, administrativas y legales con GEES GLOBAL S.A.S. También he sido informado de mis derechos como titular de los datos y de los canales habilitados para ejercerlos.
 </div>
 
 <div class="block">
-    Finalidades del tratamiento: gestión financiera, contable, fiscal, administrativa y de facturación; verificación de información crediticia y financiera; consulta y reporte ante centrales de riesgo; verificación de referencias; facturación electrónica; atención de PQRS; campañas de actualización de datos; envío de promociones, mensajes, llamadas, WhatsApp y publicidad; uso de registros fotográficos o audiovisuales; y demás finalidades comerciales y contractuales descritas por la compañía. :contentReference[oaicite:6]{index=6}
+    Finalidades del tratamiento: gestión financiera, contable, fiscal, administrativa y de facturación; verificación de información crediticia y financiera; consulta y reporte ante centrales de riesgo; verificación de referencias; facturación electrónica; atención de PQRS; campañas de actualización de datos; envío de promociones, mensajes, llamadas, WhatsApp y publicidad; uso de registros fotográficos o audiovisuales; y demás finalidades comerciales y contractuales descritas por la compañía.
 </div>
 
 <div class="block">
-    Así mismo, certifico que la información suministrada es verídica y que me obligo a mantenerla actualizada, reportando oportunamente cualquier cambio. También declaro que los recursos que manejo provienen de actividades lícitas y autorizo a GEES GLOBAL S.A.S. a dar por terminada la relación comercial en caso de información errónea, falsa o inexacta. :contentReference[oaicite:7]{index=7}
+    Así mismo, certifico que la información suministrada es verídica y que me obligo a mantenerla actualizada, reportando oportunamente cualquier cambio. También declaro que los recursos que manejo provienen de actividades lícitas y autorizo a GEES GLOBAL S.A.S. a dar por terminada la relación comercial en caso de información errónea, falsa o inexacta.
 </div>
 
 <div class="block">
-    En virtud de lo anterior, autorizo ____ no autorizo ____ a GEES GLOBAL S.A.S. para que realice tratamiento de mis datos personales, conforme a las finalidades descritas anteriormente.
+    En virtud de lo anterior, autorizo __X__  a GEES GLOBAL S.A.S. para que realice tratamiento de mis datos personales, conforme a las finalidades descritas anteriormente.
 </div>
 
 <div class="sign-box">
