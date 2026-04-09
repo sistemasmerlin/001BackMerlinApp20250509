@@ -54,7 +54,8 @@ class SolicitudCreditoController extends Controller
 
             'antiguedad_comercial' => ['nullable', 'string', 'max:100'],
             'tiempo_antiguedad' => ['nullable', 'string', 'max:255'],
-            'tipo_negocio' => ['nullable', 'string', 'max:255'],
+            'tipo_negocio' => 'nullable|array',
+            'tipo_negocio.*' => 'string',
             'puntos_venta' => ['nullable', 'string', 'max:255'],
             'canal_tradicional' => ['nullable', 'string', 'max:255'],
             'canal_corporativo' => ['nullable', 'string', 'max:255'],
