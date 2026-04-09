@@ -114,9 +114,9 @@ class SolicitudCreditoController extends Controller
             ->filter(fn ($ref) => $this->referenciaCompleta($ref))
             ->values();
 
-        if ($referencias->count() < 3) {
+        if ($referencias->count() < 2) {
             throw ValidationException::withMessages([
-                'referencias_comerciales' => ['Debes enviar mínimo 3 referencias comerciales completas.'],
+                'referencias_comerciales' => ['Debes enviar mínimo 2 referencias comerciales completas.'],
             ]);
         }
 
