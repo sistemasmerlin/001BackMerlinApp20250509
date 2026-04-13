@@ -425,4 +425,25 @@ class SolicitudCreditoController extends Controller
             'data' => $solicitudes,
         ]);
     }
+
+    public function verPdfUnificadoApi(Request $request, SolicitudCredito $solicitud)
+    {
+        $user = $request->user();
+
+        if ($solicitud->user_id !== $user->id) {
+            abort(403, 'No autorizado para ver este PDF.');
+        }
+
+        if (!$solicitud->pdf_unificado_disk || !$solicitud->pdf_unificado_path) {
+            abort(404, 'La solicitud no tiene PDF unificado generado.');
+        }
+
+        if (!Storage::disk($solicitud->pdf_unificado_disk)->exists($solicitud->pdf_unificado_path)) {
+            abort(404, 'El archivo PDF no existe en el servidor.');
+        }
+
+        $absolutePath = Storage::disk($solicitud->pdf_unificado_disk)->path($solicitud->pdf_unificado_path);
+
+        return response()->file($absolutePath);
+    }
 }

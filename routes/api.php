@@ -101,4 +101,5 @@ Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::cl
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/solicitudes-credito', [SolicitudCreditoController::class, 'store']);
     Route::get('/solicitudes-credito/enviadas', [SolicitudCreditoController::class, 'enviadas']);
+    Route::get('/solicitudes-credito/{solicitud}/pdf-unificado', [SolicitudCreditoController::class, 'verPdfUnificadoApi']);
 });
