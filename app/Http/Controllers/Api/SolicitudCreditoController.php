@@ -108,6 +108,12 @@ class SolicitudCreditoController extends Controller
         $data['rte_iva']    = $this->toBool($request->input('rte_iva'));
         $data['rte_ica']    = $this->toBool($request->input('rte_ica'));
         $data['estado']     = $data['estado'] ?? 'radicada';
+        $data['autorizacion_cod_depto'] = $data['cod_depto'] ?? null;
+        $data['autorizacion_depto'] = $data['depto'] ?? null;
+        $data['autorizacion_cod_ciudad'] = $data['cod_ciudad'] ?? null;
+        $data['autorizacion_ciudad'] = $data['ciudad'] ?? null;
+        $data['autorizacion_fecha'] = $data['fecha_solicitud'] ?? null;
+        
 
         $referencias = collect($request->input('referencias_comerciales', []))
             ->map(fn ($item) => is_array($item) ? $item : [])
@@ -190,6 +196,7 @@ class SolicitudCreditoController extends Controller
         // 4. enviar a firmar
         $nombreFirmante = $solicitud->representante_legal ?: $solicitud->autorizacion_nombre_1;
         $emailFirmante = $solicitud->correo_electronico ?: $solicitud->autorizacion_correo;
+        $nitFirmante = $solicitud->nit_cc;
 
         if (!$nombreFirmante || !$emailFirmante) {
             $solicitud->update([
@@ -210,13 +217,24 @@ class SolicitudCreditoController extends Controller
             'name' => 'Solicitud de crédito - ' . ($solicitud->razon_social ?: 'Cliente'),
             'subject' => 'Firma solicitud de crédito',
             'message' => 'Por favor revisa y firma el documento adjunto.',
-            'remember' => 3,
-            'email' => $emailFirmante,
+            'remember' => 3, 
+            'email' => config('services.auco.owner_email'),
             'signProfile' => [
                 [
                     'name' => $nombreFirmante,
                     'email' => $emailFirmante,
                     'label' => true,
+                    'camera' => true,
+                    'otpCode' => true,
+                    'identification' => $nitFirmante,
+                    'identificationType' => 'CC',
+                    'country' => 'CO',
+                    'options' => [
+                        'camera' => 'identification',
+                        'video' => 'true',
+                        'whatsapp' => 'true',
+                        'otpCode' => 'email'
+                    ]
                 ]
             ],
             'readers' => [
@@ -234,27 +252,29 @@ class SolicitudCreditoController extends Controller
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])->post(rtrim(config('services.auco.base_url'), '/') . '/document/upload', $payloadAuco);
-if (!$response->successful()) {
-    $errorAuco = [
-        'status' => $response->status(),
-        'body' => $response->json() ?: $response->body(),
-    ];
 
-    $solicitud->update([
-        'pdf_unificado_disk' => $disk,
-        'pdf_unificado_path' => $ruta,
-        'pdf_unificado_nombre' => $nombreArchivo,
-        'auco_status' => 'error_envio',
-        'auco_response' => $errorAuco,
-    ]);
+            if (!$response->successful()) {
+                $errorAuco = [
+                    'status' => $response->status(),
+                    'body' => $response->json() ?: $response->body(),
+                ];
 
-    return response()->json([
-        'ok' => false,
-        'message' => 'Solicitud guardada y PDF generado, pero falló el envío a firma.',
-        'error_auco' => $errorAuco,
-        'data' => $solicitud->fresh(['referencias', 'direcciones']),
-    ], 201);
-}
+                $solicitud->update([
+                    'pdf_unificado_disk' => $disk,
+                    'pdf_unificado_path' => $ruta,
+                    'pdf_unificado_nombre' => $nombreArchivo,
+                    'auco_status' => 'error_envio',
+                    'auco_response' => $errorAuco,
+                ]);
+
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Solicitud guardada y PDF generado, pero falló el envío a firma.',
+                    'error_auco' => $errorAuco,
+                    'data' => $solicitud->fresh(['referencias', 'direcciones']),
+                ], 201);
+            }
+
             $aucoData = $response->json();
 
             $solicitud->update([
@@ -354,5 +374,55 @@ if (!$response->successful()) {
         $value = strtoupper(trim((string) $value));
 
         return in_array($value, ['1', 'SI', 'SÍ', 'TRUE', 'YES'], true);
+    }
+
+    public function enviadas(Request $request)
+    {
+        $user = $request->user();
+
+        $solicitudes = SolicitudCredito::query()
+            ->with(['direcciones'])
+            ->where('user_id', $user->id)
+            ->whereNotIn('estado', ['borrador'])
+            ->latest()
+            ->get()
+            ->map(function ($solicitud) {
+                return [
+                    'id' => $solicitud->id,
+                    'fecha_solicitud' => $solicitud->fecha_solicitud,
+                    'razon_social' => $solicitud->razon_social,
+                    'nombre_comercial' => $solicitud->nombre_comercial,
+                    'nit_cc' => $solicitud->nit_cc,
+                    'ciudad' => $solicitud->ciudad,
+                    'depto' => $solicitud->depto,
+                    'direccion_negocio' => $solicitud->direccion_negocio,
+                    'celular' => $solicitud->celular,
+                    'correo_electronico' => $solicitud->correo_electronico,
+                    'estado' => $solicitud->estado,
+                    'auco_status' => $solicitud->auco_status,
+                    'auco_code' => $solicitud->auco_code,
+                    'auco_package' => $solicitud->auco_package,
+                    'pdf_unificado_nombre' => $solicitud->pdf_unificado_nombre,
+                    'created_at' => optional($solicitud->created_at)->format('Y-m-d H:i:s'),
+                    'direcciones' => $solicitud->direcciones->map(function ($dir) {
+                        return [
+                            'id' => $dir->id,
+                            'contacto' => $dir->contacto,
+                            'direccion' => $dir->direccion,
+                            'cod_depto' => $dir->cod_depto,
+                            'depto' => $dir->depto,
+                            'cod_ciudad' => $dir->cod_ciudad,
+                            'ciudad' => $dir->ciudad,
+                            'telefono' => $dir->telefono,
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'data' => $solicitudes,
+        ]);
     }
 }

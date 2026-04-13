@@ -22,6 +22,25 @@
         </div>
     </div>
 
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('auco_debug'))
+        <div class="alert alert-warning mt-3">
+            <strong>Respuesta / debug AUCO:</strong>
+            <pre style="white-space: pre-wrap; margin-top:10px;">{{ json_encode(session('auco_debug'), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+        </div>
+    @endif
+
     @if (session()->has('success'))
         <div class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-700">
             {{ session('success') }}
@@ -38,6 +57,7 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">id</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Fecha</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Razón social</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">NIT / C.C.</th>
@@ -49,6 +69,7 @@
             <tbody class="divide-y divide-gray-100 bg-white">
                 @forelse ($solicitudes as $item)
                     <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item->id }}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">{{ optional($item->fecha_solicitud)->format('Y-m-d') }}</td>
                         <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $item->razon_social }}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">{{ $item->nit_cc }}</td>
