@@ -213,20 +213,20 @@
             <td style="width:33%; vertical-align:top;">
                 <table class="mini-box">
                     <tr><th colspan="2">ANTIGÜEDAD COMERCIAL</th></tr>
-                    <tr><td style="width:70%;">{{ $solicitud->antiguedad_comercial }}</td><td></td></tr>
+                    <tr><td  colspan="2"style="width:70%;">{{ $solicitud->antiguedad_comercial }}</td></tr>
                     <tr><td>TIEMPO</td><td>{{ $solicitud->tiempo_antiguedad }}</td></tr>
                 </table>
             </td>
             <td style="width:33%; vertical-align:top;">
                 <table class="mini-box">
                     <tr><th colspan="2">TIPO DE NEGOCIO</th></tr>
-                    <tr><td>{{ is_array($solicitud->tipo_negocio) ? implode(', ', $solicitud->tipo_negocio) : $solicitud->tipo_negocio }}</td><td></td></tr>
+                    <tr><td colspan="2">{{ is_array($solicitud->tipo_negocio) ? implode(', ', $solicitud->tipo_negocio) : $solicitud->tipo_negocio }}</td></tr>
                 </table>
             </td>
             <td style="width:33%; vertical-align:top;">
                 <table class="mini-box">
                     <tr><th colspan="2">PUNTOS DE VENTA</th></tr>
-                    <tr><td>{{ $solicitud->puntos_venta }}</td><td></td></tr>
+                    <tr><td colspan="2">{{ $solicitud->puntos_venta }}</td></tr>
                 </table>
             </td>
         </tr>
@@ -241,7 +241,7 @@
             <td style="vertical-align:top;">
                 <table class="mini-box">
                     <tr><th colspan="2">NO DE EMPLEADOS</th></tr>
-                    <tr><td>{{ $solicitud->numero_empleados }}</td><td></td></tr>
+                    <tr><td colspan="2">{{ $solicitud->numero_empleados }}</td></tr>
                 </table>
             </td>
             <td></td>
