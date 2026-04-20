@@ -45,7 +45,7 @@ class ComisionesController extends Controller
                         WHEN t106.f106_descripcion IN (
                             'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT'
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT'
                         )
                         THEN [f_cant_base] ELSE 0 END)) AS llantas,
 
