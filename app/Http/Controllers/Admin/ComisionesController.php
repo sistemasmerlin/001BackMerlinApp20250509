@@ -231,9 +231,11 @@ class ComisionesController extends Controller
         dd($resultado);
     }
 
-    private function calcularCumplimiento(float $ventas, float $presupuesto): float
+    private function calcularCumplimiento(float $ventas, float $presupuesto): int
     {
-        return $presupuesto > 0 ? round(($ventas / $presupuesto) * 100, 2) : 0;
+        return $presupuesto > 0
+            ? (int) ceil(($ventas / $presupuesto) * 100)
+            : 0;
     }
 
     private function buscarFactorPorCumplimiento(float $cumplimiento, array $rangos): float
