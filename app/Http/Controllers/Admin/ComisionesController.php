@@ -228,7 +228,7 @@ class ComisionesController extends Controller
             ];
         }
 
-        dd($resultado);
+        return $resultado;
     }
 
     private function calcularCumplimiento(float $ventas, float $presupuesto): int
