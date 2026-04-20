@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PresupuestoComercial;
+use App\Models\PresupuestoRecaudo;
 use App\Models\ReporteVisita;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Carbon\Carbon;
 
 class ComisionesController extends Controller
 {
@@ -759,5 +761,384 @@ class ComisionesController extends Controller
     
     // HASTA ACÁ VENTAS
 
-    
+    public function indexCartera(Request $request)
+    {
+        //$periodo = $request->periodo;
+        $periodo = '202601';
+        $usuario = User::where('codigo_asesor','0603')->first();
+        
+        $recaudoPresupuesto = $this->calcularTotalRecaudado($periodo, '0603');
+
+        $porcentajeClientes = $this->porcentajeClientesImpactadosCredito($periodo, '0603');
+
+        $recuadoPorDias = $this->recuadoPorDias('0603', $periodo);
+
+        $totalPresupuesto = PresupuestoRecaudo::where('periodo', $periodo)
+        ->where('asesor', '0603')
+        ->sum('saldo');
+
+        return $resultado[] = [
+            'user_id' => $usuario->id,
+            'nombre_asesor' => $usuario->name,
+            'codigo_asesor' => '0603',
+            'categoria_asesor' => $usuario->categoria_asesor,
+            'periodo' => $periodo,
+
+            'catera' => [
+                'totalPresupuesto' => $totalPresupuesto,
+                'recaudoPresupuesto' => $recaudoPresupuesto,
+                'cumplimiento' => round(($totalPresupuesto/$recaudoPresupuesto)*100,2),
+                'porcentajeClientes' => $porcentajeClientes,
+                'recuadoPorDias' => $recuadoPorDias
+            ]
+        ];
+    }
+
+    public function recuadoPorDias($cedula, $periodo)
+    {
+        $data_asesores = User::select(
+            DB::raw('RTRIM(users.name) as name'),
+            'users.email',
+            'users.cedula',
+            'users.codigo_asesor',
+            'users.categoria_asesor',
+
+            DB::raw('0 as recaudo_1_15'),
+            DB::raw('0 as recaudo_1_a_15_sin_flete'),
+            DB::raw('0 as porcentaje_1_a_15'),
+            DB::raw('0 as comision_1_a_15'),
+
+            DB::raw('0 as recaudo_16_30'),
+            DB::raw('0 as recaudo_16_a_30_sin_flete'),
+            DB::raw('0 as porcentaje_16_a_30'),
+            DB::raw('0 as comision_16_a_30'),
+
+            DB::raw('0 as recaudo_31_45'),
+            DB::raw('0 as recaudo_31_a_45_sin_flete'),
+            DB::raw('0 as porcentaje_31_a_45'),
+            DB::raw('0 as comision_31_a_45'),
+
+            DB::raw('0 as recaudo_46_65'),
+            DB::raw('0 as recaudo_46_a_65_sin_flete'),
+            DB::raw('0 as porcentaje_46_a_65'),
+            DB::raw('0 as comision_46_a_65'),
+
+            DB::raw('0 as recaudo_66_80'),
+            DB::raw('0 as recaudo_66_a_80_sin_flete'),
+            DB::raw('0 as porcentaje_66_a_80'),
+            DB::raw('0 as comision_66_a_80'),
+
+            DB::raw('0 as recaudo_mayor_81'),
+            DB::raw('0 as recaudo_mayor_81_sin_flete'),
+            DB::raw('0 as porcentaje_mayor_a_81'),
+
+            DB::raw('0 as porcentaje_flete'),
+            DB::raw('0 as comision_a_pagar')
+        )
+            ->where('cedula', '=', $cedula)
+            ->get();
+
+        $terceros_vendedores = $data_asesores->pluck('cedula')->map(fn($x) => trim((string)$x))->toArray();
+
+        if (empty($terceros_vendedores)) {
+            return [
+                'data_asesores' => $data_asesores,
+                'totales' => [
+                    'total_recaudo_dias' => 0,
+                    'total_recaudo_dias_sin_flete' => 0,
+                    'total_comision_dias' => 0,
+                ],
+            ];
+        }
+
+        // ✅ FIX: SQL corregido (sin coma final / alias correcto creditos_46_65)
+        $placeholders = implode(',', array_fill(0, count($terceros_vendedores), '?'));
+
+        $sqlRecaudos = "
+            WITH base AS (
+                SELECT
+                    RTRIM(t351.tercero_vend) AS tercero_vend,
+                    DATEDIFF(
+                        DAY,
+                        TRY_CONVERT(date, t351.fecha_docto_cruce, 112),
+                        TRY_CONVERT(date, t351.fecha_recaudo, 112)
+                    ) AS dias,
+
+                    ISNULL(t351.creditos, 0) AS creditos,
+                    ISNULL(t461f.f461_vlr_imp, 0) AS vlr_imp,
+
+                    CASE
+                        WHEN ISNULL(t461f.f461_vlr_imp, 0) = 0
+                            THEN ISNULL(t351.creditos, 0)
+                        ELSE
+                            ISNULL(t351.creditos, 0) / 1.19
+                    END AS valor_ajustado
+
+                FROM [UnoEE].[dbo].[BI_T351_1] t351
+
+                LEFT JOIN [UnoEE].[dbo].[BI_T461] bi461
+                    ON  bi461.[f_id_tipo_docto] = t351.[id_tipo_docto_cruce]
+                    AND bi461.[f_nrodocto]      = t351.[nro_docto_cruce]
+                    AND bi461.[f_id_cia]        = 3
+                    AND bi461.[f_parametro_biable] = 3
+
+                LEFT JOIN [UnoEE].[dbo].[t350_co_docto_contable] t350
+                    ON  t350.f350_id_cia        = 3
+                    AND t350.f350_id_tipo_docto = t351.id_tipo_docto_cruce
+                    AND t350.f350_consec_docto  = t351.nro_docto_cruce
+
+                LEFT JOIN [UnoEE].[dbo].[t461_cm_docto_factura_venta] t461f
+                    ON  t461f.f461_id_cia      = 3
+                    AND t461f.f461_rowid_docto = t350.f350_rowid
+
+                WHERE
+                    t351.[compañia] = 3
+                    AND t351.[parametro_biable] = 3
+                    AND t351.[id_periodo] = ?
+                    AND t351.[id_tipo_docto_cruce] IN ('FVM')
+                    AND t351.[id_tipo_docto] IN (
+                        'FCF','FCR','FRC','NCD','R01','R02','R03','R04','R05','R06','R07','R08','R09','R10','R11','R12','R13','R14','R15',
+                        'R16','R17','R18','R19','R20','R21','R22','R23','R24','R25','R26','R27','R28','R29','R30','R31','R32','R33','R34','R35',
+                        'R36','R37','R38','R39','R40','R41','R42','R43','R44','R45','R46','R47','R48','R49','R50'
+                    )
+                    AND bi461.[f_id_cia] = 3
+                    AND bi461.[f_parametro_biable] = 3
+                    AND RTRIM(t351.[tercero_vend]) IN ($placeholders)
+            )
+            SELECT
+                tercero_vend,
+                SUM(CASE WHEN dias BETWEEN -100 AND 15 THEN valor_ajustado ELSE 0 END) AS creditos_1_15,
+                SUM(CASE WHEN dias BETWEEN 16 AND 30  THEN valor_ajustado ELSE 0 END) AS creditos_16_30,
+                SUM(CASE WHEN dias BETWEEN 31 AND 45  THEN valor_ajustado ELSE 0 END) AS creditos_31_45,
+                SUM(CASE WHEN dias BETWEEN 46 AND 65  THEN valor_ajustado ELSE 0 END) AS creditos_46_65,
+                SUM(CASE WHEN dias BETWEEN 66 AND 80  THEN valor_ajustado ELSE 0 END) AS creditos_66_80,
+                SUM(CASE WHEN dias >= 81            THEN valor_ajustado ELSE 0 END) AS creditos_mayor_81
+            FROM base
+            GROUP BY tercero_vend;
+        ";
+
+        $bindings = array_merge([$periodo], $terceros_vendedores);
+        $recaudos = DB::connection('sqlsrv')->select($sqlRecaudos, $bindings);
+        $recaudos = collect($recaudos)->keyBy('tercero_vend');
+
+        foreach ($data_asesores as $data_asesor) {
+            $key = trim((string)$data_asesor->cedula);
+            if (isset($recaudos[$key])) {
+                $recaudoGen = $recaudos[$key];
+                $data_asesor->recaudo_1_15      = (int) round($recaudoGen->creditos_1_15 ?? 0);
+                $data_asesor->recaudo_16_30     = (int) round($recaudoGen->creditos_16_30 ?? 0);
+                $data_asesor->recaudo_31_45     = (int) round($recaudoGen->creditos_31_45 ?? 0);
+                // ✅ FIX: ahora sí coincide con el alias del SQL
+                $data_asesor->recaudo_46_65     = (int) round($recaudoGen->creditos_46_65 ?? 0);
+                $data_asesor->recaudo_66_80     = (int) round($recaudoGen->creditos_66_80 ?? 0);
+                $data_asesor->recaudo_mayor_81  = (int) round($recaudoGen->creditos_mayor_81 ?? 0);
+            }
+        }
+
+        // ventana para % flete (mes-2 a mes-1)
+        $fecha = Carbon::createFromFormat('Ym', $periodo);
+        $mesAnterior  = $fecha->copy()->subMonth()->format('Ym');
+        $mesTresMenos = $fecha->copy()->subMonths(2)->format('Ym');
+
+        foreach ($data_asesores as $data_asesor) {
+
+            $cat = strtolower(trim((string)($data_asesor->categoria_asesor ?? '')));
+
+            $data_asesor->porcentaje_1_a_15   = 0;
+            $data_asesor->porcentaje_16_a_30  = 0;
+            $data_asesor->porcentaje_31_a_45  = 0;
+            $data_asesor->porcentaje_46_a_65  = 0;
+            $data_asesor->porcentaje_66_a_80  = 0;
+            $data_asesor->porcentaje_mayor_81 = 0;
+
+            if ($cat === 'master') {
+                $data_asesor->porcentaje_1_a_15   = 0.0041;
+                $data_asesor->porcentaje_16_a_30  = 0.0038;
+                $data_asesor->porcentaje_31_a_45  = 0.0035;
+                $data_asesor->porcentaje_46_a_65  = 0.0032;
+                $data_asesor->porcentaje_66_a_80  = 0.0029;
+                $data_asesor->porcentaje_mayor_81 = 0;
+            } elseif ($cat === 'senior') {
+                $data_asesor->porcentaje_1_a_15   = 0.0028;
+                $data_asesor->porcentaje_16_a_30  = 0.0025;
+                $data_asesor->porcentaje_31_a_45  = 0.0022;
+                $data_asesor->porcentaje_46_a_65  = 0.0019;
+                $data_asesor->porcentaje_66_a_80  = 0.0016;
+                $data_asesor->porcentaje_mayor_81 = 0;
+            }
+
+            $recaudoFletes = DB::connection('sqlsrv')->select(
+                "
+                SELECT
+                    RTRIM([f_vendedor]) f_vendedor,
+                    ROUND(
+                        (
+                            CONVERT(decimal(18,2), SUM(CASE WHEN [f_ref_item] IN ('ZLE99999', 'ZLE99998') THEN [f_valor_sub_local] ELSE 0 END))
+                            /
+                            NULLIF(CONVERT(decimal(18,2), SUM(CASE WHEN [f_ref_item] NOT IN ('ZLE99999', 'ZLE99998', '101999999', '0013686', '0013694', '0013695', '0013822') THEN [f_valor_sub_local] ELSE 0 END)), 0)
+                        ) * 100
+                    , 2) AS porcentaje
+                FROM [UnoEE].[dbo].[BI_T461_1]
+                WHERE
+                    [f_id_cia] = 3
+                    AND f_parametro_biable = 3
+                    AND RTRIM([f_vendedor]) = ?
+                    AND f_periodo BETWEEN ? AND ?
+                GROUP BY [f_vendedor]
+                ",
+                [trim((string)$data_asesor->cedula), $mesTresMenos, $mesAnterior]
+            );
+
+            $data_asesor->porcentaje_flete = 0;
+            if (!empty($recaudoFletes)) {
+                $data_asesor->porcentaje_flete = (float)($recaudoFletes[0]->porcentaje ?? 0);
+            }
+
+            $pf = (float)($data_asesor->porcentaje_flete ?? 0);
+
+            $data_asesor->recaudo_1_a_15_sin_flete   = (int) round($data_asesor->recaudo_1_15     - (($data_asesor->recaudo_1_15     / 100) * $pf));
+            $data_asesor->recaudo_16_a_30_sin_flete  = (int) round($data_asesor->recaudo_16_30    - (($data_asesor->recaudo_16_30    / 100) * $pf));
+            $data_asesor->recaudo_31_a_45_sin_flete  = (int) round($data_asesor->recaudo_31_45    - (($data_asesor->recaudo_31_45    / 100) * $pf));
+            $data_asesor->recaudo_46_a_65_sin_flete  = (int) round($data_asesor->recaudo_46_65    - (($data_asesor->recaudo_46_65    / 100) * $pf));
+            $data_asesor->recaudo_66_a_80_sin_flete  = (int) round($data_asesor->recaudo_66_80    - (($data_asesor->recaudo_66_80    / 100) * $pf));
+            $data_asesor->recaudo_mayor_81_sin_flete = (int) round($data_asesor->recaudo_mayor_81 - (($data_asesor->recaudo_mayor_81 / 100) * $pf));
+
+            $data_asesor->comision_1_a_15 = $data_asesor->porcentaje_1_a_15 != 0
+                ? (int) round($data_asesor->recaudo_1_a_15_sin_flete * $data_asesor->porcentaje_1_a_15) : 0;
+
+            $data_asesor->comision_16_a_30 = $data_asesor->porcentaje_16_a_30 != 0
+                ? (int) round($data_asesor->recaudo_16_a_30_sin_flete * $data_asesor->porcentaje_16_a_30) : 0;
+
+            $data_asesor->comision_31_a_45 = $data_asesor->porcentaje_31_a_45 != 0
+                ? (int) round($data_asesor->recaudo_31_a_45_sin_flete * $data_asesor->porcentaje_31_a_45) : 0;
+
+            $data_asesor->comision_46_a_65 = $data_asesor->porcentaje_46_a_65 != 0
+                ? (int) round($data_asesor->recaudo_46_a_65_sin_flete * $data_asesor->porcentaje_46_a_65) : 0;
+
+            $data_asesor->comision_66_a_80 = $data_asesor->porcentaje_66_a_80 != 0
+                ? (int) round($data_asesor->recaudo_66_a_80_sin_flete * $data_asesor->porcentaje_66_a_80) : 0;
+
+            $data_asesor->comision_mayor_81 = $data_asesor->porcentaje_mayor_81 != 0
+                ? (int) round($data_asesor->recaudo_mayor_81_sin_flete * $data_asesor->porcentaje_mayor_81) : 0;
+
+            $data_asesor->comision_a_pagar =
+                $data_asesor->comision_1_a_15 +
+                $data_asesor->comision_16_a_30 +
+                $data_asesor->comision_31_a_45 +
+                $data_asesor->comision_46_a_65 +
+                $data_asesor->comision_66_a_80 +
+                $data_asesor->comision_mayor_81;
+        }
+
+        $totales = [
+            'total_recaudo_dias' => (int) (
+                ($data_asesores->sum('recaudo_1_15') ?? 0) +
+                ($data_asesores->sum('recaudo_16_30') ?? 0) +
+                ($data_asesores->sum('recaudo_31_45') ?? 0) +
+                ($data_asesores->sum('recaudo_46_65') ?? 0) +
+                ($data_asesores->sum('recaudo_66_80') ?? 0) +
+                ($data_asesores->sum('recaudo_mayor_81') ?? 0)
+            ),
+            'total_recaudo_dias_sin_flete' => (int) (
+                ($data_asesores->sum('recaudo_1_a_15_sin_flete') ?? 0) +
+                ($data_asesores->sum('recaudo_16_a_30_sin_flete') ?? 0) +
+                ($data_asesores->sum('recaudo_31_a_45_sin_flete') ?? 0) +
+                ($data_asesores->sum('recaudo_46_a_65_sin_flete') ?? 0) +
+                ($data_asesores->sum('recaudo_66_a_80_sin_flete') ?? 0) +
+                ($data_asesores->sum('recaudo_mayor_81_sin_flete') ?? 0)
+            ),
+            'total_comision_dias' => (int) ($data_asesores->sum('comision_a_pagar') ?? 0),
+        ];
+
+        return [
+            'data_asesores' => $data_asesores,
+            'totales' => $totales,
+        ];
+    }
+
+    public function porcentajeClientesImpactadosCredito(string $periodo, string $asesorCedula): float
+    {
+        $periodo = preg_replace('/\D/', '', $periodo);
+        if (strlen($periodo) !== 6) {
+            return 0.0;
+        }
+
+        $year  = (int) substr($periodo, 0, 4);
+        $month = (int) substr($periodo, 4, 2);
+
+        $asesorCedula = trim($asesorCedula);
+
+        $totalRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t200.f200_nit) AS total_clientes
+             FROM t200_mm_terceros t200
+             INNER JOIN t201_mm_clientes t201
+               ON t200.f200_rowid = t201.f201_rowid_tercero
+             WHERE t200.f200_id_cia = 3
+               AND t201.f201_id_cia = 3
+               AND t200.f200_ind_cliente = 1
+               AND t200.f200_ind_estado = 1
+               AND t201.f201_id_vendedor = ?
+               AND t201.f201_id_cond_pago IN ('30D','10D')",
+            [$asesorCedula]
+        );
+
+        $totalClientes = (int) ($totalRow->total_clientes ?? 0);
+
+        $ventaRow = DB::connection('sqlsrv')->selectOne(
+            "SELECT COUNT(DISTINCT t461.f461_rowid_tercero_fact) AS clientes_con_venta
+             FROM t461_cm_docto_factura_venta t461
+             INNER JOIN t201_mm_clientes t201
+               ON t201.f201_rowid_tercero = t461.f461_rowid_tercero_fact
+             WHERE t461.f461_id_cia = 3
+                AND YEAR(t461.f461_id_fecha) = ?
+                AND MONTH(t461.f461_id_fecha) = ?
+                AND t461.[f461_id_concepto] = '501'
+                AND t461.f461_id_clase_docto = '523'
+                AND t201.f201_id_vendedor = ?
+                AND t201.f201_id_cond_pago IN ('30D','10D')",
+            [$year, $month, $asesorCedula]
+        );
+
+        $clientesConVenta = (int) ($ventaRow->clientes_con_venta ?? 0);
+
+        return $totalClientes > 0
+            ? round(($clientesConVenta / $totalClientes) * 100, 2)
+            : 0.0;
+    }
+
+
+    private function calcularTotalRecaudado($periodo, $cedula)
+    {
+        $infoPresupuestos = PresupuestoRecaudo::select('prefijo', 'consecutivo', 'cond_pago')
+            ->where('estado', 1)
+            ->where('periodo', $periodo)
+            ->where('asesor', $cedula)
+            ->get();
+
+        if ($infoPresupuestos->isEmpty()) {
+            return 0;
+        }
+
+        $prefijos = $infoPresupuestos->pluck('prefijo')->toArray();
+        $consecutivos = $infoPresupuestos->pluck('consecutivo')->toArray();
+
+        $totalCreditos = DB::connection('sqlsrv')->table('UnoEE.dbo.BI_T351_1')
+            ->where('compañia', 3)
+            ->where('id_periodo', $periodo)
+            ->whereIn('id_tipo_docto', [
+                'FCF','FCR','FRC','NCD',
+                'R01','R02','R03','R04','R05','R06','R07','R08','R09',
+                'R10','R11','R12','R13','R14','R15','R16','R17','R18','R19','R20','R21','R22',
+                'R23','R24','R25','R26','R27','R28','R29','R30','R31','R32','R33','R34','R35',
+                'R36','R37','R38','R39','R40','R41','R42','R43','R44','R45','R46','R47','R48',
+                'R49','R50'
+            ])
+            ->whereIn('id_tipo_docto_cruce', $prefijos)
+            ->whereIn('nro_docto_cruce', $consecutivos)
+            ->where('parametro_biable', 3)
+            ->where('creditos', '>', 0)
+            ->sum('creditos');
+
+        return ($totalCreditos / 1.19) ?? 0;
+    }
 }
