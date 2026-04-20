@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ComisionesController;
 use App\Http\Controllers\Admin\FacturasController;
 use App\Http\Controllers\Admin\SolicitudCreditoController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,7 @@ use App\Livewire\Admin\Pqrs\Catalogos\Index as PqrsCatalogosIndex;
 use App\Livewire\Admin\Pqrs\Solicitudes\Index as PqrsSolicitudesIndex;
 use App\Livewire\Admin\Pqrs\Solicitudes\Detalles as PqrsSolicitudesDetalles;
 use App\Livewire\Admin\Pqrs\Orm\Index as PqrsOrmIndex;
+use App\Livewire\Admin\Comisiones\Index as ComisionesIndex;
 use App\Livewire\Admin\Pqrs\Transportadoras\Index as PqrsTransportadorasIndex;
 use App\Http\Controllers\Admin\TercerosController;
 use App\Http\Controllers\Admin\PromocionesController;
@@ -113,6 +115,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/fletes', FletesIndex::class)->name('fletes.index');
 
+    Route::get('/comisiones', ComisionesIndex::class)->name('comisiones.index');
+
     Route::get('/relacion/asesores', RelacionAsesoresIndex::class)->name('relacion.asesores.index');
 
     Route::get('/presupuestos-comerciales/cumplimiento', PresupuestosComercialCumplimientoIndex::class)
@@ -137,5 +141,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
    // Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });
+
+
+Route::middleware('auth:sanctum')->get('/comisiones/inicio',[ComisionesController::class, 'index'])->name('admin.comisiones.index');
+
+Route::middleware('auth:sanctum')->get(
+    '/indicadores/clientes/impactados/{asesor}/{periodo}',
+    [ComisionesController::class, 'clientesImpactados']
+);
+
 
 require __DIR__ . '/auth.php';
