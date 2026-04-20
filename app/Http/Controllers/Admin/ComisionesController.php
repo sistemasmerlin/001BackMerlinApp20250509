@@ -70,17 +70,17 @@ class ComisionesController extends Controller
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total,
 
                     CONVERT(int, SUM(CASE 
                         WHEN t106.f106_descripcion IN (
-                            'PIRELLI RADIAL','KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING',
+                            'KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING',
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total_sin_pirelli
                 FROM BI_T461_1 AS t461_1
