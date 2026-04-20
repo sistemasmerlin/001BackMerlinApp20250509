@@ -182,8 +182,8 @@ class ComisionesController extends Controller
             $factorLlantas = $this->buscarFactorPorCumplimiento($cumplimientoLlantas, $rangosLlantas);
             $factorRepuestos = $this->buscarFactorPorCumplimiento($cumplimientoRepuestos, $rangosRepuestos);
 
-            $comisionLlantas = round($ventasTotal * $factorLlantas, 2);
-            $comisionRepuestos = round($ventasTotal * $factorRepuestos, 2);
+            $comisionLlantas = round($ventasTotalSinPirelli * $factorLlantas, 2);
+            $comisionRepuestos = round($ventasTotalSinPirelli * $factorRepuestos, 2);
             $comisionPirelli = round(($ventasPirelliDinero / 100) * 1.5, 2);
             $comisionTotal = round($comisionLlantas + $comisionRepuestos + $comisionPirelli, 2);
 
