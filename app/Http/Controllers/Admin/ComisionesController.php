@@ -76,7 +76,7 @@ class ComisionesController extends Controller
 
                     CONVERT(int, SUM(CASE 
                         WHEN t106.f106_descripcion IN (
-                            'PIRELLI','PIRELLI RADIAL','KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING',
+                            'PIRELLI RADIAL','KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING',
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
@@ -182,8 +182,8 @@ class ComisionesController extends Controller
             $factorLlantas = $this->buscarFactorPorCumplimiento($cumplimientoLlantas, $rangosLlantas);
             $factorRepuestos = $this->buscarFactorPorCumplimiento($cumplimientoRepuestos, $rangosRepuestos);
 
-            $comisionLlantas = round($ventasTotalSinPirelli * $factorLlantas, 2);
-            $comisionRepuestos = round($ventasTotalSinPirelli * $factorRepuestos, 2);
+            $comisionLlantas = round($ventasTotal * $factorLlantas, 2);
+            $comisionRepuestos = round($ventasTotal * $factorRepuestos, 2);
             $comisionPirelli = round(($ventasPirelliDinero / 100) * 1.5, 2);
             $comisionTotal = round($comisionLlantas + $comisionRepuestos + $comisionPirelli, 2);
 
