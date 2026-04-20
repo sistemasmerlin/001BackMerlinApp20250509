@@ -126,7 +126,7 @@
                                     {{ number_format($fila['total']['cumplimiento'], 0) }}%
                                 </td>
                                 <td class="px-4 py-3 text-right font-bold text-emerald-700">
-                                    $ {{ number_format($fila['total']['comision'], 0, ',', '.') }}
+                                    $ {{ number_format(($fila['repuestos']['comision']+$fila['llantas']['comision']+$fila['pirelli']['comision']), 0, ',', '.') }}
                                 </td>
                             </tr>
                         @endforeach
