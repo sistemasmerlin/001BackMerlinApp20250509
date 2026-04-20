@@ -777,6 +777,12 @@ class ComisionesController extends Controller
         ->where('asesor', '0603')
         ->sum('saldo');
 
+        $cumplimiento = 0;
+
+        if($totalPresupuesto > 0){
+        $cumplimiento = round(($recaudoPresupuesto/($totalPresupuesto/1.19))*100,2);
+        };
+
         return $resultado[] = [
             'user_id' => $usuario->id,
             'nombre_asesor' => $usuario->name,
@@ -784,10 +790,11 @@ class ComisionesController extends Controller
             'categoria_asesor' => $usuario->categoria_asesor,
             'periodo' => $periodo,
 
+
             'catera' => [
                 'totalPresupuesto' => ($totalPresupuesto/1.19),
                 'recaudoPresupuesto' => $recaudoPresupuesto,
-                'cumplimiento' => round(($recaudoPresupuesto/($totalPresupuesto/1.19))*100,2),
+                'cumplimiento' => $cumplimiento,
                 'porcentajeClientes' => $porcentajeClientes,
                 'recuadoPorDias' => $recuadoPorDias
             ]
