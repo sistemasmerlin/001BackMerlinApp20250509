@@ -763,8 +763,8 @@ class ComisionesController extends Controller
 
     public function indexCartera(Request $request)
     {
-        //$periodo = $request->periodo;
-        $periodo = '202603';
+        $periodo = $request->periodo;
+        //$periodo = '202603';
         $usuario = User::where('codigo_asesor','0603')->first();
         
         $recaudoPresupuesto = $this->calcularTotalRecaudado($periodo, '0603');
