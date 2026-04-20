@@ -43,7 +43,7 @@ class ComisionesController extends Controller
 
                     CONVERT(int, SUM(CASE 
                         WHEN t106.f106_descripcion IN (
-                            'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES'
+                            'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
                             'FORERUNNER','RINOVA ATV','WDT'
                         )
