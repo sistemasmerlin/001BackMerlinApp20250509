@@ -787,7 +787,7 @@ class ComisionesController extends Controller
             'catera' => [
                 'totalPresupuesto' => ($totalPresupuesto/1.19),
                 'recaudoPresupuesto' => $recaudoPresupuesto,
-                'cumplimiento' => round(($totalPresupuesto/$recaudoPresupuesto)*100,2),
+                'cumplimiento' => round((($totalPresupuesto/1.19)/$recaudoPresupuesto)*100,2),
                 'porcentajeClientes' => $porcentajeClientes,
                 'recuadoPorDias' => $recuadoPorDias
             ]
