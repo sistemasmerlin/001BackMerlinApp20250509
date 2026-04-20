@@ -767,6 +767,7 @@ public function indexCartera(Request $request)
 
     $asesores = User::role('asesor')
         ->whereNotNull('codigo_asesor')
+        ->limit(5)
         ->get();
 
     $resultado = [];
