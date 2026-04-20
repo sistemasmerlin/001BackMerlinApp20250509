@@ -32,7 +32,7 @@ class Index extends Component
             ]);
 
             $controller = app(ComisionesController::class);
-            $resultado = $controller->index($request);
+            $resultado = $controller->indexVentas($request);
 
             $this->resultadoGenerado = is_array($resultado) ? $resultado : [];
 

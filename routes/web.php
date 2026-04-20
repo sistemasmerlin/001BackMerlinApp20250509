@@ -143,7 +143,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 
 
-Route::middleware('auth:sanctum')->get('/comisiones/inicio',[ComisionesController::class, 'index'])->name('admin.comisiones.index');
+Route::middleware('auth:sanctum')->get('/comisiones/ventas',[ComisionesController::class, 'indexVentas'])->name('admin.comisiones.ventas');
+
+Route::middleware('auth:sanctum')->get('/comisiones/cartera',[ComisionesController::class, 'indexCartera'])->name('admin.comisiones.cartera');
 
 Route::middleware('auth:sanctum')->get(
     '/indicadores/clientes/impactados/{asesor}/{periodo}',
