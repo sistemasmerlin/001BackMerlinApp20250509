@@ -766,7 +766,12 @@ public function indexCartera(Request $request)
     $periodo = $request->periodo;
 
     $asesores = User::role('asesor')
-        ->whereNotNull('codigo_asesor')
+        ->whereIn('codigo_asesor',['0101',
+'0102',
+'0103',
+'0104',
+'0106',
+'0201'])
         ->limit(5)
         ->get();
 
