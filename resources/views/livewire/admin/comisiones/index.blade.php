@@ -205,6 +205,8 @@
                         <th class="px-4 py-3 text-right">>81</th>
                         <th class="px-4 py-3 text-right">Com. >81</th>
 
+                        <th class="px-4 py-3 text-right">Total recuadado</th>
+                        
                         <th class="px-4 py-3 text-right">Comisión a pagar</th>
                     </tr>
                 </thead>
@@ -238,14 +240,13 @@
 
                             <td class="px-4 py-3 text-right">
                                 {{ number_format(data_get($fila, 'catera.cumplimiento', 0), 2, ',', '.') }}%
-                            </td>
+                            </td> 
 
                             <td class="px-4 py-3 text-right">
                                 {{ number_format(data_get($fila, 'catera.porcentajeClientes', 0), 2, ',', '.') }}%
                             </td>
-
                             <td class="px-4 py-3 text-right">
-                                {{ number_format(data_get($fila, 'catera.comisionRecaudoPresupuesto', 0), 2, ',', '.') }}%
+                                {{ number_format(data_get($fila, 'catera.comisionRecaudoPresupuesto', 0), 0, ',', '.') }}%
                             </td>
 
                             <td class="px-4 py-3 text-right">
@@ -290,8 +291,12 @@
                                 $ {{ number_format(data_get($detalle, 'comision_mayor_81', 0), 0, ',', '.') }}
                             </td>
 
+                            <td class="px-4 py-3 text-right">
+                                {{ number_format(data_get($fila, 'catera.totalRecaudoSinFlete', 0), 2, ',', '.') }}%
+                            </td> 
+
                             <td class="px-4 py-3 text-right font-bold text-emerald-700">
-                                $ {{ number_format(data_get($detalle, 'comision_a_pagar', 0), 0, ',', '.') }}
+                                $ {{ number_format((data_get($detalle, 'comision_a_pagar', 0)+data_get($fila, 'catera.comisionRecaudoPresupuesto', 0)), 0, ',', '.') }}
                             </td>
                         </tr>
                     @endforeach
