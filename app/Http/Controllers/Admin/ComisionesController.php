@@ -761,45 +761,62 @@ class ComisionesController extends Controller
     
     // HASTA ACÁ VENTAS
 
-    public function indexCartera(Request $request)
-    {
-        $periodo = $request->periodo;
-        //$periodo = '202603';
-        $usuario = User::where('codigo_asesor','0603')->first();
-        
-        $recaudoPresupuesto = $this->calcularTotalRecaudado($periodo, '0603');
+public function indexCartera(Request $request)
+{
+    $periodo = $request->periodo;
 
-        $porcentajeClientes = $this->porcentajeClientesImpactadosCredito($periodo, '0603');
+    $asesores = User::role('asesor')
+        ->whereNotNull('codigo_asesor')
+        ->get();
 
-        $recuadoPorDias = $this->recuadoPorDias('0603', $periodo);
+    $resultado = [];
 
-        $totalPresupuesto = PresupuestoRecaudo::where('periodo', $periodo)
-        ->where('asesor', '0603')
-        ->sum('saldo');
+    foreach ($asesores as $usuario) {
+        $codigoAsesor = trim($usuario->codigo_asesor);
+
+        if ($codigoAsesor === '') {
+            continue;
+        }
+
+        $recaudoPresupuesto = (float) $this->calcularTotalRecaudado($periodo, $codigoAsesor);
+
+        $porcentajeClientes = (float) $this->porcentajeClientesImpactadosCredito($periodo, $codigoAsesor);
+
+        $recuadoPorDias = $this->recuadoPorDias($codigoAsesor, $periodo);
+
+        $totalPresupuesto = (float) PresupuestoRecaudo::where('periodo', $periodo)
+            ->where('asesor', $codigoAsesor)
+            ->sum('saldo');
+
+        $totalPresupuestoSinIva = 0;
+        if ($totalPresupuesto > 0) {
+            $totalPresupuestoSinIva = $totalPresupuesto / 1.19;
+        }
 
         $cumplimiento = 0;
+        if ($totalPresupuestoSinIva > 0) {
+            $cumplimiento = round(($recaudoPresupuesto / $totalPresupuestoSinIva) * 100, 2);
+        }
 
-        if($totalPresupuesto > 0){
-        $cumplimiento = round(($recaudoPresupuesto/($totalPresupuesto/1.19))*100,2);
-        };
-
-        return $resultado[] = [
+        $resultado[] = [
             'user_id' => $usuario->id,
             'nombre_asesor' => $usuario->name,
-            'codigo_asesor' => '0603',
+            'codigo_asesor' => $codigoAsesor,
             'categoria_asesor' => $usuario->categoria_asesor,
             'periodo' => $periodo,
 
-
             'catera' => [
-                'totalPresupuesto' => ($totalPresupuesto/1.19),
+                'totalPresupuesto' => $totalPresupuestoSinIva,
                 'recaudoPresupuesto' => $recaudoPresupuesto,
                 'cumplimiento' => $cumplimiento,
                 'porcentajeClientes' => $porcentajeClientes,
-                'recuadoPorDias' => $recuadoPorDias
-            ]
+                'recuadoPorDias' => $recuadoPorDias,
+            ],
         ];
     }
+
+    return $resultado;
+}
 
     public function recuadoPorDias($cedula, $periodo)
     {
