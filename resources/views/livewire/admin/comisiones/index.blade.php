@@ -185,6 +185,8 @@
                         <th class="px-4 py-3 text-right">% Cumplimiento</th>
                         <th class="px-4 py-3 text-right">% Clientes</th>
 
+                        <th class="px-4 py-3 text-right">% Comision</th>
+
                         <th class="px-4 py-3 text-right">1-15</th>
                         <th class="px-4 py-3 text-right">Com. 1-15</th>
 
@@ -240,6 +242,10 @@
 
                             <td class="px-4 py-3 text-right">
                                 {{ number_format(data_get($fila, 'catera.porcentajeClientes', 0), 2, ',', '.') }}%
+                            </td>
+
+                            <td class="px-4 py-3 text-right">
+                                {{ number_format(data_get($fila, 'catera.comisionRecaudoPresupuesto', 0), 2, ',', '.') }}%
                             </td>
 
                             <td class="px-4 py-3 text-right">

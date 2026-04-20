@@ -799,6 +799,39 @@ public function indexCartera(Request $request)
             $cumplimiento = round(($recaudoPresupuesto / $totalPresupuestoSinIva) * 100, 2);
         }
 
+        $totalRecaudoSinFlete = $recuadoPorDias['totales']['total_recaudo_dias_sin_flete'] ?? 0;
+
+        $factor = 0.0;
+
+        if ($porcentajeClientes >= 60) {
+            $factor = 1.10;
+        } elseif ($porcentajeClientes >= 55) {
+            $factor = 1.05;
+        } elseif ($porcentajeClientes > 50) {
+            $factor = 1.00;
+        } elseif ($porcentajeClientes > 45) {
+            $factor = 0.90;
+        } elseif ($porcentajeClientes > 39) {
+            $factor = 0.80;
+        } else {
+            $factor = 0.0;
+        }
+
+
+        if ($cumplimiento >= 90){
+            $porcentaje_comision = 0.00600;
+        } else if ($cumplimiento >= 85){
+            $porcentaje_comision = 0.00570;
+        } else if ($cumplimiento >= 80){
+            $porcentaje_comision = 0.00540;
+        } else {
+            $porcentaje_comision = 0;
+        }
+
+        $comisionCalculada = round($totalRecaudoSinFlete * (float) $porcentaje_comision);
+
+        $comisionRecaudoPresupuesto = (int) round($comisionCalculada * $factor);
+
         $resultado[] = [
             'user_id' => $usuario->id,
             'nombre_asesor' => $usuario->name,
@@ -812,6 +845,8 @@ public function indexCartera(Request $request)
                 'cumplimiento' => $cumplimiento,
                 'porcentajeClientes' => $porcentajeClientes,
                 'recuadoPorDias' => $recuadoPorDias,
+                'comisionRecaudoPresupuesto' => $comisionRecaudoPresupuesto,
+                'totalRecaudoSinFlete' => $totalRecaudoSinFlete
             ],
         ];
     }
