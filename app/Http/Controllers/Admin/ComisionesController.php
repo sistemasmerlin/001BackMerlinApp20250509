@@ -52,6 +52,14 @@ class ComisionesController extends Controller
                         THEN [f_cant_base] ELSE 0 END)) AS llantas,
 
                     CONVERT(int, SUM(CASE 
+                        WHEN t106.f106_descripcion IN (
+                            'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
+                            'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT'
+                        )
+                        THEN [f_valor_sub_local] ELSE 0 END)) AS llantas_dinero,
+
+                    CONVERT(int, SUM(CASE 
                         WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL')
                         THEN [f_cant_base] ELSE 0 END)) AS pirelli,
                     
@@ -113,6 +121,7 @@ class ComisionesController extends Controller
             $dataVentasCat = DB::connection('sqlsrv')->select($sqlVentasCat, [$periodo, $codigoAsesor]);
 
             $ventasLlantas = 0;
+            $ventasLlantasDinero = 0;
             $ventasRepuestos = 0;
             $ventasPirelli = 0;
             $ventasPirelliDinero = 0;
@@ -123,6 +132,7 @@ class ComisionesController extends Controller
                 $filaVenta = $dataVentasCat[0];
 
                 $ventasLlantas = (float) ($filaVenta->llantas ?? 0);
+                $ventasLlantasDinero = (float) ($filaVenta->llantas_dinero ?? 0);
                 $ventasRepuestos = (float) ($filaVenta->repuestos ?? 0);
                 $ventasPirelli = (float) ($filaVenta->pirelli ?? 0);
                 $ventasPirelliDinero = (float) ($filaVenta->pirelli_dinero ?? 0);
@@ -202,6 +212,7 @@ class ComisionesController extends Controller
                     'cumplimiento' => $cumplimientoLlantas,
                     'factor' => $factorLlantas,
                     'comision' => $comisionLlantas,
+                    'ventasDinero' => $ventasLlantasDinero
                 ],
 
                 'repuestos' => [
@@ -214,10 +225,11 @@ class ComisionesController extends Controller
 
                 'pirelli' => [
                     'presupuesto' => $presupuestoPirelli,
-                    'ventas_unidades' => $ventasPirelli,
+                    'ventas' => $ventasPirelli,
                     'ventas_dinero' => $ventasPirelliDinero,
                     'cumplimiento' => $cumplimientoPirelli,
                     'comision' => $comisionPirelli,
+                    'ventasDinero' => $ventasPirelliDinero
                 ],
 
                 'total' => [
@@ -763,22 +775,16 @@ class ComisionesController extends Controller
 
 public function indexCartera(Request $request)
 {
+
     $periodo = $request->periodo;
+    $codigos = $request->input('codigos', []);
+
+    if (!is_array($codigos) || empty($codigos)) {
+        return [];
+    }
 
     $asesores = User::role('asesor')
-        ->whereIn('codigo_asesor',['0101',
-'0102',
-'0103',
-'0104',
-'0106',
-'0201',
-'0202',
-'0205',
-'0206',
-'0207',
-'0209',
-'0301'])
-        ->limit(5)
+        ->whereIn('codigo_asesor', $codigos)
         ->get();
 
     $resultado = [];

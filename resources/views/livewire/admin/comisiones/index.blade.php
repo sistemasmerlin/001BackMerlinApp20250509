@@ -38,7 +38,7 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">
                     Periodo a generar
@@ -49,6 +49,25 @@
                     placeholder="YYYYMM"
                     class="w-full rounded-xl border-slate-300 focus:border-red-500 focus:ring-red-500"
                 >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    Grupo cartera
+                </label>
+                <select
+                    wire:model="grupoCarteraSeleccionado"
+                    class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                >
+                    @foreach($gruposCartera as $nombreGrupo => $codigos)
+                        <option value="{{ $nombreGrupo }}">
+                            {{ ucfirst(str_replace('_', ' ', $nombreGrupo)) }} - {{ implode(', ', $codigos) }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-slate-500 mt-1">
+                    Este grupo aplica solo para cartera.
+                </p>
             </div>
 
             <div class="flex items-end">
@@ -87,6 +106,7 @@
                 </button>
             </div>
         </div>
+
     </div>
 
     @if (!empty($resultadoGenerado) && $tipoResultado === 'ventas')
@@ -106,11 +126,17 @@
                             <th class="px-4 py-3 text-left">Código</th>
                             <th class="px-4 py-3 text-left">Categoría</th>
 
+                            <th class="px-4 py-3 text-right">Venta Unds Llantas</th>
+                            <th class="px-4 py-3 text-right">Venta Dinero Llantas</th>
                             <th class="px-4 py-3 text-right">% Llantas</th>
                             <th class="px-4 py-3 text-right">Comisión Llantas</th>
 
+                            <th class="px-4 py-3 text-right">Venta Repuestos</th>
                             <th class="px-4 py-3 text-right">% Repuestos</th>
                             <th class="px-4 py-3 text-right">Comisión Repuestos</th>
+
+                            <th class="px-4 py-3 text-right">Venta Unds Pirelli</th>
+                            <th class="px-4 py-3 text-right">Venta Dinero Pirelli</th>
 
                             <th class="px-4 py-3 text-right">% Pirelli</th>
                             <th class="px-4 py-3 text-right">Comisión Pirelli</th>
@@ -136,10 +162,22 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-right">
+                                    {{ number_format($fila['llantas']['ventas'] ?? 0, 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-3 text-right">
+                                    {{ number_format($fila['llantas']['ventasDinero'] ?? 0, 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-3 text-right">
                                     {{ number_format($fila['llantas']['cumplimiento'] ?? 0, 0, ',', '.') }}%
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     {{ number_format($fila['llantas']['comision'] ?? 0, 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-4 py-3 text-right">
+                                    {{ number_format($fila['repuestos']['ventas'] ?? 0, 0, ',', '.') }}
                                 </td>
 
                                 <td class="px-4 py-3 text-right">
@@ -150,8 +188,19 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-right">
+                                    {{ number_format($fila['pirelli']['ventas'] ?? 0, 0, ',', '.') }}
+                                </td>
+
+
+                                <td class="px-4 py-3 text-right">
+                                    {{ number_format($fila['pirelli']['ventasDinero'] ?? 0, 0, ',', '.') }}
+                                </td>
+
+
+                                <td class="px-4 py-3 text-right">
                                     {{ number_format($fila['pirelli']['cumplimiento'] ?? 0, 0, ',', '.') }}%
                                 </td>
+
                                 <td class="px-4 py-3 text-right">
                                     {{ number_format($fila['pirelli']['comision'] ?? 0, 0, ',', '.') }}
                                 </td>

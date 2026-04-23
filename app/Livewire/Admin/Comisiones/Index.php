@@ -7,20 +7,43 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\ComisionesController;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use App\Models\User;
 
 class Index extends Component
 {
     public string $periodoGenerar = '';
     public array $resultadoGenerado = [];
     public string $tipoResultado = ''; // ventas | cartera
+    public array $gruposCartera = [];
+    public string $grupoCarteraSeleccionado = '';
 
-    public function mount(): void
-    {
-        $this->periodoGenerar = now()->format('Ym');
-        $this->resultadoGenerado = [];
-        $this->tipoResultado = '';
-    }
 
+public function mount(): void
+{
+    $this->periodoGenerar = now()->format('Ym');
+    $this->resultadoGenerado = [];
+    $this->tipoResultado = '';
+
+    $codigos = User::role('asesor')
+        ->whereNotNull('codigo_asesor')
+        ->where('codigo_asesor', '!=', '')
+        ->orderBy('codigo_asesor')
+        ->pluck('codigo_asesor')
+        ->map(fn ($codigo) => trim($codigo))
+        ->filter()
+        ->unique()
+        ->values()
+        ->toArray();
+
+    $this->gruposCartera = collect($codigos)
+        ->chunk(6)
+        ->mapWithKeys(function ($chunk, $index) {
+            return ['grupo_' . ($index + 1) => $chunk->values()->toArray()];
+        })
+        ->toArray();
+
+    $this->grupoCarteraSeleccionado = array_key_first($this->gruposCartera) ?? '';
+}
     public function generarComisionesVenta(): void
     {
         $this->validatePeriodo();
@@ -35,7 +58,7 @@ class Index extends Component
             $controller = app(ComisionesController::class);
             $resultado = $controller->indexVentas($request);
 
-            $this->resultadoGenerado = is_array($resultado) ? $resultado : [];
+            $this->resultadoGenerado = json_decode(json_encode($resultado), true) ?? [];
             $this->tipoResultado = 'ventas';
 
             session()->flash('success', 'Comisiones de ventas generadas correctamente.');
@@ -49,20 +72,28 @@ class Index extends Component
     {
         $this->validatePeriodo();
 
+        if (!isset($this->gruposCartera[$this->grupoCarteraSeleccionado])) {
+            session()->flash('error', 'Debes seleccionar un grupo válido para cartera.');
+            return;
+        }
+
         try {
             $this->limpiarResultado();
 
             $request = new Request([
                 'periodo' => $this->periodoGenerar,
+                'codigos' => $this->gruposCartera[$this->grupoCarteraSeleccionado],
             ]);
 
             $controller = app(ComisionesController::class);
             $resultado = $controller->indexCartera($request);
 
-            if (is_array($resultado) && array_key_exists('codigo_asesor', $resultado)) {
-                $this->resultadoGenerado = [$resultado];
+            $resultadoNormalizado = json_decode(json_encode($resultado), true) ?? [];
+
+            if (is_array($resultadoNormalizado) && array_key_exists('codigo_asesor', $resultadoNormalizado)) {
+                $this->resultadoGenerado = [$resultadoNormalizado];
             } else {
-                $this->resultadoGenerado = is_array($resultado) ? $resultado : [];
+                $this->resultadoGenerado = $resultadoNormalizado;
             }
 
             $this->tipoResultado = 'cartera';
@@ -76,10 +107,15 @@ class Index extends Component
 
     public function exportarVentas()
     {
-        if (empty($this->resultadoGenerado) || $this->tipoResultado !== 'ventas') {
-            session()->flash('error', 'Primero debes generar el informe de ventas.');
-            return;
-        }
+        $this->validatePeriodo();
+
+        $request = new Request([
+            'periodo' => $this->periodoGenerar,
+        ]);
+
+        $controller = app(ComisionesController::class);
+        $resultado = $controller->indexVentas($request);
+        $resultado = json_decode(json_encode($resultado), true) ?? [];
 
         $rows = [];
         $rows[] = [
@@ -96,7 +132,7 @@ class Index extends Component
             'Comisión Total',
         ];
 
-        foreach ($this->resultadoGenerado as $fila) {
+        foreach ($resultado as $fila) {
             $rows[] = [
                 $fila['nombre_asesor'] ?? '',
                 $fila['codigo_asesor'] ?? '',
@@ -112,24 +148,8 @@ class Index extends Component
             ];
         }
 
-        $rows[] = [
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            'TOTAL GENERAL',
-            collect($this->resultadoGenerado)->sum(
-                fn($i) => (($i['repuestos']['comision'] ?? 0) + ($i['llantas']['comision'] ?? 0) + ($i['pirelli']['comision'] ?? 0))
-            ),
-        ];
-
-        return Excel::download(
-            new class($rows) implements FromArray {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new class($rows) implements \Maatwebsite\Excel\Concerns\FromArray {
                 public function __construct(private array $rows) {}
                 public function array(): array
                 {
