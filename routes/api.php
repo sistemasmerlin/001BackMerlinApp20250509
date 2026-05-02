@@ -97,7 +97,7 @@ Route::middleware('auth:sanctum')->get('/pqrs/mis-pqrs', [PQRSController::class,
 Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::class, 'show']); 
 
 Route::middleware(['auth:sanctum','role:Integrador|web'])->get('/productos-tienda', [IntegracionesController::class, 'index']);
-Route::middleware(['auth:sanctum','role:Integrador|web'])->post('/pedidos/guardar', [IntegracionesController::class, 'guardarPedido']);
+Route::middleware(['auth:sanctum','role:Integrador|web'])->post('/pedidos/integracion/guardar', [IntegracionesController::class, 'pedidos.integracion.guardar']);
 Route::middleware(['auth:sanctum', 'role:Integrador'])->post('/flete/calcular', [IntegracionesController::class, 'calcularFlete']);
 
 Route::middleware('auth:sanctum')->group(function () {
