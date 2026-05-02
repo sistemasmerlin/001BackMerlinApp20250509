@@ -21,7 +21,7 @@ class PedidoIntegracion {
         $url            = config('siesa.wsdl_url_pruebas');
 
 
-        // return $data = [
+        // return $data dd= [
         //     'nombreConexion' =>  $nombreConexion,
         //     'usuario' =>  $usuario,
         //     'clave' =>  $clave,
