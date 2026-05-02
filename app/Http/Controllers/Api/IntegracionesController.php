@@ -411,8 +411,8 @@ class IntegracionesController extends Controller
 
             $pedidoXml = new PedidoXml();
             
-            return $resultadoXml = $pedidoXml->generarXml($pedido);
             $resultadoXml = $pedidoXml->generarXml($pedido);
+            //$resultadoXml = $pedidoXml->generarXml($pedido);
  
             if ($resultadoXml['status'] !== 'success') {
 
