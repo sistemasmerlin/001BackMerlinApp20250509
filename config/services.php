@@ -32,6 +32,12 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'bagisto' => [
+        'base_url' => env('BAGISTO_API_URL', 'https://merlinrod.com/api'),
+        'email'    => env('BAGISTO_API_EMAIL'),
+        'password' => env('BAGISTO_API_PASSWORD'),
+    ],
+
     'numrot' => [
         'key' => env('NUMROT_KEY'),
         'secret' => env('NUMROT_SECRET'),

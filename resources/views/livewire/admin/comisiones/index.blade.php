@@ -15,21 +15,37 @@
     @if ($tipoResultado === 'ventas' && !empty($resultadoGenerado))
         <button
             wire:click="exportarVentas"
-            class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700 transition"
+            wire:loading.attr="disabled"
+            wire:target="exportarVentas"
+            class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700 transition disabled:opacity-60"
         >
-            Exportar ventas a Excel
+            <span wire:loading.remove wire:target="exportarVentas">
+                Exportar ventas a Excel
+            </span>
+
+            <span wire:loading wire:target="exportarVentas">
+                Preparando archivo...
+            </span>
         </button>
     @endif
 
     @if ($tipoResultado === 'cartera' && !empty($resultadoGenerado))
         <button
             wire:click="exportarCartera"
-            class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700 transition"
+            wire:loading.attr="disabled"
+            wire:target="exportarCartera"
+            class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700 transition disabled:opacity-60"
         >
-            Exportar cartera a Excel
+            <span wire:loading.remove wire:target="exportarCartera">
+                Exportar cartera a Excel
+            </span>
+
+            <span wire:loading wire:target="exportarCartera">
+                Preparando archivo...
+            </span>
         </button>
     @endif
-
+    
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <div class="mb-4">
             <h2 class="text-lg font-semibold text-slate-800">Generar comisiones</h2>

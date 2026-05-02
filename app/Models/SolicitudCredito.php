@@ -74,6 +74,12 @@ class SolicitudCredito extends Model
         'auco_response',
         'estado',
         'user_id',
+
+        'codigo_asesor',
+        'nombre_asesor',
+        'cedula_asesor',
+        'email_asesor',
+        'categoria_asesor',
     ];
 
     protected $casts = [

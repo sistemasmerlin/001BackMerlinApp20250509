@@ -306,6 +306,29 @@
         </tr>
     </table>
 
+
+    <table class="simple-table mt-12 notes">
+        <tr class="section-title">
+            ANEXAR FOTOGRAFÍAS 																				
+        </tr>
+        <tr>																		
+            EN CASO DE REQUERIRSE POR LA DIRECCIÓN COMERCIAL, SE DEBEN ADJUNTAR A ESTE FORMATO LAS FOTOGRAFÍAS DEL ESTABLECIMIENTO 
+            Y ENVIARLAS VÍA CORREO ELECTRÓNICO																				
+        </tr>
+        <tr>
+            <td>
+                <strong>Cláusula de Responsabilidad en la Firma de Solicitudes de Crédito:</strong><br><br>
+                El TRABAJADOR será responsable de verificar la autenticidad de los datos contenidos en las solicitudes de crédito 
+                y de garantizar que la firma corresponda al Representante Legal del solicitante, para lo cual debe constatar frente 
+                a Cámara de Comercio quien es el Representante Legal y estar presente al momento de la firma de todos los documentos 
+                necesarios para la solicitud de crédito o exigir que la firma del Representante Legal esté debidamente autenticada 
+                ante Notario Público. En caso de incumplir con esta obligación El TRABAJADOR deberá responder por los daños derivados 
+                de su incumplimiento, además será considerado falta grave y justa causa para dar por terminado el contrato de trabajo.
+            </td>
+        </tr>
+    </table>
+
+    <br>
     <div class="firma">
         <div class="firma-linea"></div>
         Firma y Cédula del ASESOR COMERCIAL

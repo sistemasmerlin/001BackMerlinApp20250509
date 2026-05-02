@@ -4,15 +4,23 @@ namespace App\Livewire\Admin\Usuarios;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
-use Livewire\WithPagination;
 
 class Index extends Component
 {
-    
-    public $usuarios, $name, $email, $password, $cedula, $codigo_asesor, $codigo_recibos, $usuario_id, $categoria_asesor;
+    public $usuarios,
+        $name,
+        $email,
+        $password,
+        $cedula,
+        $codigo_asesor,
+        $nombre_asesor,
+        $codigo_recibos,
+        $usuario_id,
+        $categoria_asesor,
+        $celular;
+
     public $roles = [], $rolesSeleccionados = [];
     public $nuevaPassword;
     public $mostrarPassword = false;
@@ -23,12 +31,25 @@ class Index extends Component
     {
         $this->usuarios = User::with('roles')->get();
         $this->roles = Role::all();
-
     }
 
     public function abrirModal()
     {
-        $this->reset(['name', 'email', 'password', 'cedula', 'codigo_asesor', 'codigo_recibos', 'rolesSeleccionados', 'usuario_id', 'categoria_asesor']);
+        $this->reset([
+            'name',
+            'email',
+            'password',
+            'cedula',
+            'codigo_asesor',
+            'nombre_asesor',
+            'codigo_recibos',
+            'rolesSeleccionados',
+            'usuario_id',
+            'categoria_asesor',
+            'nuevaPassword',
+            'mostrarPassword',
+        ]);
+
         $this->modoEditar = false;
         $this->openModal = true;
     }
@@ -36,21 +57,26 @@ class Index extends Component
     public function actualizarUsuario()
     {
         $this->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->usuario_id,
             'cedula' => 'required|unique:users,cedula,' . $this->usuario_id,
+            'celular' => 'nullable|string|max:20',
             'codigo_asesor' => 'required|unique:users,codigo_asesor,' . $this->usuario_id,
+            'nombre_asesor' => 'nullable|string|max:255',
             'codigo_recibos' => 'required|unique:users,codigo_recibos,' . $this->usuario_id,
-            'categoria_asesor' => 'required|in:senior,master', // ✅ NUEVO
+            'categoria_asesor' => 'required|in:senior,master',
+            'nuevaPassword' => 'nullable|min:6',
         ]);
 
-        $usuario = User::find($this->usuario_id);
+        $usuario = User::findOrFail($this->usuario_id);
 
         $usuario->update([
             'name' => $this->name,
             'email' => $this->email,
             'cedula' => $this->cedula,
+            'celular' => $this->celular,
             'codigo_asesor' => $this->codigo_asesor,
+            'nombre_asesor' => $this->nombre_asesor,
             'codigo_recibos' => $this->codigo_recibos,
             'categoria_asesor' => $this->categoria_asesor,
         ]);
@@ -60,12 +86,19 @@ class Index extends Component
                 'password' => Hash::make($this->nuevaPassword),
             ]);
         }
-        
-        // ✅ Asegúrate de convertir los IDs a nombres de roles
+
         $nombresRoles = Role::whereIn('id', $this->rolesSeleccionados)->pluck('name')->toArray();
         $usuario->syncRoles($nombresRoles);
 
-        $this->reset(['openModal', 'modoEditar', 'usuario_id', 'rolesSeleccionados']);
+        $this->reset([
+            'openModal',
+            'modoEditar',
+            'usuario_id',
+            'rolesSeleccionados',
+            'nuevaPassword',
+            'mostrarPassword',
+        ]);
+
         session()->flash('success', 'Usuario actualizado correctamente');
 
         return redirect(request()->header('Referer'));
@@ -79,10 +112,14 @@ class Index extends Component
         $this->name = $usuario->name;
         $this->email = $usuario->email;
         $this->cedula = $usuario->cedula;
+        $this->celular = $usuario->celular;
         $this->codigo_asesor = $usuario->codigo_asesor;
+        $this->nombre_asesor = $usuario->nombre_asesor;
         $this->codigo_recibos = $usuario->codigo_recibos;
-        $this->categoria_asesor = $usuario->categoria_asesor; 
+        $this->categoria_asesor = $usuario->categoria_asesor;
         $this->rolesSeleccionados = $usuario->roles->pluck('id')->toArray();
+        $this->nuevaPassword = null;
+        $this->mostrarPassword = false;
 
         $this->modoEditar = true;
         $this->openModal = true;
@@ -91,13 +128,14 @@ class Index extends Component
     public function guardarUsuario()
     {
         $this->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->usuario_id,
             'password' => $this->modoEditar ? 'nullable|min:6' : 'required|min:6',
             'cedula' => 'required|unique:users,cedula,' . $this->usuario_id,
             'codigo_asesor' => 'required|unique:users,codigo_asesor,' . $this->usuario_id,
+            'nombre_asesor' => 'nullable|string|max:255',
             'codigo_recibos' => 'required|unique:users,codigo_recibos,' . $this->usuario_id,
-            'categoria_asesor' => 'required|in:senior,master', // ✅ NUEVO
+            'categoria_asesor' => 'required|in:senior,master',
         ]);
 
         $data = [
@@ -105,6 +143,7 @@ class Index extends Component
             'email' => $this->email,
             'cedula' => $this->cedula,
             'codigo_asesor' => $this->codigo_asesor,
+            'nombre_asesor' => $this->nombre_asesor,
             'codigo_recibos' => $this->codigo_recibos,
             'categoria_asesor' => $this->categoria_asesor,
         ];
@@ -120,11 +159,27 @@ class Index extends Component
         $nombresRoles = Role::whereIn('id', $this->rolesSeleccionados)->pluck('name')->toArray();
         $usuario->syncRoles($nombresRoles);
 
-        $this->reset(['openModal', 'modoEditar', 'usuario_id']);
+        $this->reset([
+            'openModal',
+            'modoEditar',
+            'usuario_id',
+            'name',
+            'email',
+            'password',
+            'cedula',
+            'codigo_asesor',
+            'nombre_asesor',
+            'codigo_recibos',
+            'categoria_asesor',
+            'rolesSeleccionados',
+            'nuevaPassword',
+            'mostrarPassword',
+        ]);
+
         session()->flash('success', $this->modoEditar ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
 
         $this->usuarios = User::with('roles')->get();
-        
+
         return redirect(request()->header('Referer'));
     }
 
@@ -132,7 +187,6 @@ class Index extends Component
     {
         $usuario = User::findOrFail($id);
 
-        // Por seguridad podrías evitar que elimine a sí mismo
         if (auth()->id() === $usuario->id) {
             session()->flash('error', 'No puedes eliminar tu propio usuario.');
             return;
@@ -151,5 +205,4 @@ class Index extends Component
             'roles' => Role::all(),
         ]);
     }
-    
 }

@@ -41,9 +41,11 @@
                     <thead class="text-xs uppercase bg-zinc-50 text-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-300">
                         <tr>
                             <th class="px-4 py-3">Id Asesor</th>
+                            <th class="px-4 py-3">Nombre asesor</th>
                             <th class="px-4 py-3">Id Recibos</th>
                             <th class="px-4 py-3">Cédula</th>
                             <th class="px-4 py-3">Nombre</th>
+                            <th class="px-4 py-3">Celular</th>
                             <th class="px-4 py-3">Email</th>
                             <th class="px-4 py-3">Rol</th>
                             <th class="px-4 py-3">Categoría</th>
@@ -55,6 +57,7 @@
                         @forelse ($usuarios as $usuario)
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
                                 <td class="px-4 py-3">{{ $usuario->codigo_asesor }}</td>
+                                <td class="px-4 py-3">{{ $usuario->nombre_asesor ?: '—' }}</td>
                                 <td class="px-4 py-3">{{ $usuario->codigo_recibos }}</td>
                                 <td class="px-4 py-3">{{ $usuario->cedula }}</td>
 
@@ -70,6 +73,7 @@
                                     </div>
                                 </td>
 
+                                <td class="px-4 py-3">{{ $usuario->celular }}</td>
                                 <td class="px-4 py-3">{{ $usuario->email }}</td>
 
                                 <td class="px-4 py-3">
@@ -168,13 +172,23 @@
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                        {{-- Nombre --}}
+                        {{-- Nombre zona--}}
                         <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre</label>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre Zona</label>
                             <input type="text" wire:model.defer="name"
                                 class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
                                        dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
                             @error('name') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+                        
+                        {{-- Nombre asesor --}}
+
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre asesor</label>
+                            <input type="text" wire:model.defer="nombre_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                    dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('nombre_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Email --}}
@@ -218,6 +232,16 @@
                                 class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
                                        dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
                             @error('cedula') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Celular --}}
+
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Celular</label>
+                            <input type="text" wire:model.defer="celular"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                    dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                            @error('celular') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Código asesor --}}

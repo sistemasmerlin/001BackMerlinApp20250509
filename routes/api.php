@@ -14,8 +14,9 @@ use App\Http\Controllers\Api\NoticiasController;
 use App\Http\Controllers\Api\BackorderController;
 use App\Http\Controllers\Api\MotivosVisitaController;
 use App\Http\Controllers\Api\ComercialController;
-use App\Http\Controllers\Api\IntegracionTiendaController;
 use App\Http\Controllers\Api\PQRSController;
+use App\Http\Controllers\Api\IntegracionesController;
+use Illuminate\Http\Request;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -28,8 +29,6 @@ Route::middleware('auth:sanctum')->get('/terceros/{id}', [TercerosController::cl
 Route::middleware('auth:sanctum')->get('/terceros/consulta/{codigo_asesor}/{nit}', [TercerosController::class, 'consultarTercero']);
 
 Route::middleware('auth:sanctum')->get('/productos', [ProductosController::class, 'index']);
-
-Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionTiendaController::class, 'index']);
 
 Route::middleware('auth:sanctum')->get('/promociones', [PromocionesController::class, 'index']);
 
@@ -97,6 +96,9 @@ Route::middleware('auth:sanctum')->post('/pqrs/ciudades', [PQRSController::class
 Route::middleware('auth:sanctum')->get('/pqrs/mis-pqrs', [PQRSController::class, 'index']); 
 Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::class, 'show']); 
 
+Route::middleware(['auth:sanctum','role:Integrador|web'])->get('/productos-tienda', [IntegracionesController::class, 'index']);
+Route::middleware(['auth:sanctum','role:Integrador|web'])->get('/pedidos/guardar', [IntegracionesController::class, 'guardarPedido']);
+Route::middleware(['auth:sanctum', 'role:Integrador'])->post('/flete/calcular', [IntegracionesController::class, 'calcularFlete']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/solicitudes-credito', [SolicitudCreditoController::class, 'store']);

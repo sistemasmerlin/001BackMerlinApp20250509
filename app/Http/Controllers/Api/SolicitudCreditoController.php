@@ -102,7 +102,18 @@ class SolicitudCreditoController extends Controller
             'direcciones_adicionales.*.cod_ciudad' => ['nullable', 'string', 'max:10'],
             'direcciones_adicionales.*.ciudad' => ['nullable', 'string', 'max:120'],
             'direcciones_adicionales.*.telefono' => ['nullable', 'string', 'max:30'],
+
+            'usuario_creador' => ['nullable', 'array'],
+            'usuario_creador.id' => ['nullable'],
+            'usuario_creador.name' => ['nullable', 'string', 'max:255'],
+            'usuario_creador.email' => ['nullable', 'string', 'max:255'],
+            'usuario_creador.codigo_asesor' => ['nullable', 'string', 'max:50'],
+            'usuario_creador.nombre_asesor' => ['nullable', 'string', 'max:255'],
+            'usuario_creador.cedula' => ['nullable', 'string', 'max:50'],
+            'usuario_creador.celular' => ['nullable', 'string', 'max:50'],
         ]);
+
+        $data = $this->convertirMayusculas($data);
 
         $data['rte_fuente'] = $this->toBool($request->input('rte_fuente'));
         $data['rte_iva']    = $this->toBool($request->input('rte_iva'));
@@ -113,6 +124,13 @@ class SolicitudCreditoController extends Controller
         $data['autorizacion_cod_ciudad'] = $data['cod_ciudad'] ?? null;
         $data['autorizacion_ciudad'] = $data['ciudad'] ?? null;
         $data['autorizacion_fecha'] = $data['fecha_solicitud'] ?? null;
+
+        $usuarioCreador = $request->input('usuario_creador', []);
+
+        $data['codigo_asesor'] = $usuarioCreador['codigo_asesor'] ?? null;
+        $data['nombre_asesor'] = $usuarioCreador['nombre_asesor'] ?? null;
+        $data['cedula_asesor'] = $usuarioCreador['cedula'] ?? null;
+        $data['email_asesor'] = $usuarioCreador['email'] ?? null;
         
 
         $referencias = collect($request->input('referencias_comerciales', []))
@@ -173,6 +191,8 @@ class SolicitudCreditoController extends Controller
             return $solicitud->load(['referencias', 'direcciones']);
         });
 
+        //return $solicitud;
+
         // 1. generar PDFs individuales
         $pdfSolicitud = Pdf::loadView('admin.solicitudes_credito.pdf.solicitud', [
             'solicitud' => $solicitud,
@@ -197,6 +217,12 @@ class SolicitudCreditoController extends Controller
         $nombreFirmante = $solicitud->representante_legal ?: $solicitud->autorizacion_nombre_1;
         $emailFirmante = $solicitud->correo_electronico ?: $solicitud->autorizacion_correo;
         $nitFirmante = $solicitud->nit_cc;
+        $celularFirmante = $solicitud->celular ?? $solicitud->telefono_fijo;
+
+        $nombreFirmanteAsesor = $solicitud->nombre_asesor;
+        $emailFirmanteAsesor = $solicitud->email_asesor;
+        $nitFirmanteAsesor = $solicitud->cedula_asesor;
+        $celularFirmanteAsesor = $solicitud->celular_asesor;
 
         if (!$nombreFirmante || !$emailFirmante) {
             $solicitud->update([
@@ -219,11 +245,12 @@ class SolicitudCreditoController extends Controller
             'message' => 'Por favor revisa y firma el documento adjunto.',
             'remember' => 3, 
             'email' => config('services.auco.owner_email'),
+            //'email' => $emailFirmanteAsesor,
             'signProfile' => [
                 [
+                    'type' => 'firmante1',
                     'name' => $nombreFirmante,
                     'email' => $emailFirmante,
-                    'label' => true,
                     'camera' => true,
                     'otpCode' => true,
                     'identification' => $nitFirmante,
@@ -231,10 +258,28 @@ class SolicitudCreditoController extends Controller
                     'country' => 'CO',
                     'options' => [
                         'camera' => 'identification',
-                        'video' => 'true',
-                        'whatsapp' => 'true',
+                        'video' => true,
+                        'whatsapp' => true,
                         'otpCode' => 'email'
-                    ]
+                    ],
+                    'phone' => '+57'.$celularFirmante
+                ],
+                [
+                    'type' => 'firmante2',
+                    'name' => $nombreFirmanteAsesor,
+                    'email' => $emailFirmanteAsesor,
+                    'camera' => true,
+                    'otpCode' => true,
+                    'identification' => $nitFirmanteAsesor,
+                    'identificationType' => 'CC',
+                    'country' => 'CO',
+                    'options' => [
+                        'camera' => 'identification',
+                        'video' => true,
+                        'whatsapp' => true,
+                        'otpCode' => 'email'
+                    ],
+                    'phone' => '+57'.$celularFirmanteAsesor
                 ]
             ],
             'readers' => [
@@ -313,7 +358,6 @@ class SolicitudCreditoController extends Controller
             'data' => $solicitud->fresh(['referencias', 'direcciones']),
         ], 201);
     }
-
     private function unirPdfs(array $pdfBinaries): string
     {
         $tempFiles = [];
@@ -350,7 +394,6 @@ class SolicitudCreditoController extends Controller
             }
         }
     }
-
     private function referenciaCompleta(array $ref): bool
     {
         return filled($ref['empresa'] ?? null)
@@ -445,5 +488,26 @@ class SolicitudCreditoController extends Controller
         $absolutePath = Storage::disk($solicitud->pdf_unificado_disk)->path($solicitud->pdf_unificado_path);
 
         return response()->file($absolutePath);
+    }
+
+    private function convertirMayusculas($data, $key = null)
+    {
+        if (is_array($data)) {
+            $resultado = [];
+            foreach ($data as $k => $v) {
+                $resultado[$k] = $this->convertirMayusculas($v, $k);
+            }
+            return $resultado;
+        }
+
+        if (is_string($data)) {
+            if (str_contains($key ?? '', 'correo') || str_contains($key ?? '', 'email')) {
+                return mb_strtolower($data, 'UTF-8'); // 👈 correos en minúscula
+            }
+
+            return mb_strtoupper($data, 'UTF-8');
+        }
+
+        return $data;
     }
 }

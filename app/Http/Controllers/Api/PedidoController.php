@@ -510,6 +510,7 @@ class PedidoController extends Controller
 
             DB::commit();
 
+            
             try {
                 // correos
                 $correos = array_map('trim', explode(',', $pedido->correo_cliente));
@@ -528,6 +529,7 @@ class PedidoController extends Controller
                     'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se ha enviado los correos.'
                 ], 200);
             }
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -749,7 +751,6 @@ class PedidoController extends Controller
             ], 500);
         }
     }
-
     public function pedidosEspeciales($codigo_asesor)
     {
         $pedidos = Pedido::where('prefijo','=','PES')
@@ -765,7 +766,6 @@ class PedidoController extends Controller
             'mensaje' => 'Se retornan los pedidos con negociación especial',
         ], 200);
     }
-
     public function detallePedidoEspecial($id_pedido)
     {
         $detalle = DetallePedido::where('pedido_id','=',$id_pedido)->get();
@@ -796,4 +796,5 @@ class PedidoController extends Controller
 
         return 'Desconocida';
     }
+
 }

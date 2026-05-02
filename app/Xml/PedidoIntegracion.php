@@ -6,7 +6,7 @@ namespace App\Xml;
 use App\Models\Pedido as PedidoModel;
 use Illuminate\Support\Facades\DB;
 
-class Pedido {
+class PedidoIntegracion {
 
     public function generarXml($pedido)
     {
@@ -110,36 +110,6 @@ class Pedido {
 
                 }
 
-                $clientesSinFlete = [
-                    '900145348',
-                    '1122136087',
-                    '811044788',
-                    '900110012',
-                    '41786728',
-                    '800089111',
-                    '901336602',
-                    '830106854',
-                    '830084544',
-                    '800251197',
-                    '805000253',
-                    '901349350',
-                    '901348610',
-                    '901343251',
-                    '1090396325',
-                    '900732297',
-                    '900447351',
-                    '891410137',
-                    '4777956',
-                    '901541791',
-                    '901506846',
-                    '901409689',
-                    '901596901',
-                    '1127572126'
-                ];
-
-                if (in_array($idCliente, $clientesSinFlete)) {
-                    $flete = 0;
-                }
 
                 if ($flete > 0) {
                     // Función auxiliar para completar con ceros o espacios
