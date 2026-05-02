@@ -18,7 +18,7 @@ class Pedido {
         $nombreConexion = config('siesa.nombre_conexion');
         $usuario        = config('siesa.usuario');
         $clave          = config('siesa.clave');
-        $url            = config('siesa.wsdl_url_pruebas');
+        $url            = config('siesa.wsdl_url');
 
 
         // return $data = [
