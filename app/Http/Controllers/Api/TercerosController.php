@@ -59,7 +59,7 @@ class TercerosController extends Controller
             AVG(CAST(pago.Dias_Prom_pago AS FLOAT)) AS pago,
 
             MAX(t215.f215_descripcion) AS descripcion_punto_envio,
-            MAX(ult_factura.f461_ts) AS ultima_factura,
+            MAX(ult_factura.f461_id_fecha) AS ultima_factura,
             MAX(t015.f015_rowid) AS contacto_id
         FROM t200_mm_terceros t200
         JOIN t201_mm_clientes t201
@@ -69,13 +69,13 @@ class TercerosController extends Controller
         LEFT JOIN t015_mm_contactos t015
             ON t015.f015_rowid = t215.f215_rowid_contacto
         OUTER APPLY (
-            SELECT TOP 1 f461_ts
+            SELECT TOP 1 f461_id_fecha
             FROM t461_cm_docto_factura_venta f
             WHERE f.f461_rowid_tercero_fact = t200.f200_rowid
                 AND f.f461_id_cia = 3 AND f.f461_id_concepto = 501
                 AND f.f461_num_docto_referencia IS NOT NULL
                 AND LTRIM(RTRIM(f.f461_num_docto_referencia)) <> ''
-            ORDER BY f.f461_ts DESC
+            ORDER BY f.f461_id_fecha DESC
         ) ult_factura
         LEFT JOIN (
             SELECT t200.f200_rowid AS rowid, t201.f201_id_sucursal AS sucursal, SUM(v431_vlr_neto_pen_local) AS pedidos
