@@ -92,22 +92,43 @@ class IntegracionesController extends Controller
     }
 
     private function obtenerTokenBagisto(): ?string
-    {
-        return Cache::remember('bagisto_api_token', now()->addHours(8), function () {
-            $response = Http::acceptJson()
-                ->asJson()
-                ->post(config('services.bagisto.base_url') . '/integraciones/login', [
-                    'email'    => config('services.bagisto.email'),
-                    'password' => config('services.bagisto.password'),
-                ]);
+{
+    return Cache::remember('bagisto_api_token', now()->addHours(8), function () {
+        $response = Http::acceptJson()
+            ->post(config('services.bagisto.base_url') . '/integraciones/login', [
+                'email'    => config('services.bagisto.email'),
+                'password' => config('services.bagisto.password'),
+            ]);
 
-            if ($response->failed()) {
-                return null;
-            }
+        if ($response->failed()) {
+            \Log::error('Error login Bagisto', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
 
-            return $response->json('token');
-        });
-    }
+            return null;
+        }
+
+        return $response->json('token');
+    });
+}
+    // private function obtenerTokenBagisto(): ?string
+    // {
+    //     return Cache::remember('bagisto_api_token', now()->addHours(8), function () {
+    //         $response = Http::acceptJson()
+    //             ->asJson()
+    //             ->post(config('services.bagisto.base_url') . '/integraciones/login', [
+    //                 'email'    => config('services.bagisto.email'),
+    //                 'password' => config('services.bagisto.password'),
+    //             ]);
+
+    //         if ($response->failed()) {
+    //             return null;
+    //         }
+
+    //         return $response->json('token');
+    //     });
+    // }
 
     private function consultarProductosBagisto(string $token, Request $request)
     {
