@@ -130,6 +130,7 @@ class SolicitudCreditoController extends Controller
         $data['codigo_asesor'] = $usuarioCreador['codigo_asesor'] ?? null;
         $data['nombre_asesor'] = $usuarioCreador['nombre_asesor'] ?? null;
         $data['cedula_asesor'] = $usuarioCreador['cedula'] ?? null;
+        $data['celular_asesor'] = $usuarioCreador['celular'] ?? null;
         $data['email_asesor'] = $usuarioCreador['email'] ?? null;
         
 

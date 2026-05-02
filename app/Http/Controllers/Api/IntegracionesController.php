@@ -95,6 +95,7 @@ class IntegracionesController extends Controller
     {
         return Cache::remember('bagisto_api_token', now()->addHours(8), function () {
             $response = Http::acceptJson()
+                ->asJson()
                 ->post(config('services.bagisto.base_url') . '/integraciones/login', [
                     'email'    => config('services.bagisto.email'),
                     'password' => config('services.bagisto.password'),
