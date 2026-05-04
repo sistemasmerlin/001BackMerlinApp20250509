@@ -96,7 +96,7 @@ class PedidoController extends Controller
             // Validación en Siesa
             $info_pedido = Pedido::with('direccionEnvio')->find($pedido->id);
 
-            return $validacion_siesa = DB::connection('sqlsrv')->select("SELECT f_id_tipo_docto as prefijo, f_nrodocto as consecutivo 
+            $validacion_siesa = DB::connection('sqlsrv')->select("SELECT f_id_tipo_docto as prefijo, f_nrodocto as consecutivo 
                 FROM BI_T430 
                 WHERE f_parametro_biable = 3 AND f_id_cia = 3 
                 AND f_cliente_desp = ? AND f_cliente_fact_suc = ? AND f_punto_envio = ? AND f_orden_compra = ?", [
