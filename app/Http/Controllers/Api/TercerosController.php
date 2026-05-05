@@ -109,6 +109,7 @@ class TercerosController extends Controller
                 AND f253_ind_sa = 1 AND f253_ind_naturaleza = 1
             INNER JOIN t201_mm_clientes t201 ON t201.f201_rowid_tercero = f353_rowid_tercero
                 AND t201.f201_id_sucursal = f353_id_sucursal
+                AND f353_id_cond_pago  NOT IN ('CON','CO1','1DI')
             INNER JOIN t200_mm_terceros t200 ON t200.f200_rowid = t201.f201_rowid_tercero
             WHERE f353_fecha_cancelacion IS NOT NULL
                 AND f353_id_cia = 3
