@@ -200,6 +200,12 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '316427300' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316429200' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316429300' THEN 'WDT BIKE'
+                    WHEN rtrim(t120.f120_referencia) = '101081100' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
+                    WHEN rtrim(t120.f120_referencia) = '101100400' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
+                    WHEN rtrim(t120.f120_referencia) = '101120400' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
+                    WHEN rtrim(t120.f120_referencia) = '101121101' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
+                    WHEN rtrim(t120.f120_referencia) = '101100700' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
+                    WHEN rtrim(t120.f120_referencia) = '101101100' THEN 'LLANTA PARA MOVILIDAD ELECTRICA'
                 ELSE
                 rtrim(t106.f106_descripcion) END AS marca
                 ,CASE 

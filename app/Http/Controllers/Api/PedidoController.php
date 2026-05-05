@@ -204,6 +204,7 @@ class PedidoController extends Controller
             'cliente.nit' => 'required|string', 
             'cliente.facturas_vencidas' => 'required|string', 
             'cliente.razon_social' => 'required|string',
+            'cliente.tercero_id' => 'required|numeric',
             'cliente.email' => 'nullable|email',
             'sucursal.id_sucursal' => 'required|string',
             'sucursal.descripcion_sucursal' => 'required|string',
@@ -215,6 +216,57 @@ class PedidoController extends Controller
             'creadoPor.nombre' => 'required|string',
             'creadoPor.codigo' => 'required|string',
         ]);
+
+        $validacion_dias_pago = DB::connection('sqlsrv')->select("
+            SELECT 
+                t201.f201_rowid_tercero AS rowid, 
+                t201.f201_id_sucursal AS sucursal,
+                AVG(DATEDIFF(DAY, f353_fecha, f353_fecha_cancelacion_rec)) AS Dias_Prom_pago
+            FROM t353_co_saldo_abierto
+            INNER JOIN t253_co_auxiliares 
+                ON f253_rowid = f353_rowid_auxiliar
+                AND f253_ind_sa = 1 
+                AND f253_ind_naturaleza = 1
+            INNER JOIN t201_mm_clientes t201 
+                ON t201.f201_rowid_tercero = f353_rowid_tercero
+                AND t201.f201_id_sucursal = f353_id_sucursal
+                AND t201.f201_rowid_tercero = ?
+            INNER JOIN t200_mm_terceros t200 
+                ON t200.f200_rowid = t201.f201_rowid_tercero
+            WHERE f353_fecha_cancelacion IS NOT NULL
+                AND f353_id_cia = 3
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM t354_co_mov_saldo_abierto
+                    INNER JOIN t350_co_docto_contable 
+                        ON f350_rowid = f354_rowid_docto
+                        AND f350_id_clase_docto IN (25, 37, 521, 525, 526, 531, 1030)
+                    WHERE f354_rowid_sa = f353_rowid 
+                    AND f350_id_cia = 3
+                )
+            GROUP BY 
+                t201.f201_rowid_tercero, 
+                t201.f201_id_sucursal
+        ", [
+            $request->cliente['tercero_id']
+        ]);
+
+        $estadoGeneral = $request->estado_general ?? [
+            'nombre' => '',
+            'codigo' => '',
+        ];
+
+        if (!empty($validacion_dias_pago) && $validacion_dias_pago[0]->Dias_Prom_pago !== null) {
+            $dias = (int) round($validacion_dias_pago[0]->Dias_Prom_pago);
+
+            if ($dias >= 70) {
+                $estadoGeneral = [
+                    'nombre' => 'En elaboración',
+                    'codigo' => 0,
+                ];
+            }
+        }
+                        
 
         $referenciasValidar = collect($request->productos)->pluck('referencia')->unique()->toArray();
         $referenciasSql = "'" . implode("','", array_map('addslashes', $referenciasValidar)) . "'";
@@ -284,8 +336,10 @@ class PedidoController extends Controller
                 'nit' => $request->cliente['nit'],
                 'razon_social' => $request->cliente['razon_social'],
                 'lista_precio' => $request->sucursal['lista_precio'] ?? '',
-                'estado_siesa' => $request->estado_general['nombre'] ?? '',
-                'id_estado_pedido' => $request->estado_general['codigo'] ?? '',
+                'estado_siesa' => $estadoGeneral['nombre'] ?? '',
+                'id_estado_pedido' => $estadoGeneral['codigo'] ?? '',
+                // 'estado_siesa' => $request->estado_general['nombre'] ?? '',
+                // 'id_estado_pedido' => $request->estado_general['codigo'] ?? '',
                 'prefijo' => 'PAM',
                 'nota' => 'Nota',
                 'orden_compra' => $orden_compra,
