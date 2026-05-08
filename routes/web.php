@@ -39,6 +39,7 @@ use App\Http\Controllers\Admin\PresupuestoComercialController;
 use App\Http\Controllers\Admin\SolicitudCredito;
 use App\Http\Controllers\Api\InteresesCarteraController;
 use App\Livewire\Admin\SolicitudesCredito\Index as SolicitudesCreditoIndex;
+use App\Livewire\Admin\SolicitudesCredito\Detalle  as SolicitudesCreditoIDetalle;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -68,6 +69,7 @@ Route::middleware(['auth'])->prefix('admin/solicitudes-credito')->group(function
     Route::post('/{solicitud}/firmar/solicitud', [SolicitudCreditoController::class, 'enviarSolicitudAFirma'])->name('admin.solicitudes-credito.firmar.solicitud');
     Route::get('/{solicitud}/pdf/unificado/ver', [SolicitudCreditoController::class, 'verPdfUnificado'])->name('admin.solicitudes-credito.pdf.unificado.ver');
     Route::get('/{solicitud}/pdf/unificado/descargar', [SolicitudCreditoController::class, 'descargarPdfUnificado'])->name('admin.solicitudes-credito.pdf.unificado.descargar');    
+    Route::get('/{solicitud}', SolicitudesCreditoIDetalle::class)->name('admin.solicitudes-credito.show');
 });
 
 Route::middleware(['auth'])->prefix('admin/pqrs')->group(function () {

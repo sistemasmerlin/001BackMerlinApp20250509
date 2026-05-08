@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use App\Models\SolicitudCreditoDocumento;
 class SolicitudCredito extends Model
 {
     use SoftDeletes;
@@ -78,6 +78,7 @@ class SolicitudCredito extends Model
         'codigo_asesor',
         'nombre_asesor',
         'cedula_asesor',
+        'celular_asesor',
         'email_asesor',
         'categoria_asesor',
     ];
@@ -91,7 +92,8 @@ class SolicitudCredito extends Model
         'ventas_proyectadas_mes' => 'decimal:2',
         'cupo_sugerido' => 'decimal:2',
         'auco_response' => 'array',
-        'tipo_negocio' => 'array',
+        //'tipo_negocio' => 'array',
+        'tipo_negocio' => 'string',
     ];
 
     public function referencias()
@@ -104,8 +106,14 @@ class SolicitudCredito extends Model
         return $this->hasMany(SolicitudCreditoDireccion::class, 'solicitud_credito_id');
     }
 
+    public function documentos()
+    {
+        return $this->hasMany(SolicitudCreditoDocumento::class, 'solicitud_credito_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
 }

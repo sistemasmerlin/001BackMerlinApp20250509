@@ -159,6 +159,13 @@ class SolicitudCreditoController extends Controller
         $solicitud = DB::transaction(function () use ($data, $referencias, $direcciones) {
             unset($data['referencias_comerciales'], $data['direcciones_adicionales']);
 
+            $data['tipo_negocio'] = $this->arrayToString($data['tipo_negocio'] ?? null);
+            $data['puntos_venta'] = $this->arrayToString($data['puntos_venta'] ?? null);
+            $data['canal_tradicional'] = $this->arrayToString($data['canal_tradicional'] ?? null);
+            $data['canal_corporativo'] = $this->arrayToString($data['canal_corporativo'] ?? null);
+            $data['numero_empleados'] = $this->arrayToString($data['numero_empleados'] ?? null);
+            $data['antiguedad_comercial'] = $this->arrayToString($data['antiguedad_comercial'] ?? null);
+
             $solicitud = SolicitudCredito::create([
                 ...$data,
                 'user_id' => Auth::id(),
@@ -510,5 +517,15 @@ class SolicitudCreditoController extends Controller
         }
 
         return $data;
+    }
+
+
+    private function arrayToString($value): ?string
+    {
+        if (is_array($value)) {
+            return implode(', ', array_filter($value));
+        }
+
+        return filled($value) ? (string) $value : null;
     }
 }

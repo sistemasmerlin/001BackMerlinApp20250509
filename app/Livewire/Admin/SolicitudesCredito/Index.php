@@ -7,13 +7,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $modal = false;
+    public bool $modalDetalle = false;
+    public ?SolicitudCredito $solicitudDetalle = null;
+    public $nuevoPdf;
 
     public $solicitud = [
         'cod_depto' => '',
@@ -284,5 +289,60 @@ class Index extends Component
             ->paginate(10);
 
         return view('livewire.admin.solicitudes-credito.index', compact('solicitudes'));
+    }
+
+
+    public function verDetalle(int $id): void
+{
+    $this->solicitudDetalle = SolicitudCredito::with(['referencias', 'direcciones', 'user'])
+        ->findOrFail($id);
+
+    $this->nuevoPdf = null;
+    $this->modalDetalle = true;
+}
+
+public function cerrarDetalle(): void
+{
+    $this->modalDetalle = false;
+    $this->solicitudDetalle = null;
+    $this->nuevoPdf = null;
+}
+
+    public function reemplazarPdf(): void
+    {
+        $this->validate([
+            'nuevoPdf' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        if (!$this->solicitudDetalle) {
+            session()->flash('error', 'No hay solicitud seleccionada.');
+            return;
+        }
+
+        $solicitud = SolicitudCredito::findOrFail($this->solicitudDetalle->id);
+
+        if ($solicitud->pdf_unificado_disk && $solicitud->pdf_unificado_path) {
+            if (Storage::disk($solicitud->pdf_unificado_disk)->exists($solicitud->pdf_unificado_path)) {
+                Storage::disk($solicitud->pdf_unificado_disk)->delete($solicitud->pdf_unificado_path);
+            }
+        }
+
+        $disk = 'public';
+        $carpeta = 'solicitudes_credito/' . $solicitud->id;
+        $nombreArchivo = 'solicitud_credito_' . $solicitud->id . '_reemplazado_' . now()->format('YmdHis') . '.pdf';
+
+        $ruta = $this->nuevoPdf->storeAs($carpeta, $nombreArchivo, $disk);
+
+        $solicitud->update([
+            'pdf_unificado_disk' => $disk,
+            'pdf_unificado_path' => $ruta,
+            'pdf_unificado_nombre' => $nombreArchivo,
+            'auco_status' => 'pdf_reemplazado',
+        ]);
+
+        $this->solicitudDetalle = $solicitud->fresh(['referencias', 'direcciones', 'user']);
+        $this->nuevoPdf = null;
+
+        session()->flash('success', 'PDF reemplazado correctamente.');
     }
 }

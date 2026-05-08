@@ -201,6 +201,13 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+                    @can('Administrar solicitudes de credito')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('admin.solicitudes-credito.index')" :current="request()->routeIs('admin.solicitudes-credito.index')" wire:navigate>
+                            {{ __('Solicitudes de credito') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
                     @can('Administrar presupuesto cartera')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('presupuesto.cartera.index')" :current="request()->routeIs('presupuesto.cartera.*')" wire:navigate>

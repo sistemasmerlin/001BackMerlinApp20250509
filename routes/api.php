@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ComercialController;
 use App\Http\Controllers\Api\PQRSController;
 use App\Http\Controllers\Api\IntegracionesController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -104,4 +105,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/solicitudes-credito', [SolicitudCreditoController::class, 'store']);
     Route::get('/solicitudes-credito/enviadas', [SolicitudCreditoController::class, 'enviadas']);
     Route::get('/solicitudes-credito/{solicitud}/pdf-unificado', [SolicitudCreditoController::class, 'verPdfUnificadoApi']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get(
+        '/solicitudes-credito/{solicitud}/documentos',
+        [SolicitudCreditoDocumentoController::class, 'index']
+    );
+
+    Route::post(
+        '/solicitudes-credito/documentos/subir',
+        [SolicitudCreditoDocumentoController::class, 'store']
+    );
+
+    Route::delete(
+        '/solicitudes-credito/documentos/{documento}',
+        [SolicitudCreditoDocumentoController::class, 'destroy']
+    );
+
 });
