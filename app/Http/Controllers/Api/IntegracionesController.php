@@ -584,7 +584,7 @@ class IntegracionesController extends Controller
             DB::commit();
 
             try {
-                
+
                 $correos = ['rdalzate@utp.edu.co','sistemas@merlinrod.com','btob.logistica@virtualllantas.com','usuario09@virtualllantas.com'];
 
                 Mail::to($correos)
@@ -653,6 +653,19 @@ class IntegracionesController extends Controller
 
     private function obtenerFleteCalculado(string $codigoCiudad,string $codigoDepartamento,float $total
     ): array {
+        
+    if($codigoDepartamento == '05' && $codigoCiudad == '001'){
+
+            return [
+                'flete' => 0,
+                'valor_calculado' => 0,
+                'porcentaje_aplicado' => 0,
+                'minimo' => 0,
+                'monto_base' => 0,
+                'dias_entrega' => 0
+            ];
+
+    }else{
         $fleteCiudad = FleteCiudad::where('cod_ciudad', $codigoCiudad)
             ->where('cod_depto', $codigoDepartamento)
             ->first();
@@ -682,5 +695,6 @@ class IntegracionesController extends Controller
             'monto_base' => $monto,
             'dias_entrega' => $fleteCiudad->entrega,
         ];
+        }
     }
 }

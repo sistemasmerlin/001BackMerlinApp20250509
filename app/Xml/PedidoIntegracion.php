@@ -15,15 +15,10 @@ class PedidoIntegracion {
         $xmlResult = null;
         $importar = "";
 
-        $nombreConexion = config('siesa.nombre_conexion');
-        $usuario        = config('siesa.usuario');
-        $clave          = config('siesa.clave');
-        $url            = config('siesa.wsdl_url');
-
-        // $nombreConexion = config('siesa.nombre_conexion_pruebas');
-        // $usuario        = config('siesa.usuario_pruebas');
-        // $clave          = config('siesa.clave_pruebas');
-        // $url            = config('siesa.wsdl_url_pruebas');
+        $nombreConexion = config('siesa.nombre_conexion_pruebas');
+        $usuario        = config('siesa.usuario_pruebas');
+        $clave          = config('siesa.clave_pruebas');
+        $url            = config('siesa.wsdl_url_pruebas');
 
 
         // return $data dd= [
