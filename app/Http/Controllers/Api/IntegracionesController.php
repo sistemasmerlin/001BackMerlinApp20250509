@@ -584,8 +584,8 @@ class IntegracionesController extends Controller
             DB::commit();
 
             try {
-                // correos
-                $correos = ['rdalzate@utp.edu.co','sistemas@merlinrod.com'];
+                
+                $correos = ['rdalzate@utp.edu.co','sistemas@merlinrod.com','btob.logistica@virtualllantas.com','usuario09@virtualllantas.com'];
 
                 Mail::to($correos)
                     ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
