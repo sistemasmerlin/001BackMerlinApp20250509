@@ -91,38 +91,22 @@ Route::middleware('auth:sanctum')->get(
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-productos/{query}', [PQRSController::class, 'consultaProductos']);
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-factura/{query}', [PQRSController::class, 'consultaFactura']);
 Route::middleware('auth:sanctum')->get('/pqrs/consulta-causales', [PQRSController::class, 'causalesAsesores']);
-Route::middleware('auth:sanctum')->post('/pqrs/guardar', [PQRSController::class, 'store']); 
-Route::middleware('auth:sanctum')->post('/pqrs/departamentos', [PQRSController::class, 'departamentos']); 
-Route::middleware('auth:sanctum')->post('/pqrs/ciudades', [PQRSController::class, 'ciudadesPorDepartamento']); 
-Route::middleware('auth:sanctum')->get('/pqrs/mis-pqrs', [PQRSController::class, 'index']); 
-Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::class, 'show']); 
+Route::middleware('auth:sanctum')->post('/pqrs/guardar', [PQRSController::class, 'store']);
+Route::middleware('auth:sanctum')->post('/pqrs/departamentos', [PQRSController::class, 'departamentos']);
+Route::middleware('auth:sanctum')->post('/pqrs/ciudades', [PQRSController::class, 'ciudadesPorDepartamento']);
+Route::middleware('auth:sanctum')->get('/pqrs/mis-pqrs', [PQRSController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::class, 'show']);
 
-Route::middleware(['auth:sanctum','role:Integrador|web'])->get('/productos-tienda', [IntegracionesController::class, 'index']);
-Route::middleware(['auth:sanctum','role:Integrador|web'])->post('/pedidos/integracion/guardar', [IntegracionesController::class, 'guardarPedido']);
+Route::middleware(['auth:sanctum', 'role:Integrador|web'])->get('/productos-tienda', [IntegracionesController::class, 'index']);
+Route::middleware(['auth:sanctum', 'role:Integrador|web'])->post('/pedidos/integracion/guardar', [IntegracionesController::class, 'guardarPedido']);
 Route::middleware(['auth:sanctum', 'role:Integrador'])->post('/flete/calcular', [IntegracionesController::class, 'calcularFlete']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/solicitudes-credito', [SolicitudCreditoController::class, 'store']);
     Route::get('/solicitudes-credito/enviadas', [SolicitudCreditoController::class, 'enviadas']);
     Route::get('/solicitudes-credito/{solicitud}/pdf-unificado', [SolicitudCreditoController::class, 'verPdfUnificadoApi']);
-});
-
-
-Route::middleware('auth:sanctum')->group(function () {
-
-    Route::get(
-        '/solicitudes-credito/{solicitud}/documentos',
-        [SolicitudCreditoDocumentoController::class, 'index']
-    );
-
-    Route::post(
-        '/solicitudes-credito/documentos/subir',
-        [SolicitudCreditoDocumentoController::class, 'store']
-    );
-
-    Route::delete(
-        '/solicitudes-credito/documentos/{documento}',
-        [SolicitudCreditoDocumentoController::class, 'destroy']
-    );
-
+    Route::get('/solicitudes-credito/{solicitud}/documentos', [SolicitudCreditoDocumentoController::class, 'index']);
+    Route::post('/solicitudes-credito/documentos/subir', [SolicitudCreditoDocumentoController::class, 'store']);
+    Route::delete('/solicitudes-credito/documentos/{documento}', [SolicitudCreditoDocumentoController::class, 'destroy']);
+    Route::put('/solicitudes-credito/{solicitud}/numero-cotizacion', [SolicitudCreditoController::class, 'actualizarNumeroCotizacion']);
 });

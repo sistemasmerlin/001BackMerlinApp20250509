@@ -132,11 +132,11 @@ class SolicitudCreditoController extends Controller
         $data['cedula_asesor'] = $usuarioCreador['cedula'] ?? null;
         $data['celular_asesor'] = $usuarioCreador['celular'] ?? null;
         $data['email_asesor'] = $usuarioCreador['email'] ?? null;
-        
+
 
         $referencias = collect($request->input('referencias_comerciales', []))
-            ->map(fn ($item) => is_array($item) ? $item : [])
-            ->filter(fn ($ref) => $this->referenciaCompleta($ref))
+            ->map(fn($item) => is_array($item) ? $item : [])
+            ->filter(fn($ref) => $this->referenciaCompleta($ref))
             ->values();
 
         if ($referencias->count() < 2) {
@@ -146,7 +146,7 @@ class SolicitudCreditoController extends Controller
         }
 
         $direcciones = collect($request->input('direcciones_adicionales', []))
-            ->map(fn ($item) => is_array($item) ? $item : [])
+            ->map(fn($item) => is_array($item) ? $item : [])
             ->filter(function ($dir) {
                 return filled($dir['contacto'] ?? null)
                     || filled($dir['direccion'] ?? null)
@@ -251,7 +251,7 @@ class SolicitudCreditoController extends Controller
             'name' => 'Solicitud de crédito - ' . ($solicitud->razon_social ?: 'Cliente'),
             'subject' => 'Firma solicitud de crédito',
             'message' => 'Por favor revisa y firma el documento adjunto.',
-            'remember' => 3, 
+            'remember' => 3,
             'email' => config('services.auco.owner_email'),
             //'email' => $emailFirmanteAsesor,
             'signProfile' => [
@@ -270,7 +270,7 @@ class SolicitudCreditoController extends Controller
                         'whatsapp' => true,
                         'otpCode' => 'email'
                     ],
-                    'phone' => '+57'.$celularFirmante
+                    'phone' => '+57' . $celularFirmante
                 ],
                 [
                     'type' => 'firmante2',
@@ -287,7 +287,7 @@ class SolicitudCreditoController extends Controller
                         'whatsapp' => true,
                         'otpCode' => 'email'
                     ],
-                    'phone' => '+57'.$celularFirmanteAsesor
+                    'phone' => '+57' . $celularFirmanteAsesor
                 ]
             ],
             'readers' => [
@@ -340,7 +340,6 @@ class SolicitudCreditoController extends Controller
                 'auco_response' => $aucoData,
                 'estado' => 'en_firma',
             ]);
-
         } catch (\Throwable $e) {
             $solicitud->update([
                 'pdf_unificado_disk' => $disk,
@@ -393,7 +392,6 @@ class SolicitudCreditoController extends Controller
             }
 
             return $pdf->Output('S');
-
         } finally {
             foreach ($tempFiles as $file) {
                 if (file_exists($file)) {
@@ -519,7 +517,6 @@ class SolicitudCreditoController extends Controller
         return $data;
     }
 
-
     private function arrayToString($value): ?string
     {
         if (is_array($value)) {
@@ -527,5 +524,22 @@ class SolicitudCreditoController extends Controller
         }
 
         return filled($value) ? (string) $value : null;
+    }
+
+    public function actualizarNumeroCotizacion(Request $request, SolicitudCredito $solicitud)
+    {
+        $request->validate([
+            'numero_cotizacion' => 'nullable|string|max:50',
+        ]);
+
+        $solicitud->update([
+            'numero_cotizacion' => $request->numero_cotizacion,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Número de cotización actualizado correctamente.',
+            'solicitud' => $solicitud,
+        ]);
     }
 }

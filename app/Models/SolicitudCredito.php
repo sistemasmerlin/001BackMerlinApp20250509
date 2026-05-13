@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\SolicitudCreditoDocumento;
+
 class SolicitudCredito extends Model
 {
     use SoftDeletes;
@@ -81,6 +82,17 @@ class SolicitudCredito extends Model
         'celular_asesor',
         'email_asesor',
         'categoria_asesor',
+
+        'comentario_revision_documentos',
+        'fecha_revision_documentos',
+        'revision_documentos_por',
+        'cupo_asignado',
+        'condicion_pago_aprobada',
+        'comentario_cierre_aprobado',
+
+        'reporte_centrales_riesgo',
+        'comentario_reporte_centrales',
+        'numero_cotizacion'
     ];
 
     protected $casts = [
@@ -115,5 +127,4 @@ class SolicitudCredito extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 }
