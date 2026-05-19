@@ -110,3 +110,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/solicitudes-credito/documentos/{documento}', [SolicitudCreditoDocumentoController::class, 'destroy']);
     Route::put('/solicitudes-credito/{solicitud}/numero-cotizacion', [SolicitudCreditoController::class, 'actualizarNumeroCotizacion']);
 });
+
+
+Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionesController::class, 'sincronizarConTienda']);

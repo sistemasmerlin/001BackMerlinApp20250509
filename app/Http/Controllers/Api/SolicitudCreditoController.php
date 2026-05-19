@@ -294,6 +294,14 @@ class SolicitudCreditoController extends Controller
                 [
                     'email' => $emailFirmante,
                     'name' => $nombreFirmante,
+                ],
+                [
+                    'email' => $emailFirmanteAsesor,
+                    'name' => $nombreFirmanteAsesor,
+                ],
+                [
+                    'email' => config('services.auco.owner_email'),
+                    'name' => 'Catera Merlin',
                 ]
             ],
             'file' => base64_encode($pdfUnificado),
