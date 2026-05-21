@@ -82,7 +82,7 @@
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-2">
 
-                                    <button
+                                    {{-- <button
                                         wire:click="verDetalle({{ $item->id }})"
                                         class="inline-flex items-center rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-900"
                                     >
@@ -95,7 +95,7 @@
                                         class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
                                     >
                                         Ver PDF Unificado
-                                    </a>
+                                    </a> --}}
 
                                     <a
                                         href="{{ route('admin.solicitudes-credito.show', $item->id) }}"

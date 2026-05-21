@@ -189,18 +189,32 @@
                     <h3 class="text-sm font-bold text-gray-800">
                         Referencias comerciales
                     </h3>
+                    <button type="button" wire:click="abrirModalReferencia"
+                        class="rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
+                        Crear nueva referencia
+                    </button>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left">Empresa</th>
-                                <th class="px-4 py-3 text-left">NIT</th>
-                                <th class="px-4 py-3 text-left">Ciudad</th>
-                                <th class="px-4 py-3 text-left">Teléfono</th>
-                                <th class="px-4 py-3 text-right">Cupo</th>
-                            </tr>
+                        <tr>
+                            <th class="px-4 py-3 text-left">Empresa</th>
+                            <th class="px-4 py-3 text-left">NIT</th>
+                            <th class="px-4 py-3 text-left">Ciudad</th>
+                            <th class="px-4 py-3 text-left">Teléfono</th>
+                            <th class="px-4 py-3 text-right">Cupo solicitado</th>
+                            <th class="px-4 py-3 text-left">Quién da referencia</th>
+                            <th class="px-4 py-3 text-right">Cupo asignado</th>
+                            <th class="px-4 py-3 text-left">Antigüedad</th>
+                            <th class="px-4 py-3 text-left">Promedio pago</th>
+                            <th class="px-4 py-3 text-left">Cheques devueltos</th>
+                            <th class="px-4 py-3 text-left">Activo</th>
+                            <th class="px-4 py-3 text-left">Fecha referencia</th>
+                            <th class="px-4 py-3 text-left">Último despacho</th>
+                            <th class="px-4 py-3 text-left">Concepto</th>
+                            <th class="px-4 py-3 text-right">Acciones</th>
+                        </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($solicitud->referencias as $ref)
@@ -212,10 +226,35 @@
                                     <td class="px-4 py-3 text-right">
                                         $ {{ number_format((float) $ref->cupo_credito, 0, ',', '.') }}
                                     </td>
+                                    <td class="px-4 py-3">{{ $ref->quien_da_referencia ?: '—' }}</td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ $ref->cupo_asignado ? '$ '.number_format((float) $ref->cupo_asignado, 0, ',', '.') : '—' }}
+                                    </td>
+                                    <td class="px-4 py-3">{{ $ref->antiguedad_comercial ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ $ref->promedio_pago ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ $ref->cheques_devueltos ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ $ref->activo ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ optional($ref->fecha_referencia)->format('Y-m-d') ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ optional($ref->ultimo_despacho)->format('Y-m-d') ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ $ref->concepto ?: '—' }}</td>
+                                    <td class="px-4 py-3 text-right">
+                                        <button type="button"
+                                            wire:click="abrirInfoReferenciacion({{ $ref->id }})"
+                                            class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                                            Agregar info referenciación
+                                        </button>
+
+                                        <button type="button"
+                                            onclick="confirm('¿Eliminar esta referencia comercial?') || event.stopImmediatePropagation()"
+                                            wire:click="eliminarReferencia({{ $ref->id }})"
+                                            class="ml-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50">
+                                            Eliminar
+                                        </button>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">
+                                    <td colspan="15" class="px-4 py-6 text-center text-gray-400">
                                         Sin referencias.
                                     </td>
                                 </tr>
@@ -338,7 +377,7 @@
 
         </div>
     </div>
-    
+
     <br>
 
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -565,4 +604,103 @@
             @endif
         </div>
     </div>
+
+    @if ($modalInfoReferencia)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+                <h2 class="text-lg font-bold text-gray-800">Información de referenciación</h2>
+
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <input wire:model.defer="referenciacionForm.quien_da_referencia" placeholder="Quién da referencia"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciacionForm.cupo_asignado" type="number"
+                        placeholder="Cupo asignado" class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciacionForm.antiguedad_comercial"
+                        placeholder="Antigüedad comercial" class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciacionForm.promedio_pago" placeholder="Promedio pago"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciacionForm.cheques_devueltos" placeholder="Cheques devueltos"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciacionForm.activo" placeholder="Activo"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <div>
+                        <label class="mb-1 block text-xs font-bold text-gray-500">Fecha referencia</label>
+                        <input wire:model.defer="referenciacionForm.fecha_referencia" type="date"
+                            class="w-full rounded-xl border px-4 py-2 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-bold text-gray-500">Último despacho</label>
+                        <input wire:model.defer="referenciacionForm.ultimo_despacho" type="date"
+                            class="w-full rounded-xl border px-4 py-2 text-sm">
+                    </div>
+                </div>
+
+                <textarea wire:model.defer="referenciacionForm.concepto" rows="3" placeholder="Concepto"
+                    class="mt-4 w-full rounded-xl border px-4 py-2 text-sm"></textarea>
+
+                <div class="mt-5 flex justify-end gap-3">
+                    <button wire:click="$set('modalInfoReferencia', false)"
+                        class="rounded-lg border px-4 py-2 text-sm">
+                        Cancelar
+                    </button>
+
+                    <button wire:click="guardarInfoReferenciacion"
+                        class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($modalReferencia)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+                <h2 class="text-lg font-bold text-gray-800">Crear nueva referencia</h2>
+
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <input wire:model.defer="referenciaForm.empresa" placeholder="Empresa"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciaForm.nit" placeholder="NIT"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <select wire:model.live="referenciaForm.cod_depto"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                        <option value="">Seleccione departamento</option>
+                        @foreach($departamentosReferencia as $d)
+                            <option value="{{ $d['cod_depto'] }}">
+                                {{ $d['cod_depto'] }} - {{ $d['depto'] }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <select wire:model.live="referenciaForm.cod_ciudad"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                        <option value="">Seleccione ciudad</option>
+                        @foreach($ciudadesReferencia as $c)
+                            <option value="{{ $c['cod_ciudad'] }}">
+                                {{ $c['cod_ciudad'] }} - {{ $c['ciudad'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <input wire:model.defer="referenciaForm.telefono" placeholder="Teléfono"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                    <input wire:model.defer="referenciaForm.cupo_credito" type="number" placeholder="Cupo crédito"
+                        class="rounded-xl border px-4 py-2 text-sm">
+                </div>
+
+                <div class="mt-5 flex justify-end gap-3">
+                    <button wire:click="$set('modalReferencia', false)" class="rounded-lg border px-4 py-2 text-sm">
+                        Cancelar
+                    </button>
+
+                    <button wire:click="guardarReferencia"
+                        class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+                        Guardar referencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>

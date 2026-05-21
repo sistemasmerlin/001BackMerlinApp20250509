@@ -92,6 +92,13 @@ class SolicitudCredito extends Model
 
         'reporte_centrales_riesgo',
         'comentario_reporte_centrales',
+        'datacredito_score',
+        'datacredito_ingresos_ventas',
+        'datacredito_nivel_endeudamiento',
+        'datacredito_sector_reporte_negativo',
+        'datacredito_valor_reporte_negativo',
+        'datacredito_resultado',
+
         'numero_cotizacion'
     ];
 
@@ -106,6 +113,9 @@ class SolicitudCredito extends Model
         'auco_response' => 'array',
         //'tipo_negocio' => 'array',
         'tipo_negocio' => 'string',
+        'datacredito_ingresos_ventas' => 'decimal:2',
+        'datacredito_nivel_endeudamiento' => 'decimal:2',
+        'datacredito_valor_reporte_negativo' => 'decimal:2',
     ];
 
     public function referencias()

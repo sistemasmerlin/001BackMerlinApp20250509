@@ -9,7 +9,8 @@ use App\Models\SolicitudCreditoDocumento;
 use App\Models\TipoDocumentoCredito;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
+use App\Models\SolicitudCreditoReferencia;
+use App\Models\FleteCiudad;
 class Detalle extends Component
 {
     use WithFileUploads;
@@ -26,15 +27,75 @@ class Detalle extends Component
     public string $comentarioCierreAprobado = '';
     public string $reporteCentralesRiesgo = 'sin_estado';
     public ?string $comentarioReporteCentrales = null;
-    public ?string $numero_cotizacion = null;
+    public ?string $numero_cotizacion = null;    
+    public bool $modalInfoReferencia = false;
+
+    public ?int $referenciaId = null;
+
+public $departamentosReferencia = [];
+public $ciudadesReferencia = [];
+    public bool $modalReferencia = false;
+
+    public array $referenciaForm = [
+        'empresa' => '',
+        'nit' => '',
+        'cod_depto' => '',
+        'depto' => '',
+        'cod_ciudad' => '',
+        'ciudad' => '',
+        'telefono' => '',
+        'cupo_credito' => null,
+    ];
+    public array $referenciacionForm = [
+        'quien_da_referencia' => '',
+        'cupo_asignado' => null,
+        'antiguedad_comercial' => '',
+        'promedio_pago' => '',
+        'cheques_devueltos' => '',
+        'activo' => '',
+        'concepto' => '',
+        'fecha_referencia' => '',
+        'ultimo_despacho' => '',
+    ];
     public function mount(SolicitudCredito $solicitud): void
     {
         $this->solicitud = $solicitud;
         $this->cargarDatos();
         $this->reporteCentralesRiesgo = $this->solicitud->reporte_centrales_riesgo ?: 'sin_estado';
         $this->comentarioReporteCentrales = $this->solicitud->comentario_reporte_centrales;
+
+        $this->departamentosReferencia = FleteCiudad::query()
+            ->select('cod_depto', 'depto')
+            ->whereNotNull('cod_depto')
+            ->whereNotNull('depto')
+            ->where('cod_depto', '<>', '')
+            ->where('depto', '<>', '')
+            ->groupBy('cod_depto', 'depto')
+            ->orderBy('depto')
+            ->get()
+            ->toArray();
     }
 
+public function updatedReferenciaFormCodDepto($value): void
+{
+    $depto = FleteCiudad::where('cod_depto', $value)->first();
+
+    $this->referenciaForm['depto'] = $depto?->depto ?? '';
+    $this->referenciaForm['cod_ciudad'] = '';
+    $this->referenciaForm['ciudad'] = '';
+
+    $this->ciudadesReferencia = FleteCiudad::query()
+        ->select('cod_ciudad', 'ciudad')
+        ->where('cod_depto', $value)
+        ->whereNotNull('cod_ciudad')
+        ->whereNotNull('ciudad')
+        ->where('cod_ciudad', '<>', '')
+        ->where('ciudad', '<>', '')
+        ->groupBy('cod_ciudad', 'ciudad')
+        ->orderBy('ciudad')
+        ->get()
+        ->toArray();
+}
     public function cargarDatos(): void
     {
         $this->solicitud->load([
@@ -279,8 +340,117 @@ public function rechazarSolicitudRevision(): void
             'rechazado',
         ]);
     }
+    public function abrirInfoReferenciacion(int $referenciaId): void
+    {
+        $ref = SolicitudCreditoReferencia::findOrFail($referenciaId);
+
+        $this->referenciaId = $ref->id;
+
+        $this->referenciacionForm = [
+            'quien_da_referencia' => $ref->quien_da_referencia ?? '',
+            'cupo_asignado' => $ref->cupo_asignado,
+            'antiguedad_comercial' => $ref->antiguedad_comercial ?? '',
+            'promedio_pago' => $ref->promedio_pago ?? '',
+            'cheques_devueltos' => $ref->cheques_devueltos ?? '',
+            'activo' => $ref->activo ?? '',
+            'concepto' => $ref->concepto ?? '',
+            'fecha_referencia' => optional($ref->fecha_referencia)->format('Y-m-d'),
+            'ultimo_despacho' => optional($ref->ultimo_despacho)->format('Y-m-d'),
+        ];
+
+        $this->modalInfoReferencia = true;
+    }
+
+    public function guardarInfoReferenciacion(): void
+    {
+        $this->validate([
+            'referenciacionForm.quien_da_referencia' => 'nullable|string|max:255',
+            'referenciacionForm.cupo_asignado' => 'nullable|numeric|min:0',
+            'referenciacionForm.antiguedad_comercial' => 'nullable|string|max:255',
+            'referenciacionForm.promedio_pago' => 'nullable|string|max:255',
+            'referenciacionForm.cheques_devueltos' => 'nullable|string|max:255',
+            'referenciacionForm.activo' => 'nullable|string|max:255',
+            'referenciacionForm.concepto' => 'nullable|string',
+            'referenciacionForm.fecha_referencia' => 'nullable|date',
+            'referenciacionForm.ultimo_despacho' => 'nullable|date',
+        ]);
+
+        $ref = SolicitudCreditoReferencia::findOrFail($this->referenciaId);
+
+        $ref->update([
+            ...$this->referenciacionForm,
+            'verifico_referencia' => auth()->id(),
+        ]);
+
+        $this->modalInfoReferencia = false;
+        $this->cargarDatos();
+
+        session()->flash('success', 'Información de referenciación guardada correctamente.');
+    }
+
+    public function eliminarReferencia(int $referenciaId): void
+    {
+        SolicitudCreditoReferencia::where('solicitud_credito_id', $this->solicitud->id)
+            ->where('id', $referenciaId)
+            ->delete();
+
+        $this->cargarDatos();
+
+        session()->flash('success', 'Referencia eliminada correctamente.');
+    }
     public function render()
     {
         return view('livewire.admin.solicitudes-credito.detalle');
+    }
+
+    public function abrirModalReferencia(): void
+{
+    $this->referenciaForm = [
+        'empresa' => '',
+        'nit' => '',
+        'ciudad' => '',
+        'telefono' => '',
+        'cupo_credito' => null,
+    ];
+
+    $this->modalReferencia = true;
+}
+
+public function updatedReferenciaFormCodCiudad($value): void
+{
+    $ciudad = FleteCiudad::where('cod_depto', $this->referenciaForm['cod_depto'])
+        ->where('cod_ciudad', $value)
+        ->first();
+
+    $this->referenciaForm['ciudad'] = $ciudad?->ciudad ?? '';
+}
+
+
+    public function guardarReferencia(): void
+    {
+        $this->validate([
+            'referenciaForm.empresa' => 'required|string|max:255',
+            'referenciaForm.nit' => 'required|string|max:50',
+            'referenciaForm.ciudad' => 'nullable|string|max:255',
+            'referenciaForm.telefono' => 'required|string|max:20',
+            'referenciaForm.cupo_credito' => 'required|numeric|min:0',
+        ]);
+
+        SolicitudCreditoReferencia::create([
+            'solicitud_credito_id' => $this->solicitud->id,
+            'empresa' => $this->referenciaForm['empresa'],
+            'nit' => $this->referenciaForm['nit'],
+            'cod_depto' => $this->referenciaForm['cod_depto'],
+            'depto' => $this->referenciaForm['depto'],
+            'cod_ciudad' => $this->referenciaForm['cod_ciudad'],
+            'ciudad' => $this->referenciaForm['ciudad'],
+            'telefono' => $this->referenciaForm['telefono'],
+            'cupo_credito' => $this->referenciaForm['cupo_credito'],
+        ]);
+
+        $this->modalReferencia = false;
+        $this->solicitud->refresh();
+
+        session()->flash('success', 'Referencia creada correctamente.');
     }
 }
