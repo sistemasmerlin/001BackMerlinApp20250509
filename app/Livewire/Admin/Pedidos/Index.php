@@ -28,6 +28,9 @@ class Index extends Component
     public $mensajeCliente = '';
     public $fecha_inicio;
     public $fecha_final;
+
+    public $pedidoPamId;
+    public $numeroPedidoPam;
     public function mount()
     {
         /* $this->pedidos = Pedido::with('direccionEnvio')->orderBy('id', 'desc')->get(); */
@@ -478,4 +481,40 @@ class Index extends Component
             session()->flash('warning', 'No se pudo validar/actualizar el cliente. Verifica la conexión con SQL Server y vuelve a intentar.');
         }
     }
+
+
+    public function editarPedidoPam($id)
+{
+    $pedido = Pedido::find($id);
+
+    if (! $pedido) {
+        session()->flash('error', 'Pedido no encontrado.');
+        return;
+    }
+
+    $this->pedidoPamId = $pedido->id;
+
+    // Si ya tiene PAM 123, solo carga el número
+    $this->numeroPedidoPam = str_replace('PAM ', '', $pedido->nota ?? '');
+}
+
+public function guardarPedidoPam()
+{
+    $this->validate([
+        'pedidoPamId' => 'required|exists:pedidos,id',
+        'numeroPedidoPam' => 'required|numeric',
+    ], [
+        'numeroPedidoPam.required' => 'Debes ingresar el número de pedido.',
+        'numeroPedidoPam.numeric' => 'Solo se permite ingresar números.',
+    ]);
+
+    $pedido = Pedido::findOrFail($this->pedidoPamId);
+
+    $pedido->nota = 'PAM-' . $this->numeroPedidoPam;
+    $pedido->save();
+
+    session()->flash('success', 'Pedido PAM actualizado correctamente.');
+
+    return redirect()->route('pedidos.index');
+}
 }

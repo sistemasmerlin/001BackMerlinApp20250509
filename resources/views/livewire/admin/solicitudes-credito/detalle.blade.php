@@ -29,6 +29,15 @@
             </div>
 
         </div>
+
+        @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado', 'pendiente']))
+            <button type="button"
+                onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
+                wire:click="pasarAPendiente"
+                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
+                Pasar a pendiente
+            </button>
+        @endif
     </div>
     <div x-data="{ abierto: false, tab: 'empresa' }" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <button type="button" @click="abierto = !abierto"
@@ -75,15 +84,20 @@
                         'titulo' => 'Datos de la empresa',
                         'datos' => [
                             'Fecha solicitud' => optional($solicitud->fecha_solicitud)->format('Y-m-d'),
-                            'Departamento' => $solicitud->depto,
-                            'Ciudad' => $solicitud->ciudad,
                             'Razón social' => $solicitud->razon_social,
                             'Nombre comercial' => $solicitud->nombre_comercial,
                             'NIT / C.C.' => $solicitud->nit_cc,
                             'Representante legal' => $solicitud->representante_legal,
                             'Identificación representante' => $solicitud->identificacion_representante,
-                            'Dirección negocio' => $solicitud->direccion_negocio,
-                            'Barrio' => $solicitud->barrio,
+                            'Dirección negocio' =>
+                                $solicitud->direccion_negocio .
+                                ' - ' .
+                                $solicitud->barrio .
+                                ' (' .
+                                $solicitud->ciudad .
+                                ' - ' .
+                                $solicitud->depto .
+                                ')',
                             'Teléfono fijo' => $solicitud->telefono_fijo,
                             'Celular' => $solicitud->celular,
                             'Correo electrónico' => $solicitud->correo_electronico,
@@ -95,12 +109,10 @@
                         'titulo' => 'Datos del asesor',
                         'datos' => [
                             'Código asesor' => $solicitud->codigo_asesor,
-                            'Nombre asesor' => $solicitud->nombre_asesor,
+                            'Nombre asesor' => $solicitud->nombre_asesor . ' - ' . optional($solicitud->user)->name,
                             'Cédula asesor' => $solicitud->cedula_asesor,
                             'Celular asesor' => $solicitud->celular_asesor,
                             'Email asesor' => $solicitud->email_asesor,
-                            'Categoría asesor' => $solicitud->categoria_asesor,
-                            'Usuario creador' => optional($solicitud->user)->name,
                         ],
                     ],
                     'contactos' => [
@@ -141,21 +153,24 @@
                     'autorizacion' => [
                         'titulo' => 'Autorización tratamiento de datos',
                         'datos' => [
-                            'Departamento autorización' => $solicitud->autorizacion_depto,
-                            'Ciudad autorización' => $solicitud->autorizacion_ciudad,
                             'Fecha autorización' => optional($solicitud->autorizacion_fecha)->format('Y-m-d'),
-                            'Nombre 1' => $solicitud->autorizacion_nombre_1,
-                            'Documento 1' => $solicitud->autorizacion_documento_1,
-                            'Lugar expedición 1' => $solicitud->autorizacion_lugar_expedicion_1,
+                            'Nombre' => $solicitud->autorizacion_nombre_1,
+                            'Documento' => $solicitud->autorizacion_documento_1,
+                            'Lugar expedición' => $solicitud->autorizacion_lugar_expedicion_1,
                             'Razón social autorización' => $solicitud->autorizacion_razon_social,
                             'NIT autorización' => $solicitud->autorizacion_nit_cc,
-                            'Nombre 2' => $solicitud->autorizacion_nombre_2,
-                            'Documento 2' => $solicitud->autorizacion_documento_2,
-                            'Lugar expedición 2' => $solicitud->autorizacion_lugar_expedicion_2,
                             'Teléfono fijo autorización' => $solicitud->autorizacion_telefono_fijo,
                             'Celular autorización' => $solicitud->autorizacion_celular,
                             'Correo autorización' => $solicitud->autorizacion_correo,
-                            'Dirección autorización' => $solicitud->autorizacion_direccion,
+                            'Dirección autorización' =>
+                                $solicitud->autorizacion_direccion .
+                                ' - ' .
+                                $solicitud->autorizacion_barrio .
+                                ' (' .
+                                $solicitud->autorizacion_ciudad .
+                                ' - ' .
+                                $solicitud->autorizacion_depto .
+                                ')',
                         ],
                     ],
                 ];
@@ -198,23 +213,23 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left">Empresa</th>
-                            <th class="px-4 py-3 text-left">NIT</th>
-                            <th class="px-4 py-3 text-left">Ciudad</th>
-                            <th class="px-4 py-3 text-left">Teléfono</th>
-                            <th class="px-4 py-3 text-right">Cupo solicitado</th>
-                            <th class="px-4 py-3 text-left">Quién da referencia</th>
-                            <th class="px-4 py-3 text-right">Cupo asignado</th>
-                            <th class="px-4 py-3 text-left">Antigüedad</th>
-                            <th class="px-4 py-3 text-left">Promedio pago</th>
-                            <th class="px-4 py-3 text-left">Cheques devueltos</th>
-                            <th class="px-4 py-3 text-left">Activo</th>
-                            <th class="px-4 py-3 text-left">Fecha referencia</th>
-                            <th class="px-4 py-3 text-left">Último despacho</th>
-                            <th class="px-4 py-3 text-left">Concepto</th>
-                            <th class="px-4 py-3 text-right">Acciones</th>
-                        </tr>
+                            <tr>
+                                <th class="px-4 py-3 text-left">Empresa</th>
+                                <th class="px-4 py-3 text-left">NIT</th>
+                                <th class="px-4 py-3 text-left">Ciudad</th>
+                                <th class="px-4 py-3 text-left">Teléfono</th>
+                                <th class="px-4 py-3 text-right">Cupo solicitado</th>
+                                <th class="px-4 py-3 text-left">Quién da referencia</th>
+                                <th class="px-4 py-3 text-right">Cupo asignado</th>
+                                <th class="px-4 py-3 text-left">Antigüedad</th>
+                                <th class="px-4 py-3 text-left">Promedio pago</th>
+                                <th class="px-4 py-3 text-left">Cheques devueltos</th>
+                                <th class="px-4 py-3 text-left">Activo</th>
+                                <th class="px-4 py-3 text-left">Fecha referencia</th>
+                                <th class="px-4 py-3 text-left">Último despacho</th>
+                                <th class="px-4 py-3 text-left">Concepto</th>
+                                <th class="px-4 py-3 text-right">Acciones</th>
+                            </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($solicitud->referencias as $ref)
@@ -228,14 +243,16 @@
                                     </td>
                                     <td class="px-4 py-3">{{ $ref->quien_da_referencia ?: '—' }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        {{ $ref->cupo_asignado ? '$ '.number_format((float) $ref->cupo_asignado, 0, ',', '.') : '—' }}
+                                        {{ $ref->cupo_asignado ? '$ ' . number_format((float) $ref->cupo_asignado, 0, ',', '.') : '—' }}
                                     </td>
                                     <td class="px-4 py-3">{{ $ref->antiguedad_comercial ?: '—' }}</td>
                                     <td class="px-4 py-3">{{ $ref->promedio_pago ?: '—' }}</td>
                                     <td class="px-4 py-3">{{ $ref->cheques_devueltos ?: '—' }}</td>
                                     <td class="px-4 py-3">{{ $ref->activo ?: '—' }}</td>
-                                    <td class="px-4 py-3">{{ optional($ref->fecha_referencia)->format('Y-m-d') ?: '—' }}</td>
-                                    <td class="px-4 py-3">{{ optional($ref->ultimo_despacho)->format('Y-m-d') ?: '—' }}</td>
+                                    <td class="px-4 py-3">
+                                        {{ optional($ref->fecha_referencia)->format('Y-m-d') ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ optional($ref->ultimo_despacho)->format('Y-m-d') ?: '—' }}
+                                    </td>
                                     <td class="px-4 py-3">{{ $ref->concepto ?: '—' }}</td>
                                     <td class="px-4 py-3 text-right">
                                         <button type="button"
@@ -267,77 +284,69 @@
             <div x-show="tab === 'centrales'" class="rounded-2xl bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-3">
                     <h3 class="text-sm font-bold text-gray-800">
-                        Reporte en centrales de riesgo
+                        Consulta DataCrédito / Centrales de riesgo
                     </h3>
                 </div>
 
                 <div class="p-5">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 
                         <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700">
-                                Estado del reporte
-                            </label>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Puntaje / Score</label>
+                            <input type="number" wire:model.defer="datacreditoScore"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                        </div>
 
-                            <select wire:model.defer="reporteCentralesRiesgo"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
-                                <option value="sin_estado">Sin estado</option>
-                                <option value="positivo">Positivo</option>
-                                <option value="negativo">Negativo</option>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Ingresos / Ventas</label>
+                            <input type="number" wire:model.defer="datacreditoIngresosVentas"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Nivel de
+                                endeudamiento</label>
+                            <input type="number" wire:model.defer="datacreditoNivelEndeudamiento"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Sector reporte
+                                negativo</label>
+                            <input type="text" wire:model.defer="datacreditoSectorReporteNegativo"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Valor reporte
+                                negativo</label>
+                            <input type="number" wire:model.defer="datacreditoValorReporteNegativo"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Resultado</label>
+                            <select wire:model.defer="datacreditoResultado"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                                <option value="">Seleccione</option>
+                                <option value="APROBADO">APROBADO</option>
+                                <option value="RECHAZADO">RECHAZADO</option>
                             </select>
-
-                            @error('reporteCentralesRiesgo')
-                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700">
-                                Estado actual
-                            </label>
-
-                            <span
-                                class="inline-flex rounded-full px-3 py-1 text-xs font-bold
-                    @if ($solicitud->reporte_centrales_riesgo === 'positivo') bg-green-100 text-green-700
-                    @elseif($solicitud->reporte_centrales_riesgo === 'negativo') bg-red-100 text-red-700
-                    @else bg-gray-100 text-gray-600 @endif
-                ">
-                                {{ strtoupper(str_replace('_', ' ', $solicitud->reporte_centrales_riesgo ?: 'sin_estado')) }}
-                            </span>
-                        </div>
-
                     </div>
 
                     <div class="mt-4">
-                        <label class="mb-1 block text-sm font-semibold text-gray-700">
-                            Comentario
-                        </label>
-
-                        <textarea wire:model.defer="comentarioReporteCentrales" rows="3" @disabled($this->reporteCentralesBloqueado)
-                            placeholder="Observación del reporte en centrales de riesgo"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500 disabled:bg-gray-100 disabled:text-gray-500"></textarea>
-
-                        @error('comentarioReporteCentrales')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Comentario centrales</label>
+                        <textarea wire:model.defer="comentarioReporteCentrales" rows="3"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
                     </div>
 
-                    <div class="mt-4">
-                        @if (!$this->reporteCentralesBloqueado)
-                            <button wire:click="actualizarReporteCentrales"
-                                class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-900">
-                                Guardar reporte
-                            </button>
-                        @else
-                            <p class="text-sm font-semibold text-gray-500">
-                                Reporte bloqueado. Ya fue definido como
-                                {{ strtoupper($solicitud->reporte_centrales_riesgo) }}.
-                            </p>
-                        @endif
-                    </div>
+                    <button wire:click="actualizarReporteCentrales"
+                        class="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-900">
+                        Guardar centrales
+                    </button>
                 </div>
             </div>
-
             <div x-show="tab === 'direcciones'" class="rounded-2xl bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-3">
                     <h3 class="text-sm font-bold text-gray-800">
@@ -538,6 +547,44 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+        </div>
+
+        <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-800">Comentarios de la solicitud</h2>
+
+            <textarea wire:model.defer="nuevoComentario" rows="3" placeholder="Escribe un comentario interno"
+                class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
+
+            @error('nuevoComentario')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+
+            <button wire:click="guardarComentario"
+                class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+                Guardar comentario
+            </button>
+
+            <div class="mt-5 space-y-3">
+                @forelse($solicitud->comentarios()->with('usuario')->latest()->get() as $comentario)
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div class="flex justify-between gap-3">
+                            <p class="text-sm font-bold text-gray-800">
+                                {{ $comentario->usuario?->name ?? 'Usuario no disponible' }}
+                            </p>
+                            <p class="text-xs text-gray-400">
+                                {{ $comentario->created_at?->format('Y-m-d H:i') }}
+                            </p>
+                        </div>
+
+                        <p class="mt-2 text-sm text-gray-700">
+                            {{ $comentario->comentario }}
+                        </p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-400">Sin comentarios registrados.</p>
+                @endforelse
+            </div>
 
             @if ($this->todosDocumentosRevisados && $solicitud->estado === 'en_revision')
                 <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
@@ -664,20 +711,18 @@
                         class="rounded-xl border px-4 py-2 text-sm">
                     <input wire:model.defer="referenciaForm.nit" placeholder="NIT"
                         class="rounded-xl border px-4 py-2 text-sm">
-                    <select wire:model.live="referenciaForm.cod_depto"
-                        class="rounded-xl border px-4 py-2 text-sm">
+                    <select wire:model.live="referenciaForm.cod_depto" class="rounded-xl border px-4 py-2 text-sm">
                         <option value="">Seleccione departamento</option>
-                        @foreach($departamentosReferencia as $d)
+                        @foreach ($departamentosReferencia as $d)
                             <option value="{{ $d['cod_depto'] }}">
                                 {{ $d['cod_depto'] }} - {{ $d['depto'] }}
                             </option>
                         @endforeach
                     </select>
 
-                    <select wire:model.live="referenciaForm.cod_ciudad"
-                        class="rounded-xl border px-4 py-2 text-sm">
+                    <select wire:model.live="referenciaForm.cod_ciudad" class="rounded-xl border px-4 py-2 text-sm">
                         <option value="">Seleccione ciudad</option>
-                        @foreach($ciudadesReferencia as $c)
+                        @foreach ($ciudadesReferencia as $c)
                             <option value="{{ $c['cod_ciudad'] }}">
                                 {{ $c['cod_ciudad'] }} - {{ $c['ciudad'] }}
                             </option>

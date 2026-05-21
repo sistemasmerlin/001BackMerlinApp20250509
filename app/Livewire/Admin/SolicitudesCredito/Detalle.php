@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SolicitudCreditoReferencia;
 use App\Models\FleteCiudad;
+use App\Models\SolicitudCreditoComentario;
 class Detalle extends Component
 {
     use WithFileUploads;
@@ -29,12 +30,19 @@ class Detalle extends Component
     public ?string $comentarioReporteCentrales = null;
     public ?string $numero_cotizacion = null;    
     public bool $modalInfoReferencia = false;
-
     public ?int $referenciaId = null;
-
-public $departamentosReferencia = [];
-public $ciudadesReferencia = [];
+    public $departamentosReferencia = [];
+    public $ciudadesReferencia = [];
     public bool $modalReferencia = false;
+
+    public string $nuevoComentario = '';
+
+    public $datacreditoScore;
+    public $datacreditoIngresosVentas;
+    public $datacreditoNivelEndeudamiento;
+    public $datacreditoSectorReporteNegativo = '';
+    public $datacreditoValorReporteNegativo;
+    public $datacreditoResultado = '';
 
     public array $referenciaForm = [
         'empresa' => '',
@@ -63,6 +71,12 @@ public $ciudadesReferencia = [];
         $this->cargarDatos();
         $this->reporteCentralesRiesgo = $this->solicitud->reporte_centrales_riesgo ?: 'sin_estado';
         $this->comentarioReporteCentrales = $this->solicitud->comentario_reporte_centrales;
+        $this->datacreditoScore = $this->solicitud->datacredito_score;
+        $this->datacreditoIngresosVentas = $this->solicitud->datacredito_ingresos_ventas;
+        $this->datacreditoNivelEndeudamiento = $this->solicitud->datacredito_nivel_endeudamiento;
+        $this->datacreditoSectorReporteNegativo = $this->solicitud->datacredito_sector_reporte_negativo ?? '';
+        $this->datacreditoValorReporteNegativo = $this->solicitud->datacredito_valor_reporte_negativo;
+        $this->datacreditoResultado = $this->solicitud->datacredito_resultado ?? '';
 
         $this->departamentosReferencia = FleteCiudad::query()
             ->select('cod_depto', 'depto')
@@ -305,24 +319,38 @@ public function rechazarSolicitudRevision(): void
 
     public function actualizarReporteCentrales(): void
     {
-        if ($this->reporteCentralesBloqueado) {
-            session()->flash('error', 'El reporte en centrales ya fue definido y no se puede modificar.');
-            return;
-        }
-
         $this->validate([
-            'reporteCentralesRiesgo' => 'required|in:sin_estado,positivo,negativo',
+            'datacreditoScore' => 'required|integer|min:0|max:999',
+            'datacreditoIngresosVentas' => 'required|numeric|min:0',
+            'datacreditoNivelEndeudamiento' => 'required|numeric|min:0',
+            'datacreditoSectorReporteNegativo' => 'nullable|string|max:255',
+            'datacreditoValorReporteNegativo' => 'nullable|numeric|min:0',
+            'datacreditoResultado' => 'required|in:APROBADO,RECHAZADO',
             'comentarioReporteCentrales' => 'nullable|string|max:1000',
+        ], [
+            'datacreditoScore.required' => 'El puntaje/score es obligatorio.',
+            'datacreditoScore.integer' => 'El puntaje/score debe ser numérico.',
+            'datacreditoIngresosVentas.required' => 'Los ingresos/ventas son obligatorios.',
+            'datacreditoIngresosVentas.numeric' => 'Los ingresos/ventas deben ser numéricos.',
+            'datacreditoNivelEndeudamiento.required' => 'El nivel de endeudamiento es obligatorio.',
+            'datacreditoNivelEndeudamiento.numeric' => 'El nivel de endeudamiento debe ser numérico.',
+            'datacreditoResultado.required' => 'Debes seleccionar si fue APROBADO o RECHAZADO.',
         ]);
 
         $this->solicitud->update([
-            'reporte_centrales_riesgo' => $this->reporteCentralesRiesgo,
+            'datacredito_score' => $this->datacreditoScore,
+            'datacredito_ingresos_ventas' => $this->datacreditoIngresosVentas,
+            'datacredito_nivel_endeudamiento' => $this->datacreditoNivelEndeudamiento,
+            'datacredito_sector_reporte_negativo' => $this->datacreditoSectorReporteNegativo,
+            'datacredito_valor_reporte_negativo' => $this->datacreditoValorReporteNegativo,
+            'datacredito_resultado' => $this->datacreditoResultado,
+            'reporte_centrales_riesgo' => $this->datacreditoResultado === 'APROBADO' ? 'positivo' : 'negativo',
             'comentario_reporte_centrales' => $this->comentarioReporteCentrales,
         ]);
 
         $this->cargarDatos();
 
-        session()->flash('success', 'Reporte en centrales actualizado correctamente.');
+        session()->flash('success', 'Reporte de centrales actualizado correctamente.');
     }
 
     public function getReporteCentralesBloqueadoProperty(): bool
@@ -452,5 +480,39 @@ public function updatedReferenciaFormCodCiudad($value): void
         $this->solicitud->refresh();
 
         session()->flash('success', 'Referencia creada correctamente.');
+    }
+
+    public function pasarAPendiente(): void
+    {
+        if (in_array($this->solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado'])) {
+            return;
+        }
+
+        $this->solicitud->update([
+            'estado' => 'pendiente',
+        ]);
+
+        $this->solicitud->refresh();
+
+        session()->flash('success', 'La solicitud fue devuelta a estado pendiente.');
+    }
+
+    public function guardarComentario(): void
+    {
+        $this->validate([
+            'nuevoComentario' => 'required|string|min:3',
+        ]);
+
+        SolicitudCreditoComentario::create([
+            'solicitud_credito_id' => $this->solicitud->id,
+            'comentario' => $this->nuevoComentario,
+            'user_id' => auth()->id(),
+        ]);
+
+        $this->nuevoComentario = '';
+
+        $this->solicitud->load('comentarios.usuario');
+
+        session()->flash('success', 'Comentario guardado correctamente.');
     }
 }

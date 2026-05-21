@@ -346,7 +346,7 @@ class SolicitudCreditoController extends Controller
                 'auco_package' => $aucoData['package'] ?? null,
                 'auco_status' => 'enviado_a_firma',
                 'auco_response' => $aucoData,
-                'estado' => 'en_firma',
+                'estado' => 'recibido',
             ]);
         } catch (\Throwable $e) {
             $solicitud->update([
