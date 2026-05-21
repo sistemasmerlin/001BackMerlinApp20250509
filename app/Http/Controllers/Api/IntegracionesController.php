@@ -588,7 +588,7 @@ class IntegracionesController extends Controller
                 $correos = ['ecommerce2@merlinrod.com','ecommerce@merlinrod.com','sistemas@merlinrod.com','btob.logistica@virtualllantas.com','usuario09@virtualllantas.com','dmolina@virtualllantas.com'];
 
                 Mail::to($correos)
-                    ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento, $orden_compra));
+                    ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
 
                 return response()->json([
                     'success' => 'ok full',
