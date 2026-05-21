@@ -34,7 +34,7 @@
 
 @foreach($encabezados as $encabezado)
 
-  <h2>Confirmación de Pedido - {{ $encabezado->orden_compra }}</h2>
+  <h2>Confirmación de Pedido - {{ $orden_compra }}</h2>
 
   <p>Hola {{ $encabezado->razon_social ?? 'Cliente' }},</p>
 
