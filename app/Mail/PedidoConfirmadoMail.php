@@ -17,6 +17,7 @@ class PedidoConfirmadoMail extends Mailable
     public $detalles;
     public $subtotal_pedido;
     public $subtotal_descuento;
+    public $orden_compra;
 
     public function __construct($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento)
     {
@@ -24,7 +25,7 @@ class PedidoConfirmadoMail extends Mailable
         $this->detalles = $detalles;
         $this->subtotal_pedido = $subtotal_pedido;
         $this->subtotal_descuento = $subtotal_descuento;
-    }
+        $this->orden_compra = $encabezados->orden_compra;  }
 
     public function build()
     {
