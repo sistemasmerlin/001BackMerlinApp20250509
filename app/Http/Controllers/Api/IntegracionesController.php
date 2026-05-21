@@ -481,6 +481,7 @@ class IntegracionesController extends Controller
                         ,bi_t430.[f_estado] as estado
                         ,bi_t430.f_subtotal_local as f_subtotal
                         ,bi_t430.[f_cliente_desp] as nit_cliente
+                        ,bi_t430.[f_orden_compra] as f_orden_compra
                         ,t200.f200_razon_social as razon_social
                         ,t200.f200_rowid as row_tercero
                         ,bi_t430.[f_vendedor] as nit_vendedor
