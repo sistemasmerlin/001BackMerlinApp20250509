@@ -19,7 +19,7 @@ class PedidoConfirmadoMail extends Mailable
     public $subtotal_descuento;
     public $orden_compra;
 
-    public function __construct($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento)
+    public function __construct($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento, $orden_compra)
     {
         $this->encabezados = $encabezados;
         $this->detalles = $detalles;
