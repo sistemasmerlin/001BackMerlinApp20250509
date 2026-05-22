@@ -26,18 +26,29 @@
             <div>
                 <span class="text-gray-400 font-semibold">Estado:</span>
                 <span class="font-bold text-gray-800">{{ strtoupper($solicitud->estado ?: '—') }}</span>
+
+                @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado', 'pendiente']))
+                    <button type="button"
+                        onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
+                        wire:click="pasarAPendiente"
+                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
+                        Pasar a pendiente
+                    </button>
+                @else
+                    <button type="button"
+                        onclick="confirm('¿Seguro que deseas pasar esta solicitud a en revisión?') || event.stopImmediatePropagation()"
+                        wire:click="pasarAEnRevision"
+                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
+                        Pasar a en revisión
+                    </button>
+                @endif
             </div>
 
         </div>
 
-        @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado', 'pendiente']))
-            <button type="button"
-                onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
-                wire:click="pasarAPendiente"
-                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
-                Pasar a pendiente
-            </button>
-        @endif
+
+
+
     </div>
     <div x-data="{ abierto: false, tab: 'empresa' }" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <button type="button" @click="abierto = !abierto"
@@ -293,20 +304,24 @@
 
                         <div>
                             <label class="mb-1 block text-sm font-semibold text-gray-700">Puntaje / Score</label>
-                            <input type="number" wire:model.defer="datacreditoScore"
+                            <input type="text" inputmode="numeric" wire:model.defer="datacreditoScore"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-semibold text-gray-700">Ingresos / Ventas</label>
-                            <input type="number" wire:model.defer="datacreditoIngresosVentas"
+                            <input type="text" inputmode="numeric" wire:model.defer="datacreditoIngresosVentas"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-semibold text-gray-700">Nivel de
                                 endeudamiento</label>
-                            <input type="number" wire:model.defer="datacreditoNivelEndeudamiento"
+                            <input type="text" inputmode="numeric"
+                                wire:model.defer="datacreditoNivelEndeudamiento"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
 
@@ -314,13 +329,16 @@
                             <label class="mb-1 block text-sm font-semibold text-gray-700">Sector reporte
                                 negativo</label>
                             <input type="text" wire:model.defer="datacreditoSectorReporteNegativo"
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-semibold text-gray-700">Valor reporte
                                 negativo</label>
-                            <input type="number" wire:model.defer="datacreditoValorReporteNegativo"
+                            <input type="text" inputmode="numeric"
+                                wire:model.defer="datacreditoValorReporteNegativo"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
 
@@ -420,7 +438,24 @@
                 </thead>
 
                 <tbody class="divide-y divide-gray-100">
-                    @foreach ($tiposDocumentos as $tipo)
+                    @php
+                        $cupoMayor25 = (float) $solicitud->cupo_sugerido > 25000000;
+
+                        $documentosFinancieros = ['DECLARACION DE RENTA', 'ESTADO DE RESULTADOS', 'BALANCE GENERAL'];
+
+                        $tiposDocumentosVisibles = $tiposDocumentos->filter(function ($tipo) use (
+                            $cupoMayor25,
+                            $documentosFinancieros,
+                        ) {
+                            if ($cupoMayor25) {
+                                return true;
+                            }
+
+                            return !in_array($tipo->nombre, $documentosFinancieros);
+                        });
+                    @endphp
+
+                    @foreach ($tiposDocumentosVisibles as $tipo)
                         @php
                             $documentos = $solicitud->documentos->where('tipo_documento_credito_id', $tipo->id);
                         @endphp
@@ -548,204 +583,203 @@
                 </tbody>
             </table>
         </div>
-        </div>
-
-        <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 class="text-lg font-bold text-gray-800">Comentarios de la solicitud</h2>
-
-            <textarea wire:model.defer="nuevoComentario" rows="3" placeholder="Escribe un comentario interno"
-                class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
-
-            @error('nuevoComentario')
-                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-            @enderror
-
-            <button wire:click="guardarComentario"
-                class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
-                Guardar comentario
-            </button>
-
-            <div class="mt-5 space-y-3">
-                @forelse($solicitud->comentarios()->with('usuario')->latest()->get() as $comentario)
-                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                        <div class="flex justify-between gap-3">
-                            <p class="text-sm font-bold text-gray-800">
-                                {{ $comentario->usuario?->name ?? 'Usuario no disponible' }}
-                            </p>
-                            <p class="text-xs text-gray-400">
-                                {{ $comentario->created_at?->format('Y-m-d H:i') }}
-                            </p>
-                        </div>
-
-                        <p class="mt-2 text-sm text-gray-700">
-                            {{ $comentario->comentario }}
-                        </p>
-                    </div>
-                @empty
-                    <p class="text-sm text-gray-400">Sin comentarios registrados.</p>
-                @endforelse
-            </div>
-
-            @if ($this->todosDocumentosRevisados && $solicitud->estado === 'en_revision')
-                <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
-                    <h2 class="text-lg font-bold text-gray-800">Resultado revisión documental</h2>
-
-                    <textarea wire:model.defer="comentarioRevision" rows="3" placeholder="Comentario de revisión"
-                        class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
-
-                    @error('comentarioRevision')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
-
-                    <div class="mt-4 flex gap-3">
-                        <button wire:click="pasarSegundaAprobacion"
-                            class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">
-                            Pasar a segunda aprobación
-                        </button>
-
-                        <button wire:click="rechazarSolicitudRevision"
-                            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white">
-                            Rechazar solicitud
-                        </button>
-                    </div>
-                </div>
-            @endif
-
-            @if ($solicitud->estado === 'aprobado_parcial')
-                <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
-                    <h2 class="text-lg font-bold text-gray-800">Cierre aprobado</h2>
-
-                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="text-sm font-semibold text-gray-700">Cupo asignado</label>
-                            <input type="number" wire:model.defer="cupoAsignado"
-                                class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-semibold text-gray-700">Condición de pago</label>
-                            <select wire:model.defer="condicionPagoAprobada"
-                                class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
-                                <option value="">Seleccione</option>
-                                <option value="CONTADO">CONTADO</option>
-                                <option value="8 DIAS">8 DÍAS</option>
-                                <option value="15 DIAS">15 DÍAS</option>
-                                <option value="30 DIAS">30 DÍAS</option>
-                                <option value="45 DIAS">45 DÍAS</option>
-                                <option value="60 DIAS">60 DÍAS</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="text-sm font-semibold text-gray-700">Comentario cierre aprobado</label>
-                        <textarea wire:model.defer="comentarioCierreAprobado" rows="3"
-                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
-                    </div>
-
-                    <button wire:click="cerrarAprobacion"
-                        class="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white">
-                        Cerrar solicitud - aprobación
-                    </button>
-                </div>
-            @endif
-        </div>
     </div>
 
-    @if ($modalInfoReferencia)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
-                <h2 class="text-lg font-bold text-gray-800">Información de referenciación</h2>
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-800">Comentarios de la solicitud</h2>
 
-                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <input wire:model.defer="referenciacionForm.quien_da_referencia" placeholder="Quién da referencia"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.cupo_asignado" type="number"
-                        placeholder="Cupo asignado" class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.antiguedad_comercial"
-                        placeholder="Antigüedad comercial" class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.promedio_pago" placeholder="Promedio pago"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.cheques_devueltos" placeholder="Cheques devueltos"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.activo" placeholder="Activo"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <div>
-                        <label class="mb-1 block text-xs font-bold text-gray-500">Fecha referencia</label>
-                        <input wire:model.defer="referenciacionForm.fecha_referencia" type="date"
-                            class="w-full rounded-xl border px-4 py-2 text-sm">
+        <textarea wire:model.defer="nuevoComentario" rows="3" placeholder="Escribe un comentario interno"
+            class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
+
+        @error('nuevoComentario')
+            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+        @enderror
+
+        <button wire:click="guardarComentario"
+            class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+            Guardar comentario
+        </button>
+
+        <div class="mt-5 space-y-3">
+            @forelse($solicitud->comentarios()->with('usuario')->latest()->get() as $comentario)
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex justify-between gap-3">
+                        <p class="text-sm font-bold text-gray-800">
+                            {{ $comentario->usuario?->name ?? 'Usuario no disponible' }}
+                        </p>
+                        <p class="text-xs text-gray-400">
+                            {{ $comentario->created_at?->format('Y-m-d H:i') }}
+                        </p>
                     </div>
 
-                    <div>
-                        <label class="mb-1 block text-xs font-bold text-gray-500">Último despacho</label>
-                        <input wire:model.defer="referenciacionForm.ultimo_despacho" type="date"
-                            class="w-full rounded-xl border px-4 py-2 text-sm">
-                    </div>
+                    <p class="mt-2 text-sm text-gray-700">
+                        {{ $comentario->comentario }}
+                    </p>
                 </div>
+            @empty
+                <p class="text-sm text-gray-400">Sin comentarios registrados.</p>
+            @endforelse
+        </div>
 
-                <textarea wire:model.defer="referenciacionForm.concepto" rows="3" placeholder="Concepto"
-                    class="mt-4 w-full rounded-xl border px-4 py-2 text-sm"></textarea>
+        @if ($this->todosDocumentosRevisados && $solicitud->estado === 'en_revision')
+            <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800">Resultado revisión documental</h2>
 
-                <div class="mt-5 flex justify-end gap-3">
-                    <button wire:click="$set('modalInfoReferencia', false)"
-                        class="rounded-lg border px-4 py-2 text-sm">
-                        Cancelar
+                <textarea wire:model.defer="comentarioRevision" rows="3" placeholder="Comentario de revisión"
+                    class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
+
+                @error('comentarioRevision')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+
+                <div class="mt-4 flex gap-3">
+                    <button wire:click="pasarSegundaAprobacion"
+                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">
+                        Pasar a segunda aprobación
                     </button>
 
-                    <button wire:click="guardarInfoReferenciacion"
-                        class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
-                        Guardar
+                    <button wire:click="rechazarSolicitudRevision"
+                        class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white">
+                        Rechazar solicitud
                     </button>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
 
-    @if ($modalReferencia)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
-                <h2 class="text-lg font-bold text-gray-800">Crear nueva referencia</h2>
+        @if ($solicitud->estado === 'aprobado_parcial')
+            <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800">Cierre aprobado</h2>
 
                 <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <input wire:model.defer="referenciaForm.empresa" placeholder="Empresa"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciaForm.nit" placeholder="NIT"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <select wire:model.live="referenciaForm.cod_depto" class="rounded-xl border px-4 py-2 text-sm">
-                        <option value="">Seleccione departamento</option>
-                        @foreach ($departamentosReferencia as $d)
-                            <option value="{{ $d['cod_depto'] }}">
-                                {{ $d['cod_depto'] }} - {{ $d['depto'] }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Cupo asignado</label>
+                        <input type="number" wire:model.defer="cupoAsignado"
+                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                    </div>
 
-                    <select wire:model.live="referenciaForm.cod_ciudad" class="rounded-xl border px-4 py-2 text-sm">
-                        <option value="">Seleccione ciudad</option>
-                        @foreach ($ciudadesReferencia as $c)
-                            <option value="{{ $c['cod_ciudad'] }}">
-                                {{ $c['cod_ciudad'] }} - {{ $c['ciudad'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <input wire:model.defer="referenciaForm.telefono" placeholder="Teléfono"
-                        class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciaForm.cupo_credito" type="number" placeholder="Cupo crédito"
-                        class="rounded-xl border px-4 py-2 text-sm">
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Condición de pago</label>
+                        <select wire:model.defer="condicionPagoAprobada"
+                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                            <option value="">Seleccione</option>
+                            <option value="CONTADO">CONTADO</option>
+                            <option value="8 DIAS">8 DÍAS</option>
+                            <option value="15 DIAS">15 DÍAS</option>
+                            <option value="30 DIAS">30 DÍAS</option>
+                            <option value="45 DIAS">45 DÍAS</option>
+                            <option value="60 DIAS">60 DÍAS</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="mt-5 flex justify-end gap-3">
-                    <button wire:click="$set('modalReferencia', false)" class="rounded-lg border px-4 py-2 text-sm">
-                        Cancelar
-                    </button>
+                <div class="mt-4">
+                    <label class="text-sm font-semibold text-gray-700">Comentario cierre aprobado</label>
+                    <textarea wire:model.defer="comentarioCierreAprobado" rows="3"
+                        class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
+                </div>
 
-                    <button wire:click="guardarReferencia"
-                        class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
-                        Guardar referencia
-                    </button>
+                <button wire:click="cerrarAprobacion"
+                    class="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white">
+                    Cerrar solicitud - aprobación
+                </button>
+            </div>
+        @endif
+    </div>
+</div>
+
+@if ($modalInfoReferencia)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+            <h2 class="text-lg font-bold text-gray-800">Información de referenciación</h2>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input wire:model.defer="referenciacionForm.quien_da_referencia" placeholder="Quién da referencia"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciacionForm.cupo_asignado" type="number" placeholder="Cupo asignado"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciacionForm.antiguedad_comercial" placeholder="Antigüedad comercial"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciacionForm.promedio_pago" placeholder="Promedio pago"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciacionForm.cheques_devueltos" placeholder="Cheques devueltos"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciacionForm.activo" placeholder="Activo"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <div>
+                    <label class="mb-1 block text-xs font-bold text-gray-500">Fecha referencia</label>
+                    <input wire:model.defer="referenciacionForm.fecha_referencia" type="date"
+                        class="w-full rounded-xl border px-4 py-2 text-sm">
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-xs font-bold text-gray-500">Último despacho</label>
+                    <input wire:model.defer="referenciacionForm.ultimo_despacho" type="date"
+                        class="w-full rounded-xl border px-4 py-2 text-sm">
                 </div>
             </div>
+
+            <textarea wire:model.defer="referenciacionForm.concepto" rows="3" placeholder="Concepto"
+                class="mt-4 w-full rounded-xl border px-4 py-2 text-sm"></textarea>
+
+            <div class="mt-5 flex justify-end gap-3">
+                <button wire:click="$set('modalInfoReferencia', false)" class="rounded-lg border px-4 py-2 text-sm">
+                    Cancelar
+                </button>
+
+                <button wire:click="guardarInfoReferenciacion"
+                    class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+                    Guardar
+                </button>
+            </div>
         </div>
-    @endif
+    </div>
+@endif
+
+@if ($modalReferencia)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            <h2 class="text-lg font-bold text-gray-800">Crear nueva referencia</h2>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input wire:model.defer="referenciaForm.empresa" placeholder="Empresa"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciaForm.nit" placeholder="NIT"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <select wire:model.live="referenciaForm.cod_depto" class="rounded-xl border px-4 py-2 text-sm">
+                    <option value="">Seleccione departamento</option>
+                    @foreach ($departamentosReferencia as $d)
+                        <option value="{{ $d['cod_depto'] }}">
+                            {{ $d['cod_depto'] }} - {{ $d['depto'] }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="referenciaForm.cod_ciudad" class="rounded-xl border px-4 py-2 text-sm">
+                    <option value="">Seleccione ciudad</option>
+                    @foreach ($ciudadesReferencia as $c)
+                        <option value="{{ $c['cod_ciudad'] }}">
+                            {{ $c['cod_ciudad'] }} - {{ $c['ciudad'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <input wire:model.defer="referenciaForm.telefono" placeholder="Teléfono"
+                    class="rounded-xl border px-4 py-2 text-sm">
+                <input wire:model.defer="referenciaForm.cupo_credito" type="number" placeholder="Cupo crédito"
+                    class="rounded-xl border px-4 py-2 text-sm">
+            </div>
+
+            <div class="mt-5 flex justify-end gap-3">
+                <button wire:click="$set('modalReferencia', false)" class="rounded-lg border px-4 py-2 text-sm">
+                    Cancelar
+                </button>
+
+                <button wire:click="guardarReferencia"
+                    class="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white">
+                    Guardar referencia
+                </button>
+            </div>
+        </div>
+    </div>
+@endif
 
 </div>

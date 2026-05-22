@@ -368,7 +368,7 @@ class IntegracionesController extends Controller
 
         $orden_compra = $prefijo.$oc;
 
-        $notasOriginal = 'NO ENVIAR FACTURA - Cliente: '.$request->nombre_cliente.' - CC/Nit: '.$request->documento_cliente.' - Telefono: '.$request->telefono_cliente.' - Direccion: '.$request->direccion_envio.' ('.$request->nombre_ciudad.' - '.$request->nombre_departamento.')';
+        $notasOriginal = 'NO ENVIAR FACTURA - Cliente: '.$request->nombre_cliente.' - CC/Nit: '.$request->documento_cliente.' - Telefono: '.$request->telefono_cliente.' - Direccion: '.$request->direccion_envio.' ('.$request->nombre_ciudad.' - '.$request->nombre_departamento.') - OC: '.$oc ;
 
         $notasLimpias = strtr($notasOriginal, [
             'á' => 'a',

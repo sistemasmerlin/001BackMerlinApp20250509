@@ -52,6 +52,8 @@ class SolicitudCreditoController extends Controller
             'rte_iva' => ['nullable'],
             'rte_ica' => ['nullable'],
 
+            'numero_cotizacion' => 'nullable|string|max:50',
+            
             'antiguedad_comercial' => ['nullable', 'string', 'max:100'],
             'tiempo_antiguedad' => ['nullable', 'string', 'max:255'],
             'tipo_negocio' => 'nullable|array',

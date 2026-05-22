@@ -6,16 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Models\SolicitudCredito;
 use App\Models\SolicitudCreditoDocumento;
 use App\Models\TipoDocumentoCredito;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; 
 use Illuminate\Support\Facades\Storage;
 
 class SolicitudCreditoDocumentoController extends Controller
 {
     public function index($solicitudId)
     {
-        $solicitud = SolicitudCredito::findOrFail($solicitudId);
+
+        $solicitud = SolicitudCredito::with(['comentarios.usuario'])
+        ->findOrFail($solicitudId);
+
+        $cupoMayor25 = (float) $solicitud->cupo_sugerido > 25000000;
+
+        $documentosFinancieros = [
+            'DECLARACION DE RENTA',
+            'ESTADO DE RESULTADOS',
+            'BALANCE GENERAL',
+        ];
 
         $tipos = TipoDocumentoCredito::where('estado', true)
+            ->when(!$cupoMayor25, function ($query) use ($documentosFinancieros) {
+                $query->whereNotIn('nombre', $documentosFinancieros);
+            })
             ->orderBy('orden')
             ->get()
             ->map(function ($tipo) use ($solicitudId) {

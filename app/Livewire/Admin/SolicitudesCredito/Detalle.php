@@ -242,13 +242,41 @@ public function updatedReferenciaFormCodDepto($value): void
 
 public function getTodosDocumentosRevisadosProperty(): bool
 {
-    $documentos = $this->solicitud->documentos;
+    $cupoMayor25 = (float) $this->solicitud->cupo_sugerido > 25000000;
 
-    if ($documentos->count() === 0) {
-        return false;
+    $documentosFinancieros = [
+        'DECLARACION DE RENTA',
+        'ESTADO DE RESULTADOS',
+        'BALANCE GENERAL',
+    ];
+
+    $tiposObligatorios = $this->tiposDocumentos
+        ->filter(function ($tipo) use ($cupoMayor25, $documentosFinancieros) {
+            if (!$cupoMayor25 && in_array($tipo->nombre, $documentosFinancieros)) {
+                return false;
+            }
+
+            return $tipo->obligatorio;
+        });
+
+    foreach ($tiposObligatorios as $tipo) {
+        $documentos = $this->solicitud->documentos
+            ->where('tipo_documento_credito_id', $tipo->id);
+
+        if ($documentos->count() < $tipo->cantidad_minima) {
+            return false;
+        }
+
+        if ($documentos->contains('estado', 'pendiente')) {
+            return false;
+        }
+
+        if ($documentos->contains('estado', 'no_aprobado')) {
+            return false;
+        }
     }
 
-    return $documentos->where('estado', 'pendiente')->count() === 0;
+    return true;
 }
 
 public function pasarSegundaAprobacion(): void
@@ -319,6 +347,12 @@ public function rechazarSolicitudRevision(): void
 
     public function actualizarReporteCentrales(): void
     {
+        $this->datacreditoScore = preg_replace('/\D/', '', (string) $this->datacreditoScore);
+        $this->datacreditoIngresosVentas = preg_replace('/\D/', '', (string) $this->datacreditoIngresosVentas);
+        $this->datacreditoNivelEndeudamiento = preg_replace('/\D/', '', (string) $this->datacreditoNivelEndeudamiento);
+        $this->datacreditoValorReporteNegativo = preg_replace('/\D/', '', (string) $this->datacreditoValorReporteNegativo);
+        $this->datacreditoSectorReporteNegativo = preg_replace('/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/u', '', (string) $this->datacreditoSectorReporteNegativo);
+
         $this->validate([
             'datacreditoScore' => 'required|integer|min:0|max:999',
             'datacreditoIngresosVentas' => 'required|numeric|min:0',
@@ -495,6 +529,21 @@ public function updatedReferenciaFormCodCiudad($value): void
         $this->solicitud->refresh();
 
         session()->flash('success', 'La solicitud fue devuelta a estado pendiente.');
+    }
+
+    public function pasarAEnRevision(): void
+    {
+        if (in_array($this->solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado'])) {
+            return;
+        }
+
+        $this->solicitud->update([
+            'estado' => 'En revision',
+        ]);
+
+        $this->solicitud->refresh();
+
+        session()->flash('success', 'La solicitud fue devuelta a estado en revision.');
     }
 
     public function guardarComentario(): void

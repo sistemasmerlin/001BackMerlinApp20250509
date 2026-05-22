@@ -138,8 +138,9 @@ class SolicitudCredito extends Model
         return $this->belongsTo(User::class);
     }
 
+
     public function comentarios()
     {
-        return $this->hasMany(SolicitudCreditoComentario::class, 'solicitud_credito_id');
+        return $this->hasMany(SolicitudCreditoComentario::class, 'solicitud_credito_id')->latest();
     }
 }
