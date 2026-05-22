@@ -12,12 +12,13 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SolicitudCreditoReferencia;
 use App\Models\FleteCiudad;
 use App\Models\SolicitudCreditoComentario;
+
 class Detalle extends Component
 {
     use WithFileUploads;
 
     public SolicitudCredito $solicitud;
-
+    public $cartaCierre;
     public $tiposDocumentos = [];
     public array $archivos = [];
     public array $observaciones = [];
@@ -28,7 +29,7 @@ class Detalle extends Component
     public string $comentarioCierreAprobado = '';
     public string $reporteCentralesRiesgo = 'sin_estado';
     public ?string $comentarioReporteCentrales = null;
-    public ?string $numero_cotizacion = null;    
+    public ?string $numero_cotizacion = null;
     public bool $modalInfoReferencia = false;
     public ?int $referenciaId = null;
     public $departamentosReferencia = [];
@@ -90,26 +91,26 @@ class Detalle extends Component
             ->toArray();
     }
 
-public function updatedReferenciaFormCodDepto($value): void
-{
-    $depto = FleteCiudad::where('cod_depto', $value)->first();
+    public function updatedReferenciaFormCodDepto($value): void
+    {
+        $depto = FleteCiudad::where('cod_depto', $value)->first();
 
-    $this->referenciaForm['depto'] = $depto?->depto ?? '';
-    $this->referenciaForm['cod_ciudad'] = '';
-    $this->referenciaForm['ciudad'] = '';
+        $this->referenciaForm['depto'] = $depto?->depto ?? '';
+        $this->referenciaForm['cod_ciudad'] = '';
+        $this->referenciaForm['ciudad'] = '';
 
-    $this->ciudadesReferencia = FleteCiudad::query()
-        ->select('cod_ciudad', 'ciudad')
-        ->where('cod_depto', $value)
-        ->whereNotNull('cod_ciudad')
-        ->whereNotNull('ciudad')
-        ->where('cod_ciudad', '<>', '')
-        ->where('ciudad', '<>', '')
-        ->groupBy('cod_ciudad', 'ciudad')
-        ->orderBy('ciudad')
-        ->get()
-        ->toArray();
-}
+        $this->ciudadesReferencia = FleteCiudad::query()
+            ->select('cod_ciudad', 'ciudad')
+            ->where('cod_depto', $value)
+            ->whereNotNull('cod_ciudad')
+            ->whereNotNull('ciudad')
+            ->where('cod_ciudad', '<>', '')
+            ->where('ciudad', '<>', '')
+            ->groupBy('cod_ciudad', 'ciudad')
+            ->orderBy('ciudad')
+            ->get()
+            ->toArray();
+    }
     public function cargarDatos(): void
     {
         $this->solicitud->load([
@@ -230,98 +231,98 @@ public function updatedReferenciaFormCodDepto($value): void
     }
 
     private function pasarARevisionSiAplica(): void
-{
-    if (!in_array($this->solicitud->estado, ['en_revision', 'aprobado_parcial', 'rechazado', 'aprobado'])) {
-        $this->solicitud->update([
-            'estado' => 'en_revision',
-        ]);
+    {
+        if (!in_array($this->solicitud->estado, ['en_revision', 'aprobado_parcial', 'rechazado', 'aprobado'])) {
+            $this->solicitud->update([
+                'estado' => 'en_revision',
+            ]);
+        }
+
+        $this->cargarDatos();
     }
 
-    $this->cargarDatos();
-}
+    public function getTodosDocumentosRevisadosProperty(): bool
+    {
+        $cupoMayor25 = (float) $this->solicitud->cupo_sugerido > 25000000;
 
-public function getTodosDocumentosRevisadosProperty(): bool
-{
-    $cupoMayor25 = (float) $this->solicitud->cupo_sugerido > 25000000;
+        $documentosFinancieros = [
+            'DECLARACION DE RENTA',
+            'ESTADO DE RESULTADOS',
+            'BALANCE GENERAL',
+        ];
 
-    $documentosFinancieros = [
-        'DECLARACION DE RENTA',
-        'ESTADO DE RESULTADOS',
-        'BALANCE GENERAL',
-    ];
+        $tiposObligatorios = $this->tiposDocumentos
+            ->filter(function ($tipo) use ($cupoMayor25, $documentosFinancieros) {
+                if (!$cupoMayor25 && in_array($tipo->nombre, $documentosFinancieros)) {
+                    return false;
+                }
 
-    $tiposObligatorios = $this->tiposDocumentos
-        ->filter(function ($tipo) use ($cupoMayor25, $documentosFinancieros) {
-            if (!$cupoMayor25 && in_array($tipo->nombre, $documentosFinancieros)) {
+                return $tipo->obligatorio;
+            });
+
+        foreach ($tiposObligatorios as $tipo) {
+            $documentos = $this->solicitud->documentos
+                ->where('tipo_documento_credito_id', $tipo->id);
+
+            if ($documentos->count() < $tipo->cantidad_minima) {
                 return false;
             }
 
-            return $tipo->obligatorio;
-        });
+            if ($documentos->contains('estado', 'pendiente')) {
+                return false;
+            }
 
-    foreach ($tiposObligatorios as $tipo) {
-        $documentos = $this->solicitud->documentos
-            ->where('tipo_documento_credito_id', $tipo->id);
-
-        if ($documentos->count() < $tipo->cantidad_minima) {
-            return false;
+            if ($documentos->contains('estado', 'no_aprobado')) {
+                return false;
+            }
         }
 
-        if ($documentos->contains('estado', 'pendiente')) {
-            return false;
-        }
-
-        if ($documentos->contains('estado', 'no_aprobado')) {
-            return false;
-        }
+        return true;
     }
 
-    return true;
-}
+    public function pasarSegundaAprobacion(): void
+    {
+        if (!$this->puedePasarSegundaAprobacion) {
+            session()->flash('error', 'Aún hay pendientes para pasar a segunda aprobación.');
+            return;
+        }
 
-public function pasarSegundaAprobacion(): void
-{
-    if (!$this->puedePasarSegundaAprobacion) {
-        session()->flash('error', 'Aún hay pendientes para pasar a segunda aprobación.');
-        return;
+        $this->validate([
+            'comentarioRevision' => 'required|string|min:5|max:1000',
+        ], [
+            'comentarioRevision.required' => 'El comentario es obligatorio para pasar a segunda aprobación.',
+        ]);
+
+        $this->solicitud->update([
+            'estado' => 'aprobado_parcial',
+            'comentario_revision_documentos' => $this->comentarioRevision,
+            'fecha_revision_documentos' => now(),
+            'revision_documentos_por' => auth()->id(),
+        ]);
+
+        $this->cargarDatos();
+
+        session()->flash('success', 'Solicitud enviada a segunda aprobación correctamente.');
     }
+    public function rechazarSolicitudRevision(): void
+    {
+        $this->validate([
+            'comentarioRevision' => 'required|string|min:5|max:1000',
+        ], [
+            'comentarioRevision.required' => 'El comentario es obligatorio para rechazar la solicitud.',
+        ]);
 
-    $this->validate([
-        'comentarioRevision' => 'required|string|min:5|max:1000',
-    ], [
-        'comentarioRevision.required' => 'El comentario es obligatorio para pasar a segunda aprobación.',
-    ]);
+        $this->solicitud->update([
+            'estado' => 'rechazado',
+            'comentario_revision_documentos' => $this->comentarioRevision,
+            'fecha_revision_documentos' => now(),
+            'revision_documentos_por' => auth()->id(),
+        ]);
 
-    $this->solicitud->update([
-        'estado' => 'aprobado_parcial',
-        'comentario_revision_documentos' => $this->comentarioRevision,
-        'fecha_revision_documentos' => now(),
-        'revision_documentos_por' => auth()->id(),
-    ]);
+        $this->cargarDatos();
 
-    $this->cargarDatos();
-
-    session()->flash('success', 'Solicitud enviada a segunda aprobación correctamente.');
-}
-public function rechazarSolicitudRevision(): void
-{
-    $this->validate([
-        'comentarioRevision' => 'required|string|min:5|max:1000',
-    ], [
-        'comentarioRevision.required' => 'El comentario es obligatorio para rechazar la solicitud.',
-    ]);
-
-    $this->solicitud->update([
-        'estado' => 'rechazado',
-        'comentario_revision_documentos' => $this->comentarioRevision,
-        'fecha_revision_documentos' => now(),
-        'revision_documentos_por' => auth()->id(),
-    ]);
-
-    $this->cargarDatos();
-
-    session()->flash('success', 'Solicitud rechazada correctamente.');
-}
+        session()->flash('success', 'Solicitud rechazada correctamente.');
+    }
     public function cerrarAprobacion(): void
     {
         $this->validate([
@@ -401,29 +402,29 @@ public function rechazarSolicitudRevision(): void
     }
 
     public function abrirInfoReferenciacion(int $referenciaId): void
-{
-    $ref = SolicitudCreditoReferencia::where('solicitud_credito_id', $this->solicitud->id)
-        ->where('id', $referenciaId)
-        ->firstOrFail();
+    {
+        $ref = SolicitudCreditoReferencia::where('solicitud_credito_id', $this->solicitud->id)
+            ->where('id', $referenciaId)
+            ->firstOrFail();
 
-    $this->referenciaId = $ref->id;
+        $this->referenciaId = $ref->id;
 
-    $this->referenciacionForm = [
-        'quien_da_referencia' => $ref->quien_da_referencia ?? '',
-        'cupo_asignado' => $ref->cupo_asignado,
-        'antiguedad_comercial' => $ref->antiguedad_comercial ?? '',
-        'promedio_pago' => $ref->promedio_pago ?? '',
-        'cheques_devueltos' => $ref->cheques_devueltos ?? '',
-        'activo' => $ref->activo ?? '',
-        'concepto' => $ref->concepto ?? '',
-        'fecha_referencia' => $ref->fecha_referencia ? \Carbon\Carbon::parse($ref->fecha_referencia)->format('Y-m-d') : '',
-        'ultimo_despacho' => $ref->ultimo_despacho ? \Carbon\Carbon::parse($ref->ultimo_despacho)->format('Y-m-d') : '',
-    ];
+        $this->referenciacionForm = [
+            'quien_da_referencia' => $ref->quien_da_referencia ?? '',
+            'cupo_asignado' => $ref->cupo_asignado,
+            'antiguedad_comercial' => $ref->antiguedad_comercial ?? '',
+            'promedio_pago' => $ref->promedio_pago ?? '',
+            'cheques_devueltos' => $ref->cheques_devueltos ?? '',
+            'activo' => $ref->activo ?? '',
+            'concepto' => $ref->concepto ?? '',
+            'fecha_referencia' => $ref->fecha_referencia ? \Carbon\Carbon::parse($ref->fecha_referencia)->format('Y-m-d') : '',
+            'ultimo_despacho' => $ref->ultimo_despacho ? \Carbon\Carbon::parse($ref->ultimo_despacho)->format('Y-m-d') : '',
+        ];
 
-    $this->modalInfoReferencia = true;
-}
+        $this->modalInfoReferencia = true;
+    }
 
-/*     public function abrirInfoReferenciacion(int $referenciaId): void
+    /*     public function abrirInfoReferenciacion(int $referenciaId): void
     {
         $ref = SolicitudCreditoReferencia::findOrFail($referenciaId);
 
@@ -487,26 +488,26 @@ public function rechazarSolicitudRevision(): void
     }
 
     public function abrirModalReferencia(): void
-{
-    $this->referenciaForm = [
-        'empresa' => '',
-        'nit' => '',
-        'ciudad' => '',
-        'telefono' => '',
-        'cupo_credito' => null,
-    ];
+    {
+        $this->referenciaForm = [
+            'empresa' => '',
+            'nit' => '',
+            'ciudad' => '',
+            'telefono' => '',
+            'cupo_credito' => null,
+        ];
 
-    $this->modalReferencia = true;
-}
+        $this->modalReferencia = true;
+    }
 
-public function updatedReferenciaFormCodCiudad($value): void
-{
-    $ciudad = FleteCiudad::where('cod_depto', $this->referenciaForm['cod_depto'])
-        ->where('cod_ciudad', $value)
-        ->first();
+    public function updatedReferenciaFormCodCiudad($value): void
+    {
+        $ciudad = FleteCiudad::where('cod_depto', $this->referenciaForm['cod_depto'])
+            ->where('cod_ciudad', $value)
+            ->first();
 
-    $this->referenciaForm['ciudad'] = $ciudad?->ciudad ?? '';
-}
+        $this->referenciaForm['ciudad'] = $ciudad?->ciudad ?? '';
+    }
 
 
     public function guardarReferencia(): void
@@ -568,32 +569,66 @@ public function updatedReferenciaFormCodCiudad($value): void
     }
 
     public function getPendientesParaAprobacionProperty(): array
-{
-    $pendientes = [];
+    {
+        $pendientes = [];
 
-    if (!$this->todosDocumentosRevisados) {
-        $pendientes[] = 'Faltan documentos obligatorios por aprobar.';
+        if (!$this->todosDocumentosRevisados) {
+            $pendientes[] = 'Faltan documentos obligatorios por aprobar.';
+        }
+
+        if ($this->solicitud->reporte_centrales_riesgo !== 'positivo') {
+            $pendientes[] = 'El resultado de centrales de riesgo debe ser positivo.';
+        }
+
+        $referenciasPositivas = $this->solicitud->referencias
+            ->filter(fn($ref) => strtolower((string) $ref->concepto) === 'positivo')
+            ->count();
+
+        if ($referenciasPositivas < 2) {
+            $pendientes[] = 'Debe tener mínimo 2 referencias comerciales positivas.';
+        }
+
+        return $pendientes;
     }
 
-    if ($this->solicitud->reporte_centrales_riesgo !== 'positivo') {
-        $pendientes[] = 'El resultado de centrales de riesgo debe ser positivo.';
+    public function subirCartaCierre(): void
+    {
+        $this->validate([
+            'cartaCierre' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ], [
+            'cartaCierre.required' => 'Debes seleccionar la carta de cierre.',
+            'cartaCierre.file' => 'El archivo no es válido.',
+            'cartaCierre.mimes' => 'La carta debe ser PDF, JPG, JPEG o PNG.',
+            'cartaCierre.max' => 'La carta no puede pesar más de 10MB.',
+        ]);
+
+        if ($this->solicitud->carta_cierre_path && $this->solicitud->carta_cierre_disk) {
+            if (\Storage::disk($this->solicitud->carta_cierre_disk)->exists($this->solicitud->carta_cierre_path)) {
+                \Storage::disk($this->solicitud->carta_cierre_disk)->delete($this->solicitud->carta_cierre_path);
+            }
+        }
+
+        $path = $this->cartaCierre->store(
+            'solicitudes_credito/cartas_cierre/' . $this->solicitud->id,
+            'public'
+        );
+
+        $this->solicitud->update([
+            'carta_cierre_disk' => 'public',
+            'carta_cierre_path' => $path,
+            'carta_cierre_nombre' => $this->cartaCierre->getClientOriginalName(),
+        ]);
+
+        $this->reset('cartaCierre');
+        $this->cargarDatos();
+
+        session()->flash('success', 'Carta de cierre adjuntada correctamente.');
     }
 
-    $referenciasPositivas = $this->solicitud->referencias
-        ->filter(fn ($ref) => strtolower((string) $ref->concepto) === 'positivo')
-        ->count();
-
-    if ($referenciasPositivas < 2) {
-        $pendientes[] = 'Debe tener mínimo 2 referencias comerciales positivas.';
+    public function getPuedePasarSegundaAprobacionProperty(): bool
+    {
+        return count($this->pendientesParaAprobacion) === 0;
     }
-
-    return $pendientes;
-}
-
-public function getPuedePasarSegundaAprobacionProperty(): bool
-{
-    return count($this->pendientesParaAprobacion) === 0;
-}
 
     public function guardarComentario(): void
     {

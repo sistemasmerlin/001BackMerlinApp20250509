@@ -99,7 +99,11 @@ class SolicitudCredito extends Model
         'datacredito_valor_reporte_negativo',
         'datacredito_resultado',
 
-        'numero_cotizacion'
+        'numero_cotizacion',
+
+        'carta_cierre_disk',
+        'carta_cierre_path',
+        'carta_cierre_nombre',
     ];
 
     protected $casts = [
