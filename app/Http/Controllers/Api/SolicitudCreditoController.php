@@ -53,7 +53,7 @@ class SolicitudCreditoController extends Controller
             'rte_ica' => ['nullable'],
 
             'numero_cotizacion' => 'nullable|string|max:50',
-            
+
             'antiguedad_comercial' => ['nullable', 'string', 'max:100'],
             'tiempo_antiguedad' => ['nullable', 'string', 'max:255'],
             'tipo_negocio' => 'nullable|array',
@@ -458,6 +458,7 @@ class SolicitudCreditoController extends Controller
                     'celular' => $solicitud->celular,
                     'correo_electronico' => $solicitud->correo_electronico,
                     'estado' => $solicitud->estado,
+                    'numero_cotizacion' => $solicitud->numero_cotizacion,
                     'auco_status' => $solicitud->auco_status,
                     'auco_code' => $solicitud->auco_code,
                     'auco_package' => $solicitud->auco_package,
