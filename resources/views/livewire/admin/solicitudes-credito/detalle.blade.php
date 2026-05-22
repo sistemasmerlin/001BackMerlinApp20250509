@@ -24,6 +24,20 @@
             </div>
 
             <div>
+                <span class="text-gray-400 font-semibold">Carta cierre:</span>
+
+                @if ($solicitud->carta_cierre_path)
+                    <a href="{{ Storage::disk($solicitud->carta_cierre_disk ?? 'public')->url($solicitud->carta_cierre_path) }}"
+                        target="_blank"
+                        class="inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700">
+                        Ver carta
+                    </a>
+                @else
+                    <span class="font-bold text-gray-400">Sin adjunto</span>
+                @endif
+            </div>
+
+            <div>
                 <span class="text-gray-400 font-semibold">Estado:</span>
                 <span class="font-bold text-gray-800">{{ strtoupper($solicitud->estado ?: '—') }}</span>
 

@@ -325,6 +325,11 @@ class Detalle extends Component
     }
     public function cerrarAprobacion(): void
     {
+        if (!$this->solicitud->carta_cierre_path) {
+            session()->flash('error', 'Debes adjuntar la carta de cierre antes de cerrar la solicitud.');
+            return;
+        }
+
         $this->validate([
             'cupoAsignado' => 'required|numeric|min:0',
             'condicionPagoAprobada' => 'required|string',
