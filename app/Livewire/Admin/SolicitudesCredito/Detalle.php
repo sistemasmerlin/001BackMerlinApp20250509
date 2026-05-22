@@ -399,7 +399,31 @@ public function rechazarSolicitudRevision(): void
             'rechazado',
         ]);
     }
+
     public function abrirInfoReferenciacion(int $referenciaId): void
+{
+    $ref = SolicitudCreditoReferencia::where('solicitud_credito_id', $this->solicitud->id)
+        ->where('id', $referenciaId)
+        ->firstOrFail();
+
+    $this->referenciaId = $ref->id;
+
+    $this->referenciacionForm = [
+        'quien_da_referencia' => $ref->quien_da_referencia ?? '',
+        'cupo_asignado' => $ref->cupo_asignado,
+        'antiguedad_comercial' => $ref->antiguedad_comercial ?? '',
+        'promedio_pago' => $ref->promedio_pago ?? '',
+        'cheques_devueltos' => $ref->cheques_devueltos ?? '',
+        'activo' => $ref->activo ?? '',
+        'concepto' => $ref->concepto ?? '',
+        'fecha_referencia' => $ref->fecha_referencia ? \Carbon\Carbon::parse($ref->fecha_referencia)->format('Y-m-d') : '',
+        'ultimo_despacho' => $ref->ultimo_despacho ? \Carbon\Carbon::parse($ref->ultimo_despacho)->format('Y-m-d') : '',
+    ];
+
+    $this->modalInfoReferencia = true;
+}
+
+/*     public function abrirInfoReferenciacion(int $referenciaId): void
     {
         $ref = SolicitudCreditoReferencia::findOrFail($referenciaId);
 
@@ -418,7 +442,7 @@ public function rechazarSolicitudRevision(): void
         ];
 
         $this->modalInfoReferencia = true;
-    }
+    } */
 
     public function guardarInfoReferenciacion(): void
     {
