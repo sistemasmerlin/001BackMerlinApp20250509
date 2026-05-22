@@ -24,26 +24,31 @@
             </div>
 
             <div>
-                <span class="text-gray-400 font-semibold">Estado:</span>
-                <span class="font-bold text-gray-800">{{ strtoupper($solicitud->estado ?: '—') }}</span>
+    <span class="text-gray-400 font-semibold">Estado:</span>
+    <span class="font-bold text-gray-800">{{ strtoupper($solicitud->estado ?: '—') }}</span>
 
-                @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado', 'pendiente']))
-                    <button type="button"
-                        onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
-                        wire:click="pasarAPendiente"
-                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
-                        Pasar a pendiente
-                    </button>
-                @else
-                    <button type="button"
-                        onclick="confirm('¿Seguro que deseas pasar esta solicitud a en revisión?') || event.stopImmediatePropagation()"
-                        wire:click="pasarAEnRevision"
-                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
-                        Pasar a en revisión
-                    </button>
-                @endif
-            </div>
+    @php
+        $estadoActual = strtolower(trim($solicitud->estado ?? ''));
+    @endphp
 
+    <div class="mt-2">
+        @if ($estadoActual === 'en_revision')
+            <button type="button"
+                onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
+                wire:click="pasarAPendiente"
+                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
+                Pasar a pendiente
+            </button>
+        @elseif ($estadoActual === 'pendiente')
+            <button type="button"
+                onclick="confirm('¿Seguro que deseas pasar esta solicitud a en revisión?') || event.stopImmediatePropagation()"
+                wire:click="pasarAEnRevision"
+                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600">
+                Pasar a en revisión
+            </button>
+        @endif
+    </div>
+</div>
         </div>
 
 
@@ -585,6 +590,8 @@
         </div>
     </div>
 
+ 
+
     <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <h2 class="text-lg font-bold text-gray-800">Comentarios de la solicitud</h2>
 
@@ -621,30 +628,78 @@
             @endforelse
         </div>
 
-        @if ($this->todosDocumentosRevisados && $solicitud->estado === 'en_revision')
-            <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
-                <h2 class="text-lg font-bold text-gray-800">Resultado revisión documental</h2>
+@if (in_array(strtolower(trim($solicitud->estado ?? '')), ['pendiente', 'en_revision']))
 
-                <textarea wire:model.defer="comentarioRevision" rows="3" placeholder="Comentario de revisión"
-                    class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
+    <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <h3 class="text-sm font-bold text-amber-800">
+            Pendientes para habilitar segunda aprobación
+        </h3>
 
-                @error('comentarioRevision')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
+        @if (count($this->pendientesParaAprobacion) > 0)
 
-                <div class="mt-4 flex gap-3">
-                    <button wire:click="pasarSegundaAprobacion"
-                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">
-                        Pasar a segunda aprobación
-                    </button>
+            <ul class="mt-3 space-y-2 text-sm text-amber-700">
 
-                    <button wire:click="rechazarSolicitudRevision"
-                        class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white">
-                        Rechazar solicitud
-                    </button>
-                </div>
+                @foreach ($this->pendientesParaAprobacion as $pendiente)
+                    <li class="flex items-start gap-2">
+                        <span class="mt-0.5">•</span>
+                        <span>{{ $pendiente }}</span>
+                    </li>
+                @endforeach
+
+            </ul>
+
+        @else
+
+            <div class="mt-3 rounded-lg bg-green-100 px-4 py-3 text-sm font-semibold text-green-700">
+                Todo está completo. Puedes pasar a segunda aprobación.
             </div>
+
         @endif
+    </div>
+
+    <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
+
+        <h2 class="text-lg font-bold text-gray-800">
+            Resultado revisión documental
+        </h2>
+
+        <textarea
+            wire:model.defer="comentarioRevision"
+            rows="3"
+            placeholder="Comentario obligatorio"
+            class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"></textarea>
+
+        @error('comentarioRevision')
+            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+        @enderror
+
+        <div class="mt-4 flex gap-3">
+
+            <button
+                wire:click="pasarSegundaAprobacion"
+                @disabled(!$this->puedePasarSegundaAprobacion)
+                class="rounded-lg px-4 py-2 text-sm font-semibold text-white
+                {{ $this->puedePasarSegundaAprobacion
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-400 cursor-not-allowed' }}">
+
+                Pasar a segunda aprobación
+
+            </button>
+
+            <button
+                wire:click="rechazarSolicitudRevision"
+                class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+
+                Rechazar solicitud
+
+            </button>
+
+        </div>
+
+    </div>
+
+@endif
 
         @if ($solicitud->estado === 'aprobado_parcial')
             <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">

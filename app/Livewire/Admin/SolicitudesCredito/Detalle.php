@@ -281,13 +281,15 @@ public function getTodosDocumentosRevisadosProperty(): bool
 
 public function pasarSegundaAprobacion(): void
 {
-    if (!$this->todosDocumentosRevisados) {
-        session()->flash('error', 'Aún hay documentos pendientes por revisar.');
+    if (!$this->puedePasarSegundaAprobacion) {
+        session()->flash('error', 'Aún hay pendientes para pasar a segunda aprobación.');
         return;
     }
 
     $this->validate([
-        'comentarioRevision' => 'required|string|min:5',
+        'comentarioRevision' => 'required|string|min:5|max:1000',
+    ], [
+        'comentarioRevision.required' => 'El comentario es obligatorio para pasar a segunda aprobación.',
     ]);
 
     $this->solicitud->update([
@@ -299,18 +301,14 @@ public function pasarSegundaAprobacion(): void
 
     $this->cargarDatos();
 
-    session()->flash('success', 'Solicitud enviada a segunda aprobación.');
+    session()->flash('success', 'Solicitud enviada a segunda aprobación correctamente.');
 }
-
 public function rechazarSolicitudRevision(): void
 {
-    if (!$this->todosDocumentosRevisados) {
-        session()->flash('error', 'Aún hay documentos pendientes por revisar.');
-        return;
-    }
-
     $this->validate([
-        'comentarioRevision' => 'required|string|min:5',
+        'comentarioRevision' => 'required|string|min:5|max:1000',
+    ], [
+        'comentarioRevision.required' => 'El comentario es obligatorio para rechazar la solicitud.',
     ]);
 
     $this->solicitud->update([
@@ -324,7 +322,6 @@ public function rechazarSolicitudRevision(): void
 
     session()->flash('success', 'Solicitud rechazada correctamente.');
 }
-
     public function cerrarAprobacion(): void
     {
         $this->validate([
@@ -545,6 +542,34 @@ public function updatedReferenciaFormCodCiudad($value): void
 
         session()->flash('success', 'La solicitud fue devuelta a estado en revision.');
     }
+
+    public function getPendientesParaAprobacionProperty(): array
+{
+    $pendientes = [];
+
+    if (!$this->todosDocumentosRevisados) {
+        $pendientes[] = 'Faltan documentos obligatorios por aprobar.';
+    }
+
+    if ($this->solicitud->reporte_centrales_riesgo !== 'positivo') {
+        $pendientes[] = 'El resultado de centrales de riesgo debe ser positivo.';
+    }
+
+    $referenciasPositivas = $this->solicitud->referencias
+        ->filter(fn ($ref) => strtolower((string) $ref->concepto) === 'positivo')
+        ->count();
+
+    if ($referenciasPositivas < 2) {
+        $pendientes[] = 'Debe tener mínimo 2 referencias comerciales positivas.';
+    }
+
+    return $pendientes;
+}
+
+public function getPuedePasarSegundaAprobacionProperty(): bool
+{
+    return count($this->pendientesParaAprobacion) === 0;
+}
 
     public function guardarComentario(): void
     {
