@@ -98,6 +98,7 @@ class SolicitudCredito extends Model
         'datacredito_sector_reporte_negativo',
         'datacredito_valor_reporte_negativo',
         'datacredito_resultado',
+        'primer_pendiente',
 
         'numero_cotizacion',
 
@@ -109,6 +110,7 @@ class SolicitudCredito extends Model
     protected $casts = [
         'fecha_solicitud' => 'date',
         'autorizacion_fecha' => 'date',
+        'primer_pendiente' => 'datetime',
         'rte_fuente' => 'boolean',
         'rte_iva' => 'boolean',
         'rte_ica' => 'boolean',

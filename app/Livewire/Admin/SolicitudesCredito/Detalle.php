@@ -545,19 +545,25 @@ class Detalle extends Component
 
     public function pasarAPendiente(): void
     {
-        if (in_array($this->solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado'])) {
+        if (in_array(strtolower(trim($this->solicitud->estado ?? '')), ['aprobado_parcial', 'aprobado', 'rechazado'])) {
             return;
         }
 
-        $this->solicitud->update([
+        $datos = [
             'estado' => 'pendiente',
-        ]);
+        ];
+
+        if (!$this->solicitud->primer_pendiente) {
+            $datos['primer_pendiente'] = now();
+        }
+
+        $this->solicitud->update($datos);
 
         $this->solicitud->refresh();
+        $this->cargarDatos();
 
         session()->flash('success', 'La solicitud fue devuelta a estado pendiente.');
     }
-
     public function pasarAEnRevision(): void
     {
         if (in_array($this->solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado'])) {
@@ -565,7 +571,7 @@ class Detalle extends Component
         }
 
         $this->solicitud->update([
-            'estado' => 'En revision',
+            'estado' => 'en_revision',
         ]);
 
         $this->solicitud->refresh();

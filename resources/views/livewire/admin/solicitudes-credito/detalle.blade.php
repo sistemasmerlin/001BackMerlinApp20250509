@@ -1,6 +1,6 @@
 <div class="rounded-2xl border bg-white p-5 shadow-sm">
 
-    <div class="mb-4 rounded-2xl bg-white px-5 py-4 shadow-sm border border-gray-200">
+    <div class="sticky top-0 z-40 mb-4 rounded-2xl bg-white/95 px-5 py-4 shadow-md border border-gray-200 backdrop-blur">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4 text-sm">
 
             <div>
@@ -21,6 +21,23 @@
             <div>
                 <span class="text-gray-400 font-semibold">Número cotización: </span>
                 <span class="font-bold text-gray-800">{{ $solicitud->numero_cotizacion ?: '—' }}</span>
+            </div>
+
+
+            <div>
+                <span class="text-gray-400 font-semibold">Cupo solicitado </span>
+                <span class="font-bold text-gray-800">{{ $solicitud->cupo_sugerido
+                                ? '$ ' . number_format($solicitud->cupo_sugerido, 0, ',', '.')
+                                : '—'
+                                }}</span>
+            </div>
+
+            
+            <div>
+                <span class="text-gray-400 font-semibold">Primer pendiente:</span>
+                <span class="font-bold text-gray-800">
+                    {{ $solicitud->primer_pendiente ? $solicitud->primer_pendiente->format('Y-m-d H:i') : '—' }}
+                </span>
             </div>
 
             <div>
