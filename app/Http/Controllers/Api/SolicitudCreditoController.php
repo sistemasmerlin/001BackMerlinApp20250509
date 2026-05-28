@@ -366,6 +366,7 @@ class SolicitudCreditoController extends Controller
                 'message' => 'Solicitud guardada y PDF generado, pero ocurrió un error al enviarlo a firma.',
                 'error' => $e->getMessage(),
                 'data' => $solicitud->fresh(['referencias', 'direcciones']),
+                'auco_payload' => $payloadAuco
             ], 201);
         }
 
