@@ -335,6 +335,7 @@ class SolicitudCreditoController extends Controller
                     'message' => 'Solicitud guardada y PDF generado, pero falló el envío a firma.',
                     'error_auco' => $errorAuco,
                     'data' => $solicitud->fresh(['referencias', 'direcciones']),
+                    'payloadAuco' => $payloadAuco
                 ], 201);
             }
 
@@ -365,16 +366,16 @@ class SolicitudCreditoController extends Controller
                 'ok' => false,
                 'message' => 'Solicitud guardada y PDF generado, pero ocurrió un error al enviarlo a firma.',
                 'error' => $e->getMessage(),
-                //'data' => $solicitud->fresh(['referencias', 'direcciones']),
-                'auco_payload' => $payloadAuco
+                'data' => $solicitud->fresh(['referencias', 'direcciones']),
+                'payloadAuco' => $payloadAuco
             ], 201);
         }
 
         return response()->json([
             'ok' => true,
             'message' => 'Solicitud guardada, PDF generado, almacenado y enviado a firma correctamente.',
-           // 'data' => $solicitud->fresh(['referencias', 'direcciones']),
-            'auco_payload' => $payloadAuco
+            'data' => $solicitud->fresh(['referencias', 'direcciones']),
+            'payloadAuco' => $payloadAuco
         ], 201);
     }
     private function unirPdfs(array $pdfBinaries): string
