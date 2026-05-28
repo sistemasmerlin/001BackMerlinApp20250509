@@ -591,13 +591,13 @@ class Detalle extends Component
             $pendientes[] = 'El resultado de centrales de riesgo debe ser positivo.';
         }
 
-        $referenciasPositivas = $this->solicitud->referencias
-            ->filter(fn($ref) => strtolower((string) $ref->concepto) === 'positivo')
-            ->count();
+        // $referenciasPositivas = $this->solicitud->referencias
+        //     ->filter(fn($ref) => strtolower((string) $ref->concepto) === 'positivo')
+        //     ->count();
 
-        if ($referenciasPositivas < 2) {
-            $pendientes[] = 'Debe tener mínimo 2 referencias comerciales positivas.';
-        }
+        // if ($referenciasPositivas < 2) {
+        //     $pendientes[] = 'Debe tener mínimo 2 referencias comerciales positivas.';
+        // }
 
         return $pendientes;
     }

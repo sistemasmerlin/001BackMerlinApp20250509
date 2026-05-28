@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\MotivosVisitaController;
 use App\Http\Controllers\Api\ComercialController;
 use App\Http\Controllers\Api\PQRSController;
 use App\Http\Controllers\Api\IntegracionesController;
+use App\Http\Controllers\Api\RecaudoController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
 
@@ -111,5 +112,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/solicitudes-credito/{solicitud}/numero-cotizacion', [SolicitudCreditoController::class, 'actualizarNumeroCotizacion']);
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/recaudo-cliente', [RecaudoController::class, 'consultar']);
+    Route::get('/bancos-recaudo', [RecaudoController::class, 'bancos']);
+});
+    
 
 Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionesController::class, 'sincronizarConTienda']);

@@ -531,12 +531,6 @@
                                                 <p class="text-xs text-gray-500">
                                                     {{ $doc->created_at?->format('Y-m-d H:i') }}
                                                 </p>
-
-                                                @if ($doc->observacion)
-                                                    <p class="mt-1 text-xs text-gray-600">
-                                                        <strong>Obs:</strong> {{ $doc->observacion }}
-                                                    </p>
-                                                @endif
                                             </div>
 
                                             <div class="flex flex-wrap items-center gap-2">
@@ -577,11 +571,18 @@
                                         </div>
 
                                         <div class="mt-3">
-                                            <input type="text"
+                                            <input
+                                                type="text"
                                                 wire:model.defer="observaciones.{{ $doc->id }}"
                                                 placeholder="Observación para aprobar o rechazar"
                                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-red-500 focus:ring-red-500">
                                         </div>
+<br>
+                                        @if ($doc->observacion)
+                                            <p class="mt-1 text-s text-gray-600">
+                                                <strong>Observación ya ingresada:</strong> {{ $doc->observacion }}
+                                            </p>
+                                        @endif
                                     </div>
                                 @empty
                                     <div
@@ -672,7 +673,7 @@
 
             <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
                 <h3 class="text-sm font-bold text-amber-800">
-                    Pendientes para habilitar segunda aprobación
+                    Pendientes para habilitar aprobación parcial.
                 </h3>
 
                 @if (count($this->pendientesParaAprobacion) > 0)
@@ -689,7 +690,7 @@
                     </ul>
                 @else
                     <div class="mt-3 rounded-lg bg-green-100 px-4 py-3 text-sm font-semibold text-green-700">
-                        Todo está completo. Puedes pasar a segunda aprobación.
+                        Todo está completo. Puedes aprobar parcialmente.
                     </div>
 
                 @endif
@@ -714,7 +715,7 @@
                         class="rounded-lg px-4 py-2 text-sm font-semibold text-white
                 {{ $this->puedePasarSegundaAprobacion ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }}">
 
-                        Pasar a segunda aprobación
+                        Pasar aprobación parcial.
 
                     </button>
 
@@ -731,6 +732,7 @@
 
         @endif
 
+    @can('Aprobar solicitud de credito')
         @if ($solicitud->estado === 'aprobado_parcial')
             <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
                 <h2 class="text-lg font-bold text-gray-800">Cierre aprobado</h2>
@@ -806,6 +808,7 @@
                 </button>
             </div>
         @endif
+    @endcan
     </div>
 
     @if ($modalInfoReferencia)

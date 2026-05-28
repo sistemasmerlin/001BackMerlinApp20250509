@@ -40,6 +40,7 @@ use App\Http\Controllers\Admin\SolicitudCredito;
 use App\Http\Controllers\Api\InteresesCarteraController;
 use App\Livewire\Admin\SolicitudesCredito\Index as SolicitudesCreditoIndex;
 use App\Livewire\Admin\SolicitudesCredito\Detalle  as SolicitudesCreditoIDetalle;
+use App\Livewire\Admin\BancosRecaudo\Index as BancosRecaudoIndex;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -154,5 +155,11 @@ Route::middleware('auth:sanctum')->get(
     [ComisionesController::class, 'clientesImpactados']
 );
 
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/bancos-recaudo', BancosRecaudoIndex::class)
+        ->name('admin.bancos-recaudo.index');
+});
 
 require __DIR__ . '/auth.php';

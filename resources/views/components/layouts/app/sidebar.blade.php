@@ -201,6 +201,16 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
+
+                    @can('Intereses por mora')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('admin.bancos-recaudo.index')" :current="request()->routeIs('admin.bancos-recaudo.*')" wire:navigate>
+                            {{ __('Manejo de bancos') }}
+                        </flux:navlist.item>
+                    </div>
+                    @endcan
+
                     @can('Administrar solicitudes de credito')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('admin.solicitudes-credito.index')" :current="request()->routeIs('admin.solicitudes-credito.index')" wire:navigate>
