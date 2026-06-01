@@ -609,15 +609,21 @@ class PQRSController extends Controller
                     if (!(bool)$causal->visible_asesor) {
                         throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
                     }
-
+/*
                     $requiereAdjunto = (bool)$causal->requiere_adjunto;
                     $permiteRecogida = (bool)$causal->permite_recogida;
                     $adjuntos = $factura['adjuntos'] ?? [];
-                    $requiereRecogidaFactura = (bool)($factura['requiereRecogida'] ?? false);
 
                     if ($requiereAdjunto && empty($adjuntos)) {
                         throw new \RuntimeException("La causal '{$causal->nombre}' requiere adjunto.");
                     }
+*/
+
+                    $requiereAdjunto = false;
+
+                    $permiteRecogida = (bool)$causal->permite_recogida;
+                    $adjuntos = $factura['adjuntos'] ?? [];
+                    $requiereRecogidaFactura = (bool)($factura['requiereRecogida'] ?? false);
 
                     if ($requiereRecogidaFactura && !$permiteRecogida) {
                         throw new \RuntimeException("La causal '{$causal->nombre}' no permite recogida.");

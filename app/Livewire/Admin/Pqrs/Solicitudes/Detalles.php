@@ -358,6 +358,8 @@ class Detalles extends Component
 
     public function abrirModalOrm(): void
     {
+
+
         if (!$this->pqrs->orm) {
             return;
         }
@@ -366,6 +368,11 @@ class Detalles extends Component
             return;
         }
 
+
+        if (strtolower((string)$this->pqrs->orm->estado) !== 'aprobada') {
+            session()->flash('error', 'La ORM debe estar aprobada antes de tramitarla.');
+            return;
+        }
 
         $orm = $this->pqrs->orm;
 
@@ -710,6 +717,37 @@ class Detalles extends Component
             })
             ->unique('key')
             ->values();
+    }
+
+    public function puedeAprobarOrmGeneral(): bool
+    {
+        return auth()->check() && auth()->user()->can('Aprobar ORM PQRS');
+    }
+
+
+    public function aprobarOrmGeneral(): void
+    {
+        if (!$this->pqrs->orm) {
+            return;
+        }
+
+        if ($this->pqrsEstaCerrada()) {
+            return;
+        }
+
+        abort_unless($this->puedeAprobarOrmGeneral(), 403);
+
+        if (strtolower((string)$this->pqrs->orm->estado) !== 'creada') {
+            return;
+        }
+
+        $this->pqrs->orm->update([
+            'estado' => 'aprobada',
+            'aprobada_por' => auth()->id(),
+            'fecha_aprobacion' => now(),
+        ]);
+
+        $this->refrescar();
     }
     public function render()
     {

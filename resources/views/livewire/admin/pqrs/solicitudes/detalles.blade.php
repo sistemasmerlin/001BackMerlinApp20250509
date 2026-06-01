@@ -512,6 +512,20 @@
                             <td class="px-5 py-4 align-top">
                                 <div class="text-sm font-bold uppercase">BOTONES</div>
                                 <div class="mt-3 flex flex-col md:flex-row flex-wrap gap-2">
+
+                                    @if(
+                                        $pqrs->orm
+                                        && strtolower((string)($pqrs->orm->estado ?? '')) === 'creada'
+                                        && $this->puedeAprobarOrmGeneral()
+                                    )
+                                        <button
+                                            type="button"
+                                            wire:click="aprobarOrmGeneral"
+                                            wire:confirm="¿Confirmas aprobar esta ORM para iniciar el trámite?"
+                                            class="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-green-700 transition">
+                                            Aprobar ORM
+                                        </button>
+                                    @endif
                                     @if(
                                         strtolower((string)($pqrs->estado ?? '')) !== 'cerrado'
                                         && strtolower((string)($pqrs->orm->estado ?? '')) !== 'en_bodega'
