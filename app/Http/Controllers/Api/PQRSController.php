@@ -134,6 +134,7 @@ class PQRSController extends Controller
             'productos.causal',
             'productos.adjuntos',
             'adjuntos',
+            'comentarios.user',
         ])
         ->where('id', $id)
         ->where('cod_asesor', $codAsesor)
@@ -220,6 +221,15 @@ class PQRSController extends Controller
                 'nota_acuerdo' => $pqrs->nota_acuerdo,
                 'valor_acuerdo' => $pqrs->valor_acuerdo,
                 'comentario_cierre' => $pqrs->comentario_cierre,
+                'comentarios' => $pqrs->comentarios->map(function ($comentario) {
+                    return [
+                        'id' => $comentario->id,
+                        'comentario' => $comentario->comentario,
+                        'usuario' => $comentario->user?->name,
+                        'user_id' => $comentario->user_id,
+                        'created_at' => optional($comentario->created_at)->format('Y-m-d H:i'),
+                    ];
+                })->values(),
                 'facturas' => $facturas,
                 'productos' => $productos,
                 'orm' => $pqrs->orm ? [
@@ -235,6 +245,7 @@ class PQRSController extends Controller
                         'id' => $pqrs->orm->transportadora?->id,
                         'razon_social' => $pqrs->orm->transportadora?->razon_social,
                     ],
+                    
                     'lios' => $pqrs->orm->lios,
                     'cajas' => $pqrs->orm->cajas,
                     'peso' => $pqrs->orm->peso,
