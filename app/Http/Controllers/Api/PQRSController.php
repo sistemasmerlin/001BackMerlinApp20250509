@@ -134,7 +134,7 @@ class PQRSController extends Controller
             'productos.causal',
             'productos.adjuntos',
             'adjuntos',
-            'comentarios.user',
+            'comentarios.usuario',
         ])
         ->where('id', $id)
         ->where('cod_asesor', $codAsesor)
