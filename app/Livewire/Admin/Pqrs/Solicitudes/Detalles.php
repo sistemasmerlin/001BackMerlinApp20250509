@@ -31,6 +31,10 @@ class Detalles extends Component
     // ✅ NUEVO
     public array $seleccionProductos = [];
     public array $seleccionOrm = [];
+    public bool $showModalRevisionProducto = false;
+    public ?int $productoRevisionId = null;
+    public ?string $accionRevisionProducto = null; // aprobado | rechazado
+    public ?string $comentario_revision_producto = null;
 
     public function mount(Pqrs $pqrs): void
     {
@@ -774,6 +778,71 @@ class Detalles extends Component
         $this->refrescar();
 
         session()->flash('success', 'Comentario agregado correctamente.');
+    }
+
+    public function abrirRevisionProducto(int $id, string $accion): void
+{
+    if ($this->pqrsEstaCerrada()) {
+        return;
+    }
+
+    if (!in_array($accion, ['aprobado', 'rechazado'])) {
+        return;
+    }
+
+    $producto = PqrsProducto::with('responsable')->findOrFail($id);
+
+    abort_unless($this->puedeRevisarProducto($producto), 403);
+
+    $this->productoRevisionId = $producto->id;
+    $this->accionRevisionProducto = $accion;
+    $this->comentario_revision_producto = null;
+    $this->showModalRevisionProducto = true;
+}
+
+    public function cerrarModalRevisionProducto(): void
+    {
+        $this->showModalRevisionProducto = false;
+        $this->productoRevisionId = null;
+        $this->accionRevisionProducto = null;
+        $this->comentario_revision_producto = null;
+
+        $this->resetValidation([
+            'comentario_revision_producto',
+        ]);
+    }
+
+    public function guardarRevisionProducto(): void
+    {
+        $this->validate([
+            'productoRevisionId' => ['required', 'exists:pqrs_productos,id'],
+            'accionRevisionProducto' => ['required', 'in:aprobado,rechazado'],
+            'comentario_revision_producto' => ['required', 'string', 'min:5'],
+        ], [
+            'comentario_revision_producto.required' => 'El comentario es obligatorio.',
+            'comentario_revision_producto.min' => 'El comentario debe tener mínimo 5 caracteres.',
+        ]);
+
+        if ($this->pqrsEstaCerrada()) {
+            return;
+        }
+
+        $producto = PqrsProducto::with('responsable')->findOrFail($this->productoRevisionId);
+
+        abort_unless($this->puedeRevisarProducto($producto), 403);
+
+        $producto->update([
+            'estado' => $this->accionRevisionProducto,
+            'revisado_por' => auth()->id(),
+            'fecha_revision' => now(),
+            'comentario_revision' => trim($this->comentario_revision_producto),
+        ]);
+
+        $this->marcarPqrsComoRevisadaSiAplica();
+        $this->recalcularValorDeclaradoOrm();
+
+        $this->cerrarModalRevisionProducto();
+        $this->refrescar();
     }
     public function render()
     {
