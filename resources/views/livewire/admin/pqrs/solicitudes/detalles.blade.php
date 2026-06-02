@@ -911,5 +911,60 @@
 @endif
 
 
+<section class="space-y-5 mt-8">
+    <h1 class="text-3xl font-bold leading-tight">
+        COMENTARIOS GENERALES
+    </h1>
+
+    <div class="rounded-xl border border-zinc-300 bg-white p-5 space-y-5">
+
+        <div>
+            <label class="mb-2 block text-sm font-semibold text-zinc-700">
+                Agregar comentario
+            </label>
+
+            <textarea
+                wire:model="comentario_general"
+                rows="4"
+                class="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                placeholder="Escribe un comentario general de la PQRS..."></textarea>
+
+            @error('comentario_general')
+                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+            @enderror
+
+            <button
+                type="button"
+                wire:click="guardarComentarioGeneral"
+                class="mt-3 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
+                Guardar comentario
+            </button>
+        </div>
+
+        <div class="border-t border-zinc-200 pt-4 space-y-3">
+            @forelse($pqrs->comentarios as $comentario)
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                    <div class="flex justify-between gap-3 text-xs text-zinc-500">
+                        <span class="font-semibold text-zinc-700">
+                            {{ $comentario->usuario?->name ?? 'Usuario no disponible' }}
+                        </span>
+
+                        <span>
+                            {{ optional($comentario->created_at)->format('Y-m-d H:i') }}
+                        </span>
+                    </div>
+
+                    <div class="mt-2 text-sm text-zinc-800 whitespace-pre-line">
+                        {{ $comentario->comentario }}
+                    </div>
+                </div>
+            @empty
+                <div class="text-sm text-zinc-400">
+                    Aún no hay comentarios generales.
+                </div>
+            @endforelse
+        </div>
+    </div>
+</section>
 
 </div>

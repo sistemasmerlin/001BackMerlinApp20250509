@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Pqrs\Solicitudes;
 
 use App\Models\Pqrs;
+use App\Models\PqrsComentario;
 use App\Models\PqrsProducto;
 use App\Models\Transportadora;
 use Livewire\Component;
@@ -25,6 +26,7 @@ class Detalles extends Component
     public ?string $nota_acuerdo = null;
     public $valor_acuerdo = null;
     public ?string $comentario_cierre = null;
+    public ?string $comentario_general = null;
 
     // ✅ NUEVO
     public array $seleccionProductos = [];
@@ -39,6 +41,7 @@ class Detalles extends Component
             'productos.responsable',
             'productos.causal',
             'productos.adjuntos',
+            'comentarios.usuario',
             'adjuntos',
         ]);
 
@@ -509,6 +512,7 @@ class Detalles extends Component
             'productos.responsable',
             'productos.causal',
             'productos.adjuntos',
+            'comentarios.usuario',
             'adjuntos',
         ]);
     }
@@ -748,6 +752,28 @@ class Detalles extends Component
         ]);
 
         $this->refrescar();
+    }
+
+    public function guardarComentarioGeneral(): void
+    {
+        $this->validate([
+            'comentario_general' => ['required', 'string', 'min:3'],
+        ], [
+            'comentario_general.required' => 'Debes escribir un comentario.',
+            'comentario_general.min' => 'El comentario es muy corto.',
+        ]);
+
+        PqrsComentario::create([
+            'pqrs_id' => $this->pqrs->id,
+            'user_id' => auth()->id(),
+            'comentario' => $this->comentario_general,
+        ]);
+
+        $this->comentario_general = null;
+
+        $this->refrescar();
+
+        session()->flash('success', 'Comentario agregado correctamente.');
     }
     public function render()
     {

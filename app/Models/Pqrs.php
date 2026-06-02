@@ -61,4 +61,8 @@ class Pqrs extends Model
     {
         return $this->hasMany(\App\Models\PqrsAdjunto::class, 'pqrs_id');
     }
+    public function comentarios()
+    {
+        return $this->hasMany(PqrsComentario::class, 'pqrs_id')->latest();
+    }
 }
