@@ -231,7 +231,7 @@ class IntegracionesController extends Controller
 
         return DB::connection('sqlsrv')->select($sql, $referencias);
     }
-    public function guardarPedido(Request $request)
+public function guardarPedido(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'nit_integrador' => [
@@ -303,6 +303,22 @@ class IntegracionesController extends Controller
     }
 
     $data = $validator->validated();
+
+    $referenciaBloqueada = '101101100';
+
+    $tieneProductoBloqueado = collect($data['productos'])
+        ->contains(function ($producto) use ($referenciaBloqueada) {
+            return trim((string) $producto['referencia']) === $referenciaBloqueada;
+        });
+
+    if ($tieneProductoBloqueado) {
+        return response()->json([
+            'ok' => false,
+            'mensaje' => 'No se puede crear el pedido.',
+            'error' => 'No hay unidades disponibles para la referencia 101101100.',
+        ], 422);
+    }
+
 
     $oc = $data['oc'];
     $nit_integrador = $data['nit_integrador'];
@@ -609,7 +625,7 @@ class IntegracionesController extends Controller
                 'mensaje' => $e->getMessage()
             ], 500);
         }
-    }
+}
 
     public function calcularFlete(Request $request)
     {
