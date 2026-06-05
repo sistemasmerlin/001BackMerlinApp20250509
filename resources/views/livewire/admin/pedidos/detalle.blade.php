@@ -12,6 +12,62 @@
         </a>
     </div>
 
+    <div class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow">
+    <h3 class="text-lg font-bold text-gray-800 mb-1">
+        Agregar producto manual
+    </h3>
+
+    <p class="text-sm text-gray-500 mb-4">
+        Ingresa referencia, unidades, precio y descuento. La descripción se puede dejar vacía.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+        <div>
+            <label class="text-sm font-semibold text-gray-700">Referencia</label>
+            <input type="text"
+                wire:model.defer="nuevoProducto.referencia"
+                class="mt-1 w-full rounded border px-3 py-2">
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold text-gray-700">Unidades</label>
+            <input type="number"
+                min="1"
+                wire:model.live="nuevoProducto.cantidad"
+                class="mt-1 w-full rounded border px-3 py-2">
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold text-gray-700">Precio</label>
+            <input type="number"
+                step="0.01"
+                wire:model.live="nuevoProducto.precio_unitario"
+                class="mt-1 w-full rounded border px-3 py-2">
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold text-gray-700">Descuento %</label>
+            <input type="number"
+                step="0.01"
+                wire:model.live="nuevoProducto.descuento"
+                class="mt-1 w-full rounded border px-3 py-2">
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold text-gray-700">Subtotal</label>
+            <div class="mt-1 rounded bg-gray-100 px-3 py-2 font-bold text-gray-800">
+                $ {{ number_format($subtotalNuevoProducto ?? 0, 0, ',', '.') }}
+            </div>
+        </div>
+
+        <button
+            wire:click="agregarProducto"
+            class="rounded bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-800">
+            Agregar
+        </button>
+    </div>
+</div>
+
 
     <div class="mb-6 gap-2">
         <input type="number" step="0.01" wire:model.defer="descuentoGlobal" placeholder="Descuento global" class="rounded border px-3 py-1">

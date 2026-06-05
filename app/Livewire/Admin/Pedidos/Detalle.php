@@ -11,6 +11,72 @@ class Detalle extends Component
     public $detalles;
     public $descuentoGlobal;
 
+    public $subtotalNuevoProducto = 0;
+    public $nuevoProducto = [
+        'referencia' => '',
+        'cantidad' => 1,
+        'precio_unitario' => 0,
+        'descuento' => 0,
+    ];
+
+    public function agregarProducto()
+    {
+        $validated = validator($this->nuevoProducto, [
+            'referencia' => 'required|string|max:100',
+            'cantidad' => 'required|integer|min:1',
+            'precio_unitario' => 'required|numeric|min:0',
+            'descuento' => 'nullable|numeric|min:0|max:100',
+        ])->validate();
+
+        $cantidad = (int) $validated['cantidad'];
+        $precio = (float) $validated['precio_unitario'];
+        $descuento = (float) ($validated['descuento'] ?? 0);
+
+        $subtotalBruto = $cantidad * $precio;
+        $valorDescuento = $subtotalBruto * ($descuento / 100);
+        $subtotal = $subtotalBruto - $valorDescuento;
+
+        DetallePedido::create([
+            'pedido_id' => $this->pedido->id,
+            'referencia' => strtoupper(trim($validated['referencia'])),
+            'descripcion' => '',
+            'marca' => '',
+            'cantidad' => $cantidad,
+            'precio_unitario' => $precio,
+            'descuento' => $descuento,
+            'subtotal' => $subtotal,
+        ]);
+
+        $this->nuevoProducto = [
+                'referencia' => '',
+                'cantidad' => 1,
+                'precio_unitario' => 0,
+                'descuento' => 0,
+            ];
+
+            $this->subtotalNuevoProducto = 0;
+
+        session()->flash('success', 'Producto agregado correctamente.');
+
+        return redirect(request()->header('Referer'));
+    }
+
+    public function updatedNuevoProducto()
+    {
+        $this->calcularSubtotalNuevoProducto();
+    }
+
+    public function calcularSubtotalNuevoProducto()
+    {
+        $cantidad = (float) ($this->nuevoProducto['cantidad'] ?? 0);
+        $precio = (float) ($this->nuevoProducto['precio_unitario'] ?? 0);
+        $descuento = (float) ($this->nuevoProducto['descuento'] ?? 0);
+
+        $bruto = $cantidad * $precio;
+        $valorDescuento = $bruto * ($descuento / 100);
+
+        $this->subtotalNuevoProducto = max($bruto - $valorDescuento, 0);
+    }
     public function mount(Pedido $pedido)
     {
 
