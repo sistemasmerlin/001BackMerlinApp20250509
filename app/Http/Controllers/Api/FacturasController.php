@@ -140,7 +140,6 @@ class FacturasController extends Controller
 
         }
 
-
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post('https://www.numrot.net/NRWApi/api/Documents/Find', $body);

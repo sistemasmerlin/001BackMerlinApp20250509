@@ -140,7 +140,7 @@
                                     {{ $fact['fecha'] ? \Carbon\Carbon::parse($fact['fecha'])->format('Y-m-d') : '—' }}
                                 </div>
                                 <a
-                                    href="{{ route('admin.facturas.descargar', [
+                                    href="{{ route('facturas.descargar', [
                                         'prefijo' => $fact['tipo_docto'],
                                         'consecutivo' => $fact['nro_docto']
                                     ]) }}"

@@ -10,6 +10,7 @@ class FacturasController extends Controller
 {
     public function descargar($prefijo, $consecutivo)
     {
+        //dd("Descargando factura $prefijo $consecutivo");
         $data = $this->consultarFacturaNumrot($prefijo, $consecutivo);
 
         // Busca la URL real del PDF
@@ -36,51 +37,113 @@ class FacturasController extends Controller
         }
 
         // Temporal: para inspeccionar la respuesta real si no encuentra nada
-        dd($data);
+        //dd($data);
     }
 
     private function consultarFacturaNumrot($prefijo, $consecutivo): array
-    {
-        $key = config('services.numrot.key');
-        $secret = config('services.numrot.secret');
-        $empresaNit = config('services.numrot.empresa_nit');
-        $url = config('services.numrot.url');
+{
+    if ($prefijo === 'CNC') {
 
-        if ($prefijo === 'CNC') {
-            $body = [
-                "Key" => $key,
-                "Secret" => $secret,
-                "Filters" => [
-                    "DocumentoTipoEstandar" => "nota",
-                    "EmpresaNit" => $empresaNit,
-                    "DocumentoNumeroCompleto" => $consecutivo,
-                ]
-            ];
-        } else {
+        $body = [
+            "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+            "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+            "Filters" => [
+                "DocumentoTipoEstandar" => "nota",
+                "EmpresaNit" => "9013683375",
+                "DocumentoNumeroCompleto" => $consecutivo,
+            ]
+        ];
 
-            $prefijo = 'FEDQ';
+    } else {
 
-            $body = [
-                "Key" => $key,
-                "Secret" => $secret,
-                "Filters" => [
-                    "DocumentoTipoEstandar" => "facturadeventa",
-                    "EmpresaNit" => $empresaNit,
-                    "DocumentoNumeroCompleto" => $prefijo . $consecutivo,
-                ]
-            ];
-        }
+        // Numrot maneja FEDQ en lugar de FVM
+        $prefijoConsulta = $prefijo === 'FVM'
+            ? 'FEDQ'
+            : $prefijo;
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post($url, $body);
-
-        if (!$response->successful()) {
-            abort(500, 'Error consultando Numrot');
-        }
-
-        return $response->json() ?? [];
+        $body = [
+            "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+            "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+            "Filters" => [
+                "DocumentoTipoEstandar" => "facturadeventa",
+                "EmpresaNit" => "9013683375",
+                "DocumentoNumeroCompleto" => $prefijoConsulta . $consecutivo,
+            ]
+        ];
     }
+
+    $response = Http::withHeaders([
+        'Content-Type' => 'application/json',
+    ])->post(
+        'https://www.numrot.net/NRWApi/api/Documents/Find',
+        $body
+    );
+
+    //dd($body, $response->status(), $response->body());
+
+    if (!$response->successful()) {
+        abort(
+            500,
+            'Error consultando Numrot. Código: ' .
+            $response->status() .
+            ' Respuesta: ' .
+            $response->body()
+        );
+    }
+
+    $json = $response->json();
+
+    if (!is_array($json)) {
+        abort(500, 'Numrot devolvió una respuesta inválida.');
+    }
+
+    return $json;
+}
+
+
+    // private function consultarFacturaNumrot($prefijo, $consecutivo): array
+    // {
+    //     $key = config('services.numrot.key');
+    //     $secret = config('services.numrot.secret');
+    //     $empresaNit = config('services.numrot.empresa_nit');
+    //     $url = config('services.numrot.url');
+    //     if ($prefijo === 'CNC') {
+    //         $body = [
+    //             "Key" => $key,
+    //             "Secret" => $secret,
+    //             "Filters" => [
+    //                 "DocumentoTipoEstandar" => "nota",
+    //                 "EmpresaNit" => $empresaNit,
+    //                 "DocumentoNumeroCompleto" => $consecutivo,
+    //             ]
+    //         ];
+    //     } else {
+    //         $prefijo = 'FEDQ';
+    //         $body = [
+    //             "Key" => $key,
+    //             "Secret" => $secret,
+    //             "Filters" => [
+    //                 "DocumentoTipoEstandar" => "facturadeventa",
+    //                 "EmpresaNit" => $empresaNit,
+    //                 "DocumentoNumeroCompleto" => $prefijo . $consecutivo,
+    //             ]
+    //         ];
+    //     }
+
+
+    //     $response = Http::withHeaders([
+    //         'Content-Type' => 'application/json',
+    //     ])->post($url, $body);
+
+    //   //  dd($key, $secret, $empresaNit, $url, $prefijo, $consecutivo, $body, $response->status(), $response->body());
+
+
+    //     if (!$response->successful()) {
+    //         abort(500, 'Error consultando Numrot');
+    //     }
+
+    //     return $response->json() ?? [];
+    // }
     private function extraerUrlPdf(array $data): ?string
     {
         $candidatas = [

@@ -125,8 +125,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/presupuestos-comerciales/cumplimiento', PresupuestosComercialCumplimientoIndex::class)
         ->name('presupuestos.comercial.cumplimiento');
 
-    Route::get('/presupuestos-comerciales/ventas/unidades', VentasUnidadesValorPorMesIndex::class)
-            ->name('presupuestos.ventas.unidades');
+    Route::get('/presupuestos-comerciales/ventas/unidades', VentasUnidadesValorPorMesIndex::class)->name('presupuestos.ventas.unidades');
         
     Route::get('/enviar-envio/{id}', [PedidoController::class, 'enviarPedido'])->name('pedidos.enviar');
 
@@ -134,13 +133,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
     
-
     Route::get('/presupuestos-comerciales/plantilla',[PresupuestoComercialController::class, 'plantilla'])->name('presupuestos.plantilla');
 
+    Route::get('/facturas/descargar/{prefijo}/{consecutivo}', [FacturasController::class, 'descargar'])->name('facturas.descargar');
 
-    Route::get('/admin/facturas/descargar/{prefijo}/{consecutivo}', 
-    [FacturasController::class, 'descargar']
-)->name('admin.facturas.descargar');
 
    // Route::get('/presupuestos-comerciales/cumplimiento',[PresupuestoComercialController::class, 'cumplimiento'])->name('presupuestos.cumplimiento');
 });
