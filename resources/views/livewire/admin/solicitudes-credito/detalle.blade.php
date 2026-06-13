@@ -827,8 +827,12 @@
                         class="rounded-xl border px-4 py-2 text-sm">
                     <input wire:model.defer="referenciacionForm.cheques_devueltos" placeholder="Cheques devueltos"
                         class="rounded-xl border px-4 py-2 text-sm">
-                    <input wire:model.defer="referenciacionForm.activo" placeholder="Activo"
+                    <select wire:model.defer="referenciacionForm.activo"
                         class="rounded-xl border px-4 py-2 text-sm">
+                        <option value="">Seleccione</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
                     <div>
                         <label class="mb-1 block text-xs font-bold text-gray-500">Fecha referencia</label>
                         <input wire:model.defer="referenciacionForm.fecha_referencia" type="date"

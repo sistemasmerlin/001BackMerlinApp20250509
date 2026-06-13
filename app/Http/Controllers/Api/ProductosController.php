@@ -196,6 +196,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t120.f120_referencia) = '407510008' THEN 'CUNAS RNV EN PROMOCION'
                     WHEN rtrim(t120.f120_referencia) = '407510009' THEN 'CUNAS RNV EN PROMOCION'
                     WHEN rtrim(t120.f120_referencia) = '407510011' THEN 'CUNAS RNV EN PROMOCION'
+                    WHEN rtrim(t120.f120_referencia) = '407500023' THEN 'CUNAS RNV EN PROMOCION'
                     WHEN rtrim(t120.f120_referencia) = '316426300' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316427300' THEN 'WDT BIKE'
                     WHEN rtrim(t120.f120_referencia) = '316429200' THEN 'WDT BIKE'
