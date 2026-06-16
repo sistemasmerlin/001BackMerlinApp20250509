@@ -26,13 +26,11 @@
 
             <div>
                 <span class="text-gray-400 font-semibold">Cupo solicitado </span>
-                <span class="font-bold text-gray-800">{{ $solicitud->cupo_sugerido
-                                ? '$ ' . number_format($solicitud->cupo_sugerido, 0, ',', '.')
-                                : '—'
-                                }}</span>
+                <span
+                    class="font-bold text-gray-800">{{ $solicitud->cupo_sugerido ? '$ ' . number_format($solicitud->cupo_sugerido, 0, ',', '.') : '—' }}</span>
             </div>
 
-            
+
             <div>
                 <span class="text-gray-400 font-semibold">Primer pendiente:</span>
                 <span class="font-bold text-gray-800">
@@ -400,6 +398,51 @@
                             class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
                     </div>
 
+                    <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <label class="text-sm font-semibold text-gray-700">
+                            Adjunto centrales de riesgo
+                        </label>
+
+                        @if ($solicitud->centrales_riesgo_path)
+                            <div class="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
+                                <p class="text-sm font-semibold text-green-700">
+                                    Archivo cargado: {{ $solicitud->centrales_riesgo_nombre }}
+                                </p>
+
+                                <a href="{{ Storage::disk($solicitud->centrales_riesgo_disk ?? 'public')->url($solicitud->centrales_riesgo_path) }}"
+                                    target="_blank"
+                                    class="mt-2 inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                                    Ver adjunto
+                                </a>
+                            </div>
+                        @else
+                            <p class="mt-2 text-xs text-gray-400">
+                                Sin adjunto cargado.
+                            </p>
+                        @endif
+
+                        @if ($solicitud->estado != 'aprobado_parcial')
+                            <input type="file" wire:model="adjuntoCentralesRiesgo" accept=".pdf,.jpg,.jpeg,.png"
+                                class="mt-3 block w-full text-xs">
+
+                            @error('adjuntoCentralesRiesgo')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+
+                            <button type="button" wire:click="subirAdjuntoCentralesRiesgo"
+                                wire:loading.attr="disabled"
+                                wire:target="adjuntoCentralesRiesgo, subirAdjuntoCentralesRiesgo"
+                                class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
+                                Adjuntar centrales
+                            </button>
+
+                            <div wire:loading wire:target="adjuntoCentralesRiesgo, subirAdjuntoCentralesRiesgo"
+                                class="mt-2 text-xs text-gray-500">
+                                Procesando archivo...
+                            </div>
+                        @endif
+                    </div>
+
                     @if ($solicitud->estado != 'aprobado_parcial')
                         <button wire:click="actualizarReporteCentrales"
                             class="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-900">
@@ -571,13 +614,12 @@
                                         </div>
 
                                         <div class="mt-3">
-                                            <input
-                                                type="text"
+                                            <input type="text"
                                                 wire:model.defer="observaciones.{{ $doc->id }}"
                                                 placeholder="Observación para aprobar o rechazar"
                                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-red-500 focus:ring-red-500">
                                         </div>
-<br>
+                                        <br>
                                         @if ($doc->observacion)
                                             <p class="mt-1 text-s text-gray-600">
                                                 <strong>Observación ya ingresada:</strong> {{ $doc->observacion }}
@@ -732,83 +774,83 @@
 
         @endif
 
-    @can('Aprobar solicitud de credito')
-        @if ($solicitud->estado === 'aprobado_parcial')
-            <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
-                <h2 class="text-lg font-bold text-gray-800">Cierre aprobado</h2>
+        @can('Aprobar solicitud de credito')
+            @if ($solicitud->estado === 'aprobado_parcial')
+                <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-800">Cierre aprobado</h2>
 
-                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label class="text-sm font-semibold text-gray-700">Cupo asignado</label>
-                        <input type="number" wire:model.defer="cupoAsignado"
-                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
-                    </div>
-
-                    <div>
-                        <label class="text-sm font-semibold text-gray-700">Condición de pago</label>
-                        <select wire:model.defer="condicionPagoAprobada"
-                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
-                            <option value="">Seleccione</option>
-                            <option value="CONTADO">CONTADO</option>
-                            <option value="8 DIAS">8 DÍAS</option>
-                            <option value="15 DIAS">15 DÍAS</option>
-                            <option value="30 DIAS">30 DÍAS</option>
-                            <option value="45 DIAS">45 DÍAS</option>
-                            <option value="60 DIAS">60 DÍAS</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <label class="text-sm font-semibold text-gray-700">Comentario cierre aprobado</label>
-                    <textarea wire:model.defer="comentarioCierreAprobado" rows="3"
-                        class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
-                </div>
-
-                <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <label class="text-sm font-semibold text-gray-700">
-                        Carta de cierre
-                    </label>
-
-                    @if ($solicitud->carta_cierre_path)
-                        <div class="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
-                            <p class="text-sm font-semibold text-green-700">
-                                Archivo cargado: {{ $solicitud->carta_cierre_nombre }}
-                            </p>
-
-                            <a href="{{ Storage::disk($solicitud->carta_cierre_disk)->url($solicitud->carta_cierre_path) }}"
-                                target="_blank"
-                                class="mt-2 inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
-                                Ver carta
-                            </a>
+                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700">Cupo asignado</label>
+                            <input type="number" wire:model.defer="cupoAsignado"
+                                class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
                         </div>
-                    @endif
 
-                    <input type="file" wire:model="cartaCierre" accept=".pdf,.jpg,.jpeg,.png"
-                        class="mt-3 block w-full text-xs">
-
-                    @error('cartaCierre')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
-
-                    <button type="button" wire:click="subirCartaCierre" wire:loading.attr="disabled"
-                        wire:target="cartaCierre, subirCartaCierre"
-                        class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
-                        Adjuntar carta
-                    </button>
-
-                    <div wire:loading wire:target="cartaCierre, subirCartaCierre" class="mt-2 text-xs text-gray-500">
-                        Procesando carta...
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700">Condición de pago</label>
+                            <select wire:model.defer="condicionPagoAprobada"
+                                class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm">
+                                <option value="">Seleccione</option>
+                                <option value="CONTADO">CONTADO</option>
+                                <option value="8 DIAS">8 DÍAS</option>
+                                <option value="15 DIAS">15 DÍAS</option>
+                                <option value="30 DIAS">30 DÍAS</option>
+                                <option value="45 DIAS">45 DÍAS</option>
+                                <option value="60 DIAS">60 DÍAS</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
-                <button wire:click="cerrarAprobacion"
-                    class="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white">
-                    Cerrar solicitud - aprobación
-                </button>
-            </div>
-        @endif
-    @endcan
+                    <div class="mt-4">
+                        <label class="text-sm font-semibold text-gray-700">Comentario cierre aprobado</label>
+                        <textarea wire:model.defer="comentarioCierreAprobado" rows="3"
+                            class="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm"></textarea>
+                    </div>
+
+                    <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <label class="text-sm font-semibold text-gray-700">
+                            Carta de cierre
+                        </label>
+
+                        @if ($solicitud->carta_cierre_path)
+                            <div class="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
+                                <p class="text-sm font-semibold text-green-700">
+                                    Archivo cargado: {{ $solicitud->carta_cierre_nombre }}
+                                </p>
+
+                                <a href="{{ Storage::disk($solicitud->carta_cierre_disk)->url($solicitud->carta_cierre_path) }}"
+                                    target="_blank"
+                                    class="mt-2 inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                                    Ver carta
+                                </a>
+                            </div>
+                        @endif
+
+                        <input type="file" wire:model="cartaCierre" accept=".pdf,.jpg,.jpeg,.png"
+                            class="mt-3 block w-full text-xs">
+
+                        @error('cartaCierre')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+
+                        <button type="button" wire:click="subirCartaCierre" wire:loading.attr="disabled"
+                            wire:target="cartaCierre, subirCartaCierre"
+                            class="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
+                            Adjuntar carta
+                        </button>
+
+                        <div wire:loading wire:target="cartaCierre, subirCartaCierre" class="mt-2 text-xs text-gray-500">
+                            Procesando carta...
+                        </div>
+                    </div>
+
+                    <button wire:click="cerrarAprobacion"
+                        class="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white">
+                        Cerrar solicitud - aprobación
+                    </button>
+                </div>
+            @endif
+        @endcan
     </div>
 
     @if ($modalInfoReferencia)
@@ -827,8 +869,7 @@
                         class="rounded-xl border px-4 py-2 text-sm">
                     <input wire:model.defer="referenciacionForm.cheques_devueltos" placeholder="Cheques devueltos"
                         class="rounded-xl border px-4 py-2 text-sm">
-                    <select wire:model.defer="referenciacionForm.activo"
-                        class="rounded-xl border px-4 py-2 text-sm">
+                    <select wire:model.defer="referenciacionForm.activo" class="rounded-xl border px-4 py-2 text-sm">
                         <option value="">Seleccione</option>
                         <option value="Activo">Activo</option>
                         <option value="Inactivo">Inactivo</option>

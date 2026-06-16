@@ -105,6 +105,11 @@ class SolicitudCredito extends Model
         'carta_cierre_disk',
         'carta_cierre_path',
         'carta_cierre_nombre',
+
+
+        'centrales_riesgo_disk',
+        'centrales_riesgo_path',
+        'centrales_riesgo_nombre',
     ];
 
     protected $casts = [
