@@ -12,8 +12,7 @@ class TercerosController extends Controller
 
 
         $result = DB::connection('sqlsrv')
-        ->select("SELECT TOP 1000
-            t200.f200_rowid AS tercero_id,
+        ->select("SELECT t200.f200_rowid AS tercero_id,
             t200.f200_nit,
             RTRIM(t200.f200_dv_nit) AS f200_dv_nit,
             t201.f201_id_sucursal,
@@ -142,6 +141,7 @@ class TercerosController extends Controller
             AND t215.f215_id_cia = 3
             AND t201.f201_id_vendedor = '$id'
         -- AND t200.f200_nit = '805020771'
+        -- AND t200.f200_nit IN ('1029721503','1118807367') 
         GROUP BY
             t200.f200_rowid,
             t200.f200_nit,
