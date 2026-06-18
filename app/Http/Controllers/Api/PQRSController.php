@@ -17,6 +17,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PqrsCreadaMail;
 
 class PQRSController extends Controller
 {
@@ -685,6 +687,19 @@ class PQRSController extends Controller
                         $this->guardarAdjuntosGeneralesPqrs($pqrs->id, $adjuntos, 'factura');
                     }
                 }
+
+                try {
+                    Mail::to([
+                        'servicliente@merlinrod.com',
+                        'sistemas@merlinrod.com'
+                    ])->send(new PqrsCreadaMail($pqrs));
+                } catch (\Throwable $e) {
+                    \Log::error('Error enviando correo PQRS', [
+                        'pqrs_id' => $pqrs->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
             });
         } catch (\Throwable $e) {
             \Log::error('PQRS store ERROR', [
