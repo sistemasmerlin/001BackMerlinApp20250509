@@ -851,7 +851,8 @@ public function indexCartera(Request $request)
 
         $resultado[] = [
             'user_id' => $usuario->id,
-            'nombre_asesor' => $usuario->name,
+            'name' => $usuario->name,
+            'nombre_asesor' => $usuario->nombre_asesor,
             'codigo_asesor' => $codigoAsesor,
             'categoria_asesor' => $usuario->categoria_asesor,
             'periodo' => $periodo,

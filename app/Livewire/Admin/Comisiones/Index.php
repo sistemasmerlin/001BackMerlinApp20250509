@@ -120,6 +120,7 @@ public function mount(): void
         $rows = [];
         $rows[] = [
             'Asesor',
+            'Nombre Asesor',
             'Código',
             'Categoría',
             '% Llantas',
@@ -134,6 +135,7 @@ public function mount(): void
 
         foreach ($resultado as $fila) {
             $rows[] = [
+                $fila['name'] ?? '',
                 $fila['nombre_asesor'] ?? '',
                 $fila['codigo_asesor'] ?? '',
                 $fila['categoria_asesor'] ?? '',
@@ -169,7 +171,8 @@ public function mount(): void
 
         $rows = [];
         $rows[] = [
-            'Asesor',
+            'Usuario',
+            'Nombre Asesor',
             'Código',
             'Categoría',
             'Presupuesto',
@@ -197,6 +200,7 @@ public function mount(): void
             $detalle = data_get($fila, 'catera.recuadoPorDias.data_asesores.0', []);
 
             $rows[] = [
+                $fila['name'] ?? '',
                 $fila['nombre_asesor'] ?? '',
                 $fila['codigo_asesor'] ?? '',
                 $fila['categoria_asesor'] ?? '',
