@@ -42,7 +42,7 @@ class ComercialController extends Controller
         // }
 
         $codigo_asesor  = $asesor;
-        $codigo_tercero = $asesor;
+      //  $codigo_tercero = $asesor;
 
         //return  $codigo_tercero;
         // Total clientes del asesor
@@ -112,7 +112,7 @@ class ComercialController extends Controller
                     FROM totales
                     GROUP BY ROLLUP(f_condicion_pago);
                     ",
-            [$periodo, $codigo_tercero]
+            [$periodo, $codigo_asesor]
         );
 
         $ventasPeriodoRow = DB::connection('sqlsrv')->select(
@@ -254,7 +254,7 @@ class ComercialController extends Controller
         $conContadoVenta = (int)($ventaContadoRow->clientes_con_venta ?? 0);
         $cumplimiento = $totalCredito > 0 ? round(($conCreditoVenta / $totalCredito) * 100, 2) : 0.0;
 
-        $presupuesto = PresupuestoComercial::where('codigo_asesor', '=', $codigo_tercero)->where('periodo', '=', $periodo)->get();
+        $presupuesto = PresupuestoComercial::where('codigo_asesor', '=', $codigo_asesor)->where('periodo', '=', $periodo)->get();
 
 
         $marcasPresu = [
@@ -465,7 +465,7 @@ class ComercialController extends Controller
             GROUP BY [f_vendedor],[f_cod_vendedor]
         SQL;
 
-        $dataVentasCat = DB::connection('sqlsrv')->select($sqlVentasCat, [$periodo, $codigo_tercero]);
+        $dataVentasCat = DB::connection('sqlsrv')->select($sqlVentasCat, [$periodo, $codigo_asesor]);
 
         $ventasCat = [];
         foreach ($dataVentasCat as $r) {
@@ -559,7 +559,7 @@ class ComercialController extends Controller
             return response()->json(['message' => 'Asesor no encontrado'], 404);
         }
 
-        $codigo_tercero = $datosAsesor->codigo_tercero;
+        //$codigo_tercero = $datosAsesor->codigo_tercero;
         $codigo_asesor  = $datosAsesor->codigo_asesor; // p.ej. '0603'
 
         $categoria_asesor = strtolower(trim($usuario->categoria_asesor ?? ''));
