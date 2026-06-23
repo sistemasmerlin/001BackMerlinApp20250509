@@ -200,7 +200,7 @@ class CarteraController extends Controller
         )
             ->leftJoin('presupuesto_recaudo', 'presupuesto_recaudo.asesor', '=', 'users.cedula')
             ->where('presupuesto_recaudo.periodo', $periodo)
-            ->where('users.cedula', '=', $cedula)
+            ->where('users.codigo_asesor', '=', $cedula)
             ->where('presupuesto_recaudo.estado', '1')
             // ✅ FIX: agregar categoria_asesor al GROUP BY para evitar ONLY_FULL_GROUP_BY
             ->groupBy(
