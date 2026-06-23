@@ -246,9 +246,9 @@ class ProductosController extends Controller
                 ,CONVERT(decimal(10), PRECIOS1.PrecioBase) 'precio_1'
                 ,CONVERT(decimal(10), PRECIOS1.Impuesto) 'precio_1_iva'
                 ,CONVERT(decimal(10), PRECIOS1.PrecioImp) 'precio_1_mas_iva'
-                ,CONVERT(decimal(10), (PRECIOS1.PrecioBase*1.09)) 'precio_202'
-                ,CONVERT(decimal(10), (PRECIOS1.Impuesto*1.09)) 'precio_202_iva'
-                ,CONVERT(decimal(10), (PRECIOS1.PrecioImp*1.09)) 'precio_202_mas_iva'
+                ,CONVERT(decimal(10), (PRECIOS1.PrecioBase*1.11)) 'precio_202'
+                ,CONVERT(decimal(10), (PRECIOS1.Impuesto*1.11)) 'precio_202_iva'
+                ,CONVERT(decimal(10), (PRECIOS1.PrecioImp*1.11)) 'precio_202_mas_iva'
                 FROM t400_cm_existencia t400
                     INNER JOIN t121_mc_items_extensiones t121
                         ON t400.f400_rowid_item_ext = t121.f121_rowid
