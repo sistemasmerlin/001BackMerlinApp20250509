@@ -278,7 +278,11 @@ class ComercialController extends Controller
 
 
         $query = User::query()
-            ->select('users.cedula', 'users.codigo_asesor', 'users.name')
+            ->select(
+                'users.codigo_asesor',
+                'users.name'
+            )
+            ->addSelect(DB::raw('users.cedula as codigo_asesor'))
             ->addSelect(DB::raw("'{$periodo}' as periodo"))
             ->selectSub(
                 PresupuestoComercial::selectRaw('MAX(clasificacion_asesor)')
