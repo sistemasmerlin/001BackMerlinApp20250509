@@ -913,7 +913,7 @@ public function indexCartera(Request $request)
             DB::raw('0 as porcentaje_flete'),
             DB::raw('0 as comision_a_pagar')
         )
-            ->where('cedula', '=', $cedula)
+            ->where('codigo_asesor', '=', $cedula)
             ->get();
 
         $terceros_vendedores = $data_asesores->pluck('cedula')->map(fn($x) => trim((string)$x))->toArray();
