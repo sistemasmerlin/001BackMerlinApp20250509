@@ -634,7 +634,7 @@ class ComisionesController extends Controller
         $pct = fn($venta, $presu) => $presu > 0 ? round(($venta / $presu) * 100, 2) : 0.0;
 
         foreach ($data_asesores as $u) {
-            $cedula = (string) $u->cedula;
+            $codigo_asesor = (string) $u->codigo_asesor;
 
             // init ventas a 0
             foreach ($mapVentas as $cfg) {
@@ -649,8 +649,8 @@ class ComisionesController extends Controller
             $u->venta_total_llantas       = 0; // se sobrescribe luego con query por categoría
             $u->venta_total_accesorios    = 0;
 
-            if (!empty($ventasPorMarca[$cedula])) {
-                foreach ($ventasPorMarca[$cedula] as $marca => $vals) {
+            if (!empty($ventasPorMarca[$codigo_asesor])) {
+                foreach ($ventasPorMarca[$codigo_asesor] as $marca => $vals) {
                     $cantidad = $vals['cantidad'] ?? 0;
                     $dinero   = $vals['dinero']   ?? 0;
 
@@ -720,10 +720,10 @@ class ComisionesController extends Controller
         }
 
         foreach ($data_asesores as $u) {
-            $cedula = (string) $u->cedula;
+            $codigo_asesor = (string) $u->codigo_asesor;
 
-            $u->venta_total_llantas    = $ventasCat[$cedula]['llantas']    ?? 0;
-            $u->venta_total_accesorios = $ventasCat[$cedula]['accesorios'] ?? 0;
+            $u->venta_total_llantas    = $ventasCat[$codigo_asesor]['llantas']    ?? 0;
+            $u->venta_total_accesorios = $ventasCat[$codigo_asesor]['accesorios'] ?? 0;
             $u->total_venta_general    = $u->venta_total_llantas + $u->venta_total_accesorios;
 
             // Cumplimientos por marca principal
@@ -872,7 +872,7 @@ public function indexCartera(Request $request)
     return $resultado;
 }
 
-    public function recuadoPorDias($cedula, $periodo)
+    public function recuadoPorDias($codigo_asesor, $periodo)
     {
         $data_asesores = User::select(
             DB::raw('RTRIM(users.name) as name'),
@@ -913,7 +913,7 @@ public function indexCartera(Request $request)
             DB::raw('0 as porcentaje_flete'),
             DB::raw('0 as comision_a_pagar')
         )
-            ->where('codigo_asesor', '=', $cedula)
+            ->where('codigo_asesor', '=', $codigo_asesor)
             ->get();
 
         $terceros_vendedores = $data_asesores->pluck('codigo_asesor')->map(fn($x) => trim((string)$x))->toArray();
@@ -1000,7 +1000,7 @@ public function indexCartera(Request $request)
         $recaudos = collect($recaudos)->keyBy('tercero_vend');
 
         foreach ($data_asesores as $data_asesor) {
-            $key = trim((string)$data_asesor->cedula);
+            $key = trim((string)$data_asesor->codigo_asesor);
             if (isset($recaudos[$key])) {
                 $recaudoGen = $recaudos[$key];
                 $data_asesor->recaudo_1_15      = (int) round($recaudoGen->creditos_1_15 ?? 0);
@@ -1064,7 +1064,7 @@ public function indexCartera(Request $request)
                     AND f_periodo BETWEEN ? AND ?
                 GROUP BY [f_vendedor]
                 ",
-                [trim((string)$data_asesor->cedula), $mesTresMenos, $mesAnterior]
+                [trim((string)$data_asesor->codigo_asesor), $mesTresMenos, $mesAnterior]
             );
 
             $data_asesor->porcentaje_flete = 0;
@@ -1185,12 +1185,12 @@ public function indexCartera(Request $request)
     }
 
 
-    private function calcularTotalRecaudado($periodo, $cedula)
+    private function calcularTotalRecaudado($periodo, $codigo_asesor)
     {
         $infoPresupuestos = PresupuestoRecaudo::select('prefijo', 'consecutivo', 'cond_pago')
             ->where('estado', 1)
             ->where('periodo', $periodo)
-            ->where('asesor', $cedula)
+            ->where('asesor', $codigo_asesor)
             ->get();
 
         if ($infoPresupuestos->isEmpty()) {
