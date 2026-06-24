@@ -92,9 +92,9 @@ class CarteraController extends Controller
 
         // 2) Totales base
         $dataPresupuestos->each(function ($dataPresupuesto) use ($periodo) {
-            $dataPresupuesto->total_recaudado         = (float) $this->calcularTotalRecaudado($periodo, $dataPresupuesto->cedula);
-            $dataPresupuesto->total_recaudado_diez    = (float) $this->calcularTotalRecaudadoDiez($periodo, $dataPresupuesto->cedula);
-            $dataPresupuesto->total_recaudado_contado = (float) $this->calcularTotalRecaudadoContado($periodo, $dataPresupuesto->cedula);
+            $dataPresupuesto->total_recaudado         = (float) $this->calcularTotalRecaudado($periodo, $dataPresupuesto->codigo_asesor);
+            $dataPresupuesto->total_recaudado_diez    = (float) $this->calcularTotalRecaudadoDiez($periodo, $dataPresupuesto->codigo_asesor);
+            $dataPresupuesto->total_recaudado_contado = (float) $this->calcularTotalRecaudadoContado($periodo, $dataPresupuesto->codigo_asesor);
             $dataPresupuesto->porcentaje_comision     = 0;
             $dataPresupuesto->comisiones              = 0;
         });
@@ -375,11 +375,11 @@ class CarteraController extends Controller
             DB::raw('0 as porcentaje_flete'),
             DB::raw('0 as comision_a_pagar')
         )
-            ->addSelect(DB::raw('users.codigo_asesor as cedula'))
+            //->addSelect(DB::raw('users.codigo_asesor as cedula'))
             ->where('codigo_asesor', '=', $codigo_asesor)
             ->get();
 
-        $terceros_vendedores = $data_asesores->pluck('cedula')->map(fn($x) => trim((string)$x))->toArray();
+        $terceros_vendedores = $data_asesores->pluck('codigo_asesor')->map(fn($x) => trim((string)$x))->toArray();
 
         if (empty($terceros_vendedores)) {
             return [
@@ -463,7 +463,7 @@ class CarteraController extends Controller
         $recaudos = collect($recaudos)->keyBy('tercero_vend');
 
         foreach ($data_asesores as $data_asesor) {
-            $key = trim((string)$data_asesor->cedula);
+            $key = trim((string)$data_asesor->codigo_asesor);
             if (isset($recaudos[$key])) {
                 $recaudoGen = $recaudos[$key];
                 $data_asesor->recaudo_1_15      = (int) round($recaudoGen->creditos_1_15 ?? 0);
@@ -527,7 +527,7 @@ class CarteraController extends Controller
                     AND f_periodo BETWEEN ? AND ?
                 GROUP BY [f_vendedor]
                 ",
-                [trim((string)$data_asesor->cedula), $mesTresMenos, $mesAnterior]
+                [trim((string)$data_asesor->codigo_asesor), $mesTresMenos, $mesAnterior]
             );
 
             $data_asesor->porcentaje_flete = 0;
