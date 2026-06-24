@@ -282,7 +282,7 @@ class ComercialController extends Controller
                 'users.codigo_asesor',
                 'users.name'
             )
-            ->addSelect(DB::raw('users.cedula as codigo_asesor'))
+            ->addSelect(DB::raw('users.codigo_asesor as codigo_asesor'))
             ->addSelect(DB::raw("'{$periodo}' as periodo"))
             ->selectSub(
                 PresupuestoComercial::selectRaw('MAX(clasificacion_asesor)')
@@ -390,7 +390,7 @@ class ComercialController extends Controller
         $pct = fn($venta, $presu) => $presu > 0 ? round(($venta / $presu) * 100, 2) : 0.0;
 
         foreach ($data_asesores as $u) {
-            $cedula = (string) $u->cedula;
+            $codigo_asesor = (string) $u->codigo_asesor;
 
             // init ventas a 0
             foreach ($mapVentas as $cfg) {
@@ -405,8 +405,8 @@ class ComercialController extends Controller
             $u->venta_total_llantas       = 0; // se sobrescribe luego con query por categoría
             $u->venta_total_accesorios    = 0;
 
-            if (!empty($ventasPorMarca[$cedula])) {
-                foreach ($ventasPorMarca[$cedula] as $marca => $vals) {
+            if (!empty($ventasPorMarca[$codigo_asesor])) {
+                foreach ($ventasPorMarca[$codigo_asesor] as $marca => $vals) {
                     $cantidad = $vals['cantidad'] ?? 0;
                     $dinero   = $vals['dinero']   ?? 0;
 
@@ -476,10 +476,10 @@ class ComercialController extends Controller
         }
 
         foreach ($data_asesores as $u) {
-            $cedula = (string) $u->cedula;
+            $codigo_asesor = (string) $u->codigo_asesor;
 
-            $u->venta_total_llantas    = $ventasCat[$cedula]['llantas']    ?? 0;
-            $u->venta_total_accesorios = $ventasCat[$cedula]['accesorios'] ?? 0;
+            $u->venta_total_llantas    = $ventasCat[$codigo_asesor]['llantas']    ?? 0;
+            $u->venta_total_accesorios = $ventasCat[$codigo_asesor]['accesorios'] ?? 0;
             $u->total_venta_general    = $u->venta_total_llantas + $u->venta_total_accesorios;
 
             // Cumplimientos por marca principal
