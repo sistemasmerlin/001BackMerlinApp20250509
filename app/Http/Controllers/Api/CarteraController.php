@@ -83,12 +83,12 @@ class CarteraController extends Controller
 
     public function recuadoPresupuesto(Request $request)
     {
-        $cedula          = trim((string) $request->asesor);
+        $codigo_asesor          = trim((string) $request->asesor);
         $categoria_asesor = strtolower(trim((string) $request->categoria_asesor));
         $periodo         = str_replace("-", "", (string) $request->periodo);
 
         // 1) Presupuesto(s) del asesor
-        $dataPresupuestos = $this->obtenerPresupuestos($periodo, $cedula);
+        $dataPresupuestos = $this->obtenerPresupuestos($periodo, $codigo_asesor);
 
         // 2) Totales base
         $dataPresupuestos->each(function ($dataPresupuesto) use ($periodo) {
@@ -100,14 +100,14 @@ class CarteraController extends Controller
         });
 
         // 3) Recaudo por días (base comisión)
-        $recuadoPorDiasCartera = $this->recuadoPorDiasCartera($periodo, $cedula);
+        $recuadoPorDiasCartera = $this->recuadoPorDiasCartera($periodo, $codigo_asesor);
 
         // base comisión = total recaudo por dias SIN flete
         $baseComision = (float) data_get($recuadoPorDiasCartera, 'totales.total_recaudo_dias_sin_flete', 0);
         $baseComision = round($baseComision);
 
         // 4) Efectividad -> factor
-        $efectividad = (float) $this->porcentajeClientesImpactadosCredito($periodo, $cedula);
+        $efectividad = (float) $this->porcentajeClientesImpactadosCredito($periodo, $codigo_asesor);
 
         $factor = 0.0;
         if ($efectividad >= 60) {
@@ -179,7 +179,7 @@ class CarteraController extends Controller
         return 0.0;
     }
 
-    private function obtenerPresupuestos($periodo, $cedula)
+    private function obtenerPresupuestos($periodo, $codigo_asesor)
     {
         return User::select(
             DB::raw('RTRIM(users.name) as name'),
@@ -200,7 +200,7 @@ class CarteraController extends Controller
         )
             ->leftJoin('presupuesto_recaudo', 'presupuesto_recaudo.asesor', '=', 'users.cedula')
             ->where('presupuesto_recaudo.periodo', $periodo)
-            ->where('users.codigo_asesor', '=', $cedula)
+            ->where('users.codigo_asesor', '=', $codigo_asesor)
             ->where('presupuesto_recaudo.estado', '1')
             // ✅ FIX: agregar categoria_asesor al GROUP BY para evitar ONLY_FULL_GROUP_BY
             ->groupBy(
@@ -214,12 +214,12 @@ class CarteraController extends Controller
             ->get();
     }
 
-    private function calcularTotalRecaudado($periodo, $cedula)
+    private function calcularTotalRecaudado($periodo, $codigo_asesor)
     {
         $infoPresupuestos = PresupuestoRecaudo::select('prefijo', 'consecutivo', 'cond_pago')
             ->where('estado', 1)
             ->where('periodo', $periodo)
-            ->where('asesor', $cedula)
+            ->where('asesor', $codigo_asesor)
             ->get();
 
         if ($infoPresupuestos->isEmpty()) {
@@ -249,12 +249,12 @@ class CarteraController extends Controller
         return ($totalCreditos / 1.19) ?? 0;
     }
 
-    private function calcularTotalRecaudadoDiez($periodo, $cedula)
+    private function calcularTotalRecaudadoDiez($periodo, $codigo_asesor)
     {
         $infoPresupuestos = PresupuestoRecaudo::select('prefijo', 'consecutivo', 'cond_pago')
             ->where('estado', 1)
             ->where('periodo', $periodo)
-            ->where('asesor', $cedula)
+            ->where('asesor', $codigo_asesor)
             ->get();
 
         if ($infoPresupuestos->isEmpty()) {
@@ -274,19 +274,19 @@ class CarteraController extends Controller
             ])
             ->where('condicion_pago', '10D')
             ->where('parametro_biable', 3)
-            ->where('docto_vend', $cedula)
+            ->where('docto_vend', $codigo_asesor)
             ->where('creditos', '>', 0)
             ->sum('creditos');
 
         return $totalCreditosDiez ?? 0;
     }
 
-    private function calcularTotalRecaudadoContado($periodo, $cedula)
+    private function calcularTotalRecaudadoContado($periodo, $codigo_asesor)
     {
         $infoPresupuestos = PresupuestoRecaudo::select('prefijo', 'consecutivo')
             ->where('estado', 1)
             ->where('periodo', $periodo)
-            ->where('asesor', $cedula)
+            ->where('asesor', $codigo_asesor)
             ->get();
 
         if ($infoPresupuestos->isEmpty()) {
@@ -306,7 +306,7 @@ class CarteraController extends Controller
             ])
             ->where('condicion_pago', 'CON')
             ->where('parametro_biable', 3)
-            ->where('docto_vend', $cedula)
+            ->where('docto_vend', $codigo_asesor)
             ->where('creditos', '>', 0)
             ->sum('creditos');
 
@@ -316,9 +316,9 @@ class CarteraController extends Controller
     public function recuadoPorDiasCartera($periodo, $asesor)
     {
         $periodo = str_replace("-", "", $periodo);
-        $cedula  = $asesor;
+        $codigo_asesor  = $asesor;
 
-        $resp = $this->recuadoPorDias($cedula, $periodo);
+        $resp = $this->recuadoPorDias($codigo_asesor, $periodo);
 
         $rows = collect(data_get($resp, 'data_asesores', []))->values();
 
@@ -334,7 +334,7 @@ class CarteraController extends Controller
         ];
     }
 
-    public function recuadoPorDias($cedula, $periodo)
+    public function recuadoPorDias($codigo_asesor, $periodo)
     {
         $data_asesores = User::select(
             DB::raw('RTRIM(users.name) as name'),
@@ -376,7 +376,7 @@ class CarteraController extends Controller
             DB::raw('0 as comision_a_pagar')
         )
             ->addSelect(DB::raw('users.codigo_asesor as cedula'))
-            ->where('codigo_asesor', '=', $cedula)
+            ->where('codigo_asesor', '=', $codigo_asesor)
             ->get();
 
         $terceros_vendedores = $data_asesores->pluck('cedula')->map(fn($x) => trim((string)$x))->toArray();
