@@ -198,7 +198,7 @@ class CarteraController extends Controller
             DB::raw('0 as cumplimiento'),
             DB::raw('0 as comisiones')
         )
-            ->leftJoin('presupuesto_recaudo', 'presupuesto_recaudo.asesor', '=', 'users.cedula')
+            ->leftJoin('presupuesto_recaudo', 'presupuesto_recaudo.asesor', '=', 'users.codigo_asesor')
             ->where('presupuesto_recaudo.periodo', $periodo)
             ->where('users.codigo_asesor', '=', $codigo_asesor)
             ->where('presupuesto_recaudo.estado', '1')
