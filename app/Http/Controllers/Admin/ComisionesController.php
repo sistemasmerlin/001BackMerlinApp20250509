@@ -916,7 +916,7 @@ public function indexCartera(Request $request)
             ->where('codigo_asesor', '=', $cedula)
             ->get();
 
-        $terceros_vendedores = $data_asesores->pluck('cedula')->map(fn($x) => trim((string)$x))->toArray();
+        $terceros_vendedores = $data_asesores->pluck('codigo_asesor')->map(fn($x) => trim((string)$x))->toArray();
 
         if (empty($terceros_vendedores)) {
             return [
