@@ -19,6 +19,7 @@ class PqrsSubmotivo extends Model
     {
         return $this->belongsTo(PqrsMotivo::class, 'motivo_id');
     }
+    
 
     public function causales()
     {

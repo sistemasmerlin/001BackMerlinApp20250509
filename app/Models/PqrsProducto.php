@@ -56,6 +56,11 @@ class PqrsProducto extends Model
         return $this->belongsTo(Pqrs::class, 'pqrs_id');
     }
 
+    public function submotivo()
+    {
+        return $this->belongsTo(PqrsSubmotivo::class, 'submotivo_id');
+    }
+
     public function causal()
     {
         return $this->belongsTo(PqrsCausal::class, 'causal_id');

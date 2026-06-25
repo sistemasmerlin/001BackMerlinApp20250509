@@ -7,6 +7,10 @@ use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+use App\Exports\PqrsGeneralExport;
+use App\Exports\PqrsProductosExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class Index extends Component
 {
     use WithPagination;
@@ -53,6 +57,32 @@ class Index extends Component
             || !empty($this->fechaFin);
     }
 
+
+    public function exportarGeneral()
+    {
+        return Excel::download(
+            new PqrsGeneralExport(
+                trim($this->q),
+                trim($this->asesor),
+                $this->fechaInicio,
+                $this->fechaFin
+            ),
+            'informe_general_pqrs_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
+
+    public function exportarDetalleProductos()
+    {
+        return Excel::download(
+            new PqrsProductosExport(
+                trim($this->q),
+                trim($this->asesor),
+                $this->fechaInicio,
+                $this->fechaFin
+            ),
+            'informe_detalle_productos_pqrs_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
     public function render()
     {
         $q = trim($this->q);

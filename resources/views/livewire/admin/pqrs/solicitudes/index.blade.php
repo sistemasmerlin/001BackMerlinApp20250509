@@ -15,6 +15,18 @@
                 </button>
             @endif
         </div>
+
+        <button 
+    wire:click="exportarGeneral"
+    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+    Exportar informe general
+</button>
+
+<button 
+    wire:click="exportarDetalleProductos"
+    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+    Exportar detalle productos
+</button>
     </div>
 
     {{-- Filtros --}}
