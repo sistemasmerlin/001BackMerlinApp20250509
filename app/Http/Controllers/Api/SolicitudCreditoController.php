@@ -270,7 +270,8 @@ class SolicitudCreditoController extends Controller
                         'camera' => 'identification',
                         'video' => true,
                         'whatsapp' => true,
-                        'otpCode' => 'email'
+                        'otpCode' => 'email',
+                        'identificationCardBack' => true 
                     ],
                     'phone' => '+57' . $celularFirmante
                 ],
@@ -287,7 +288,8 @@ class SolicitudCreditoController extends Controller
                         'camera' => 'identification',
                         'video' => true,
                         'whatsapp' => true,
-                        'otpCode' => 'email'
+                        'otpCode' => 'email',
+                        'identificationCardBack' => true 
                     ],
                     'phone' => '+57' . $celularFirmanteAsesor
                 ]

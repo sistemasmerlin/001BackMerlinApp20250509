@@ -150,6 +150,7 @@ public function enviarSolicitudAFirma(SolicitudCredito $solicitud)
                     'video' => true,
                     'whatsapp' => true,
                     'otpCode' => 'email',
+                    'identificationCardBack' => true 
                 ],
             ]
         ],
