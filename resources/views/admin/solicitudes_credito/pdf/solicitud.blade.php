@@ -105,7 +105,7 @@
     <table class="header-table">
         <tr>
             <td rowspan="4" style="width:28%;" class="logo-box">
-                <img src="{{ public_path('storage/logo/logo-merlin.png') }}" alt="Merlin" style="max-width: 140px; max-height: 60px;">
+                <img src="{{ public_path('storage/logo/logo-merlin.png') }}" alt="Merlin">
             </td>
             <td class="top-meta">CARTERA</td>
             <td class="top-meta" style="width:20%;">Código:</td>
