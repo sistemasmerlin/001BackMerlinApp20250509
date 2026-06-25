@@ -268,10 +268,11 @@ class SolicitudCreditoController extends Controller
                     'country' => 'CO',
                     'options' => [
                         'camera' => 'identification',
-                        'video' => true,
+                        //'video' => true,
                         'whatsapp' => true,
                         'otpCode' => 'email',
-                        'identificationCardBack' => true 
+                        'identificationCardBack' => true ,
+                        'flow' => true
                     ],
                     'phone' => '+57' . $celularFirmante
                 ],
@@ -286,10 +287,11 @@ class SolicitudCreditoController extends Controller
                     'country' => 'CO',
                     'options' => [
                         'camera' => 'identification',
-                        'video' => true,
+                        //'video' => true,
                         'whatsapp' => true,
                         'otpCode' => 'email',
-                        'identificationCardBack' => true 
+                        'identificationCardBack' => true ,
+                        'flow' => true
                     ],
                     'phone' => '+57' . $celularFirmanteAsesor
                 ]
