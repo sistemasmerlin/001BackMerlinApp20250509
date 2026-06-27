@@ -366,7 +366,7 @@ class PQRSController extends Controller
     {
         $causales = PqrsCausal::query()
             ->with(['submotivo.motivo', 'responsable'])
-            ->where('visible_asesor', 1)
+          //  ->where('visible_asesor', 1)
             ->orderBy('submotivo_id')
             ->orderBy('orden')
             ->get();
