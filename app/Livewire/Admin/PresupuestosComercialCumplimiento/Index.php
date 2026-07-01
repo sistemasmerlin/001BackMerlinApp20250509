@@ -127,7 +127,7 @@ class Index extends Component
         $totalPirelli = (float) PresupuestoComercial::query()
             ->where('periodo', $this->periodo)
             ->where('categoria', 'like', '%pirelli%')
-            ->sum(DB::raw('presupuesto * 190000'));
+            ->sum(DB::raw('presupuesto * 200000'));
 
         $this->totalPresupuesto = $totalGeneral + $totalPirelli;
 
