@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->get('/pqrs/detalle/{id}', [PQRSController::cl
 
 Route::middleware(['auth:sanctum', 'role:Integrador|web'])->get('/productos-tienda', [IntegracionesController::class, 'index']);
 Route::middleware(['auth:sanctum', 'role:Integrador|web'])->post('/pedidos/integracion/guardar', [IntegracionesController::class, 'guardarPedido']);
+Route::middleware(['auth:sanctum', 'role:Integrador|web'])->post('/pedidos/integracion/guardar/integrador', [IntegracionesController::class, 'guardarPedidoIntegrador']);
 Route::middleware(['auth:sanctum', 'role:Integrador'])->post('/flete/calcular', [IntegracionesController::class, 'calcularFlete']);
 
 Route::middleware('auth:sanctum')->group(function () {
