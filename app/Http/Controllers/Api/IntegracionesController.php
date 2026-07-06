@@ -155,7 +155,12 @@ class IntegracionesController extends Controller
                 RTRIM(t120.f120_referencia) referencia,
                 RTRIM(t106.f106_descripcion) AS marca,
                 RTRIM(t120.f120_notas) notas,
-                CONVERT(decimal(10), SUM(t400.f400_cant_existencia_1 - t400.f400_cant_comprometida_1)) AS disponible,
+                CASE
+                    WHEN SUM(t400.f400_cant_existencia_1 - t400.f400_cant_comprometida_1) > 100 THEN 100
+                    WHEN SUM(t400.f400_cant_existencia_1 - t400.f400_cant_comprometida_1) > 50 THEN 50
+                    WHEN SUM(t400.f400_cant_existencia_1 - t400.f400_cant_comprometida_1) > 20 THEN 20
+                    ELSE CONVERT(decimal(10), SUM(t400.f400_cant_existencia_1 - t400.f400_cant_comprometida_1))
+                END AS disponible,
                 CONVERT(decimal(10), PRECIOS1.PrecioBase) AS precio_1,
                 CONVERT(decimal(10), PRECIOS1.Impuesto) AS precio_1_iva,
                 CONVERT(decimal(10), PRECIOS1.PrecioImp) AS precio_1_mas_iva

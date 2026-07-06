@@ -543,9 +543,9 @@ class PQRSController extends Controller
 
                         $causal = PqrsCausal::query()->findOrFail($causalId);
 
-                        if (!(bool)$causal->visible_asesor) {
-                            throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
-                        }
+                        // if (!(bool)$causal->visible_asesor) {
+                        //     throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
+                        // }
 
                         $requiereAdjunto = (bool)$causal->requiere_adjunto;
                         $permiteRecogida = (bool)$causal->permite_recogida;
@@ -619,9 +619,9 @@ class PQRSController extends Controller
 
                     $causal = PqrsCausal::query()->findOrFail($causalId);
 
-                    if (!(bool)$causal->visible_asesor) {
-                        throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
-                    }
+                    // if (!(bool)$causal->visible_asesor) {
+                    //     throw new \RuntimeException("Causal {$causalId} no disponible para asesores.");
+                    // }
 /*
                     $requiereAdjunto = (bool)$causal->requiere_adjunto;
                     $permiteRecogida = (bool)$causal->permite_recogida;

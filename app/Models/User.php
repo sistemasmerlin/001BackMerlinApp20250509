@@ -82,4 +82,9 @@ class User extends Authenticatable
     {
             return $this->hasMany(PresupuestoComercial::class, 'codigo_asesor', 'codigo_asesor');
     }
+
+    public function integrador()
+    {
+        return $this->hasOne(Integrador::class);
+    }
 }

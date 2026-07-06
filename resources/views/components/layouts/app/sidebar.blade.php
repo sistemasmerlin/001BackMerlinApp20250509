@@ -277,6 +277,26 @@
                 </div> 
             @endcan
 
+            @can('Tecnologia')
+                <div x-data="{ open: false }" class="px-4">
+                    <button
+                        @click="open = !open"
+                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
+                    >
+                    <flux:icon name="wallet" class="h-5 w-5" />
+                        <span>{{ __('Integradores') }}</span>
+                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                    </button>
+
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('integradores.index')" :current="request()->routeIs(' integradores.index.*')" wire:navigate>
+                            {{ __('Integradores') }}
+                        </flux:navlist.item>
+                    </div>
+                </div> 
+            @endcan
+
            
             <flux:spacer />
 
