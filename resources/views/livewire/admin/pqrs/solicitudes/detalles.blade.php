@@ -9,6 +9,7 @@
 </div>
 
 
+
 <section class="space-y-4">
     <div>
         <h1 class="text-3xl font-bold leading-tight">
@@ -113,6 +114,14 @@
     </div>
 </section>
 
+@if(! in_array(strtolower((string)($pqrs->estado ?? '')), ['cerrado', 'anulada']))
+    <button
+        wire:click="anularPqrs"
+        wire:confirm="¿Está seguro de anular esta PQRS?"
+        class="w-full inline-flex justify-center items-center rounded-lg bg-gray-400 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 transition shadow-sm">
+        Anular PQRS
+    </button>
+@endif  
 
 <br>
     @php
@@ -211,7 +220,7 @@
 <section class="space-y-5">
 
     <br>
-    @if(strtolower((string)($pqrs->estado ?? '')) !== 'cerrado')
+    @if(! in_array(strtolower((string)($pqrs->estado ?? '')), ['cerrado', 'anulada']))
         <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
             <button
                 type="button"
@@ -394,8 +403,8 @@
                                 <td class="px-4 py-4 min-w-[240px]">
                                     <div class="flex flex-col gap-2">
 
-                                        @if(
-                                            strtolower((string)($pqrs->estado ?? '')) !== 'cerrado'
+
+                                        @if(! in_array(strtolower((string)($pqrs->estado ?? '')), ['cerrado', 'anulada'])
                                             && $this->puedeRevisarProducto($p)
                                         )
                                             <div class="flex flex-wrap gap-2">

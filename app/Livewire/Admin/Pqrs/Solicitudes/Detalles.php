@@ -812,6 +812,50 @@ class Detalles extends Component
         ]);
     }
 
+    public function anularPqrs(): void
+    {
+        if ($this->pqrsEstaCerrada()) {
+            session()->flash('error', 'No es posible anular una PQRS cerrada.');
+            return;
+        }
+
+        \DB::transaction(function () {
+
+            // Anular productos
+            $this->pqrs->productos()->update([
+                'estado' => 'anulado',
+                'revisado_por' => auth()->id(),
+                'fecha_revision' => now(),
+            ]);
+
+            // Anular ORM
+            if ($this->pqrs->orm) {
+                $this->pqrs->orm->update([
+                    'estado' => 'anulada',
+                    'comentarios' => trim(($this->pqrs->orm->comentarios ?? '') . "\nAnulada por: " . auth()->user()->name),
+                ]);
+            }
+
+            // Anular PQRS
+            $this->pqrs->update([
+                'estado' => 'anulada',
+                'fecha_cierre' => now(),
+                'cerrado_por' => auth()->id(),
+                'notas_cierre' => 'PQRS anulada.',
+            ]);
+
+            PqrsComentario::create([
+                'pqrs_id' => $this->pqrs->id,
+                'user_id' => auth()->id(),
+                'comentario' => 'PQRS anulada por el usuario.',
+            ]);
+        });
+
+        $this->refrescar();
+
+        session()->flash('success', 'PQRS anulada correctamente.');
+    }
+
     public function guardarRevisionProducto(): void
     {
         $this->validate([
