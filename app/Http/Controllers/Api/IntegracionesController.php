@@ -747,7 +747,7 @@ class IntegracionesController extends Controller
                         AND t106.f106_id_plan='003'
                         AND t106.f106_id_cia = t125.f125_id_cia
                         --Agregar marca en la creacion de pedidos
-                        AND t106.f106_descripcion in ('RINOVA TIRES','CST TIRES','BATERIAS RINOVA','WORCRAFT')
+                        AND t106.f106_descripcion in ('RINOVA TIRES','CST TIRES','BATERIAS RINOVA','WORCRAFT','HAKUBA - ARMOR - WDT')
                 LEFT JOIN
                 (
                 SELECT
