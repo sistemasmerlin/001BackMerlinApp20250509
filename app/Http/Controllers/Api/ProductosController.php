@@ -418,8 +418,10 @@ class ProductosController extends Controller
                 WHERE t126.f126_id_cia = 3
                 AND t126.f126_id_lista_precio= 001
                 ) AS PRECIOS1 ON PRECIOS1.Items = t120.f120_id
+
                 WHERE  t400.f400_id_cia= 3
                 AND t400.f400_rowid_bodega in ('1062')
+                AND RTRIM(t120.f120_referencia) <> '101100700'
                 GROUP BY t120.f120_id,
                 t120.f120_referencia,
                 t120.f120_id_unidad_orden,
