@@ -1,3 +1,10 @@
+Biblioteca
+/
+Merlin - App de pedidos
+/
+Detalles.php
+
+
 <?php
 
 namespace App\Livewire\Admin\Pqrs\Solicitudes;
@@ -10,6 +17,16 @@ use Livewire\Component;
 
 class Detalles extends Component
 {
+    /**
+     * Ajusta estos nombres únicamente si tus permisos tienen otro nombre
+     * en la tabla permissions.
+     */
+    private const PERMISOS_REVISION_PRODUCTOS = [
+        'Revisar productos PQRS',
+        'Aprobar productos PQRS',
+        'Gestionar productos PQRS',
+    ];
+
     public Pqrs $pqrs;
     public bool $showModalOrm = false;
     public $transportadoras = [];
@@ -56,14 +73,98 @@ class Detalles extends Component
 
     public function puedeRevisarProducto(PqrsProducto $producto): bool
     {
-        if (!auth()->check()) return false;
+        $usuario = auth()->user();
 
-        $userEmail = strtolower(trim(auth()->user()->email ?? ''));
-        $correos = $producto->responsable->correos ?? [];
+        if (!$usuario) {
+            return false;
+        }
+
+        /*
+         * Un usuario con permiso general puede revisar cualquier producto.
+         */
+        if ($usuario->canAny(self::PERMISOS_REVISION_PRODUCTOS)) {
+            return true;
+        }
+
+        /*
+         * Si no tiene permiso general, se valida que esté asignado
+         * al responsable de la causal mediante su correo.
+         */
+        $responsable = $producto->responsable;
+
+        if (!$responsable) {
+            return false;
+        }
+
+        $correos = $responsable->correos ?? [];
+
+        if ($correos instanceof \Illuminate\Support\Collection) {
+            $correos = $correos->all();
+        }
+
+        /*
+         * Acepta JSON, correos separados por coma, punto y coma
+         * o saltos de línea.
+         */
+        if (is_string($correos)) {
+            $json = json_decode($correos, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                $correos = $json;
+            } else {
+                $correos = preg_split(
+                    '/[,;\r\n]+/',
+                    $correos,
+                    -1,
+                    PREG_SPLIT_NO_EMPTY
+                );
+            }
+        }
+
+        if (!is_array($correos)) {
+            $correos = [$correos];
+        }
+
+        $correoUsuario = mb_strtolower(
+            trim((string) $usuario->email)
+        );
 
         return collect($correos)
-            ->map(fn($c) => strtolower(trim($c)))
-            ->contains($userEmail);
+            ->flatten()
+            ->map(function ($correo) {
+                if (is_array($correo)) {
+                    $correo = $correo['email']
+                        ?? $correo['correo']
+                        ?? $correo['value']
+                        ?? null;
+                }
+
+                if (is_object($correo)) {
+                    $correo = $correo->email
+                        ?? $correo->correo
+                        ?? $correo->value
+                        ?? null;
+                }
+
+                return mb_strtolower(trim((string) $correo));
+            })
+            ->filter()
+            ->unique()
+            ->contains($correoUsuario);
+    }
+
+    private function validarPermisoRevisionProducto(PqrsProducto $producto): bool
+    {
+        if ($this->puedeRevisarProducto($producto)) {
+            return true;
+        }
+
+        session()->flash(
+            'error',
+            'No tienes permiso para revisar este producto o tu correo no está asignado al responsable de la causal.'
+        );
+
+        return false;
     }
 
     // =========================================================
@@ -78,7 +179,9 @@ class Detalles extends Component
 
         $producto = PqrsProducto::with('responsable')->findOrFail($id);
 
-        abort_unless($this->puedeRevisarProducto($producto), 403);
+        if (!$this->validarPermisoRevisionProducto($producto)) {
+            return;
+        }
 
         $producto->update([
             'estado' => 'aprobado',
@@ -100,7 +203,9 @@ class Detalles extends Component
 
         $producto = PqrsProducto::with('responsable')->findOrFail($id);
 
-        abort_unless($this->puedeRevisarProducto($producto), 403);
+        if (!$this->validarPermisoRevisionProducto($producto)) {
+            return;
+        }
 
         $producto->update([
             'estado' => 'rechazado',
@@ -122,7 +227,9 @@ class Detalles extends Component
 
         $producto = PqrsProducto::with('responsable')->findOrFail($id);
 
-        abort_unless($this->puedeRevisarProducto($producto), 403);
+        if (!$this->validarPermisoRevisionProducto($producto)) {
+            return;
+        }
 
         if (!(int)$producto->requiere_recogida) return;
 
@@ -144,7 +251,9 @@ class Detalles extends Component
 
         $producto = PqrsProducto::with('responsable')->findOrFail($id);
 
-        abort_unless($this->puedeRevisarProducto($producto), 403);
+        if (!$this->validarPermisoRevisionProducto($producto)) {
+            return;
+        }
 
         if (!(int)$producto->requiere_recogida) return;
 
@@ -513,6 +622,7 @@ class Detalles extends Component
         $this->pqrs->refresh()->load([
             'orm.transportadora',
             'orm.usuarioRecibe',
+            'orm.usuarioMarcaRecogidaTransportadora',
             'productos.responsable',
             'productos.causal',
             'productos.adjuntos',
@@ -545,7 +655,11 @@ class Detalles extends Component
     }
     public function pqrsEstaCerrada(): bool
     {
-        return strtolower((string)($this->pqrs->estado ?? '')) === 'cerrado';
+        return in_array(
+            strtolower(trim((string) ($this->pqrs->estado ?? ''))),
+            ['cerrado', 'cerrada', 'anulado', 'anulada'],
+            true
+        );
     }
 
     public function ormEnBodega(): bool
@@ -873,7 +987,9 @@ class Detalles extends Component
 
         $producto = PqrsProducto::with('responsable')->findOrFail($this->productoRevisionId);
 
-        abort_unless($this->puedeRevisarProducto($producto), 403);
+        if (!$this->validarPermisoRevisionProducto($producto)) {
+            return;
+        }
 
         $producto->update([
             'estado' => $this->accionRevisionProducto,
