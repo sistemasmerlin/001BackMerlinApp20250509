@@ -54,9 +54,13 @@ class Detalles extends Component
             ->get();
     }
 
-    public function puedeRevisarProducto(PqrsProducto $producto): bool
+public function puedeRevisarProducto(PqrsProducto $producto): bool
 {
     if (!auth()->check()) {
+        \Log::info('DEPURACIÓN PQRS - Usuario no autenticado', [
+            'producto_id' => $producto->id,
+        ]);
+
         return false;
     }
 
@@ -64,25 +68,35 @@ class Detalles extends Component
         trim((string) auth()->user()->email)
     );
 
-    /*
-     * Primero busca el responsable guardado directamente
-     * en pqrs_productos.
-     *
-     * Si no existe, toma el responsable configurado
-     * en la causal.
-     */
-    $responsable = $producto->responsable
-        ?? $producto->causal?->responsable;
+    $responsableProducto = $producto->responsable;
+    $responsableCausal = $producto->causal?->responsable;
 
-    if (!$responsable) {
-        return false;
-    }
+    $responsable = $responsableProducto
+        ?? $responsableCausal;
 
-    $correos = $responsable->correos ?? [];
+    $correos = $responsable?->correos ?? [];
 
-    return collect($correos)
+    $correosNormalizados = collect($correos)
         ->map(fn ($correo) => strtolower(trim((string) $correo)))
+        ->values()
+        ->all();
+
+    $resultado = collect($correosNormalizados)
         ->contains($correoUsuario);
+
+    \Log::info('DEPURACIÓN puedeRevisarProducto', [
+        'producto_id' => $producto->id,
+        'causal_id' => $producto->causal_id,
+        'responsable_id_producto' => $producto->responsable_id,
+        'responsable_producto_encontrado' => $responsableProducto?->id,
+        'responsable_causal_encontrado' => $responsableCausal?->id,
+        'responsable_usado' => $responsable?->id,
+        'correo_usuario' => $correoUsuario,
+        'correos_responsable' => $correosNormalizados,
+        'resultado' => $resultado,
+    ]);
+
+    return $resultado;
 }
 
     // public function puedeRevisarProducto(PqrsProducto $producto): bool
