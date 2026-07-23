@@ -55,16 +55,36 @@ class Detalles extends Component
     }
 
     public function puedeRevisarProducto(PqrsProducto $producto): bool
-    {
-        if (!auth()->check()) return false;
-
-        $userEmail = strtolower(trim(auth()->user()->email ?? ''));
-        $correos = $producto->responsable->correos ?? [];
-
-        return collect($correos)
-            ->map(fn($c) => strtolower(trim($c)))
-            ->contains($userEmail);
+{
+    if (!auth()->check()) {
+        return false;
     }
+
+    $userEmail = strtolower(trim(auth()->user()->email ?? ''));
+
+    $correos = $producto->responsable?->correos ?? [];
+
+    if (is_string($correos)) {
+        $correos = json_decode($correos, true) ?? preg_split('/[,;\r\n]+/', $correos);
+    }
+
+    return collect($correos)
+        ->flatten()
+        ->map(fn ($correo) => strtolower(trim((string) $correo)))
+        ->contains($userEmail);
+}
+
+    // public function puedeRevisarProducto(PqrsProducto $producto): bool
+    // {
+    //     if (!auth()->check()) return false;
+
+    //     $userEmail = strtolower(trim(auth()->user()->email ?? ''));
+    //     $correos = $producto->responsable->correos ?? [];
+
+    //     return collect($correos)
+    //         ->map(fn($c) => strtolower(trim($c)))
+    //         ->contains($userEmail);
+    // }
 
     // =========================================================
     // INDIVIDUALES
