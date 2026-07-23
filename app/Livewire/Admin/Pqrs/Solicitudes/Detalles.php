@@ -60,18 +60,29 @@ class Detalles extends Component
         return false;
     }
 
-    $userEmail = strtolower(trim(auth()->user()->email ?? ''));
+    $correoUsuario = strtolower(
+        trim((string) auth()->user()->email)
+    );
 
-    $correos = $producto->responsable?->correos ?? [];
+    /*
+     * Primero busca el responsable guardado directamente
+     * en pqrs_productos.
+     *
+     * Si no existe, toma el responsable configurado
+     * en la causal.
+     */
+    $responsable = $producto->responsable
+        ?? $producto->causal?->responsable;
 
-    if (is_string($correos)) {
-        $correos = json_decode($correos, true) ?? preg_split('/[,;\r\n]+/', $correos);
+    if (!$responsable) {
+        return false;
     }
 
+    $correos = $responsable->correos ?? [];
+
     return collect($correos)
-        ->flatten()
         ->map(fn ($correo) => strtolower(trim((string) $correo)))
-        ->contains($userEmail);
+        ->contains($correoUsuario);
 }
 
     // public function puedeRevisarProducto(PqrsProducto $producto): bool
