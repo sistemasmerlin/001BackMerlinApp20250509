@@ -586,12 +586,13 @@
                                                     {{ strtoupper($doc->estado) }}
                                                 </span>
 
-                                                @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado']))
                                                     <a href="{{ Storage::disk($doc->disk)->url($doc->archivo) }}"
                                                         target="_blank"
                                                         class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                                                         Ver
                                                     </a>
+                                                @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado']))
+
 
                                                     <button wire:click="aprobarDocumento({{ $doc->id }})"
                                                         class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700">
