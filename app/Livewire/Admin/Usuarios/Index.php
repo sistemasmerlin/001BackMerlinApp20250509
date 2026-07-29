@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
+use App\Exports\UsuariosExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
 class Index extends Component
 {
     public $usuarios,
@@ -196,6 +200,16 @@ class Index extends Component
 
         $this->usuarios = User::with('roles')->get();
         session()->flash('success', 'Usuario eliminado correctamente.');
+    }
+
+    public function exportarExcel(): BinaryFileResponse
+    {
+        $nombreArchivo = 'informe_usuarios_' . now()->format('Y_m_d_His') . '.xlsx';
+
+        return Excel::download(
+            new UsuariosExport(auth()->user()?->name ?? 'Sistema'),
+            $nombreArchivo
+        );
     }
 
     public function render()
