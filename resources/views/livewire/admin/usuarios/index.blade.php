@@ -137,30 +137,63 @@
 
 
     {{-- Modal --}}
-    @if ($openModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" wire:click="$set('openModal', false)"></div>
+{{-- Modal --}}
+@if ($openModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
 
-            <div class="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <div class="flex items-center justify-between">
+        {{-- Fondo --}}
+        <div
+            class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            wire:click="$set('openModal', false)"
+        ></div>
+
+        {{-- Contenedor principal --}}
+        <div
+            class="relative flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden
+                   rounded-2xl border border-zinc-200 bg-white shadow-xl
+                   dark:border-zinc-800 dark:bg-zinc-950"
+        >
+
+            {{-- Encabezado fijo --}}
+            <div
+                class="flex shrink-0 items-center justify-between
+                       border-b border-zinc-200 px-6 py-4
+                       dark:border-zinc-800"
+            >
+                <div>
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
                         {{ $modoEditar ? 'Editar usuario' : 'Nuevo usuario' }}
                     </h2>
 
-                    <button
-                        type="button"
-                        wire:click="$set('openModal', false)"
-                        class="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200"
-                        aria-label="Cerrar"
-                    >
-                        ✕
-                    </button>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        Completa la información del usuario y asigna sus roles.
+                    </p>
                 </div>
 
-                {{-- Errors summary --}}
+                <button
+                    type="button"
+                    wire:click="$set('openModal', false)"
+                    class="flex h-9 w-9 items-center justify-center rounded-lg
+                           text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700
+                           dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                    aria-label="Cerrar"
+                >
+                    ✕
+                </button>
+            </div>
+
+            {{-- Contenido desplazable --}}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+
+                {{-- Resumen de errores --}}
                 @if ($errors->any())
-                    <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200">
-                        <ul class="list-disc list-inside">
+                    <div
+                        class="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-3
+                               text-sm text-rose-800
+                               dark:border-rose-900/40 dark:bg-rose-900/20
+                               dark:text-rose-200"
+                    >
+                        <ul class="list-inside list-disc space-y-1">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -168,157 +201,338 @@
                     </div>
                 @endif
 
-                <form wire:submit.prevent="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}" class="mt-5 space-y-4">
-
+                <form
+                    id="formUsuario"
+                    wire:submit.prevent="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
+                    class="space-y-4"
+                >
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                        {{-- Nombre zona--}}
+                        {{-- Nombre --}}
                         <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre Zona</label>
-                            <input type="text" wire:model.defer="name"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('name') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-                        
-                        {{-- Nombre asesor --}}
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Nombre
+                            </label>
 
+                            <input
+                                type="text"
+                                wire:model.defer="name"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('name')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Nombre asesor --}}
                         <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Nombre asesor</label>
-                            <input type="text" wire:model.defer="nombre_asesor"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                    dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('nombre_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Nombre asesor
+                            </label>
+
+                            <input
+                                type="text"
+                                wire:model.defer="nombre_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('nombre_asesor')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
                         {{-- Email --}}
                         <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Email</label>
-                            <input type="email" wire:model.defer="email"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('email') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                wire:model.defer="email"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('email')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
-                        {{-- Password --}}
+                        {{-- Cédula --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Cédula
+                            </label>
+
+                            <input
+                                type="text"
+                                wire:model.defer="cedula"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('cedula')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Celular --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Celular
+                            </label>
+
+                            <input
+                                type="text"
+                                wire:model.defer="celular"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('celular')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Código asesor --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Código asesor
+                            </label>
+
+                            <input
+                                type="text"
+                                wire:model.defer="codigo_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('codigo_asesor')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Código recibos --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Código recibos
+                            </label>
+
+                            <input
+                                type="text"
+                                wire:model.defer="codigo_recibos"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+
+                            @error('codigo_recibos')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Categoría asesor --}}
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                Categoría asesor
+                            </label>
+
+                            <select
+                                wire:model.defer="categoria_asesor"
+                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white
+                                       px-3 py-2 text-sm text-zinc-900 outline-none
+                                       focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
+                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                            >
+                                <option value="">Seleccione...</option>
+                                <option value="senior">Senior</option>
+                                <option value="master">Master</option>
+                            </select>
+
+                            @error('categoria_asesor')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Contraseña --}}
                         <div class="sm:col-span-2">
                             <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
                                 {{ $modoEditar ? 'Nueva contraseña (opcional)' : 'Contraseña' }}
                             </label>
+
                             <div class="relative mt-1">
                                 <input
                                     type="{{ $mostrarPassword ? 'text' : 'password' }}"
                                     wire:model.defer="{{ $modoEditar ? 'nuevaPassword' : 'password' }}"
-                                    class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-16 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
+                                    class="w-full rounded-lg border border-zinc-200 bg-white
+                                           px-3 py-2 pr-16 text-sm text-zinc-900 outline-none
+                                           focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300
                                            dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                                 >
+
                                 <button
                                     type="button"
                                     wire:click="$toggle('mostrarPassword')"
-                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-600 hover:text-zinc-900
+                                    class="absolute right-3 top-1/2 -translate-y-1/2
+                                           text-xs font-medium text-zinc-600
+                                           hover:text-zinc-900
                                            dark:text-zinc-300 dark:hover:text-white"
                                 >
                                     {{ $mostrarPassword ? 'Ocultar' : 'Ver' }}
                                 </button>
                             </div>
-                            @error('password') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                            @error('nuevaPassword') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
 
-                        {{-- Cédula --}}
-                        <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Cédula</label>
-                            <input type="text" wire:model.defer="cedula"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('cedula') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
+                            @error('password')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
 
-                        {{-- Celular --}}
-
-                        <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Celular</label>
-                            <input type="text" wire:model.defer="celular"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                    dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('celular') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- Código asesor --}}
-                        <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Código asesor</label>
-                            <input type="text" wire:model.defer="codigo_asesor"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('codigo_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- Código recibos --}}
-                        <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Código recibos</label>
-                            <input type="text" wire:model.defer="codigo_recibos"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                            @error('codigo_recibos') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- Categoría asesor (NUEVO) --}}
-                        <div>
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Categoría asesor</label>
-                            <select wire:model.defer="categoria_asesor"
-                                class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-300
-                                       dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                                <option value="">Seleccione...</option>
-                                <option value="senior">Senior</option>
-                                <option value="master">Master</option>
-                            </select>
-                            @error('categoria_asesor') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                            @error('nuevaPassword')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
                         {{-- Roles --}}
                         <div class="sm:col-span-2">
-                            <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Roles</label>
-                            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                @foreach($roles as $rol)
-                                    <label class="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700
-                                                  dark:border-zinc-800 dark:text-zinc-200">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                    Roles
+                                </label>
+
+                                <span class="text-xs text-zinc-400">
+                                    {{ count($rolesSeleccionados ?? []) }} seleccionados
+                                </span>
+                            </div>
+
+                            <div
+                                class="mt-2 grid max-h-64 grid-cols-1 gap-2 overflow-y-auto
+                                       rounded-xl border border-zinc-200 p-3
+                                       sm:grid-cols-2
+                                       dark:border-zinc-800"
+                            >
+                                @forelse($roles as $rol)
+                                    <label
+                                        wire:key="rol-usuario-{{ $rol->id }}"
+                                        class="flex cursor-pointer items-center gap-3 rounded-lg
+                                               border border-zinc-200 px-3 py-2 text-sm
+                                               text-zinc-700 transition hover:bg-zinc-50
+                                               dark:border-zinc-800 dark:text-zinc-200
+                                               dark:hover:bg-zinc-900"
+                                    >
                                         <input
                                             type="checkbox"
                                             wire:model.defer="rolesSeleccionados"
                                             value="{{ $rol->id }}"
-                                            class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400 dark:bg-zinc-900 dark:border-zinc-700"
+                                            class="h-4 w-4 rounded border-zinc-300
+                                                   text-zinc-900 focus:ring-zinc-400
+                                                   dark:border-zinc-700 dark:bg-zinc-900"
                                         >
+
                                         <span>{{ $rol->name }}</span>
                                     </label>
-                                @endforeach
+                                @empty
+                                    <div class="sm:col-span-2 py-4 text-center text-sm text-zinc-500">
+                                        No existen roles disponibles.
+                                    </div>
+                                @endforelse
                             </div>
+
+                            @error('rolesSeleccionados')
+                                <p class="mt-1 text-xs text-rose-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
                     </div>
-
-                    {{-- Actions --}}
-                    <div class="mt-6 flex justify-end gap-2">
-                        <button
-                            type="button"
-                            wire:click="$set('openModal', false)"
-                            class="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50
-                                   dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
-                        >
-                            Cancelar
-                        </button>
-
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800
-                                   dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                        >
-                            {{ $modoEditar ? 'Guardar cambios' : 'Crear usuario' }}
-                        </button>
-                    </div>
                 </form>
             </div>
+
+            {{-- Pie fijo --}}
+            <div
+                class="flex shrink-0 items-center justify-end gap-2
+                       border-t border-zinc-200 bg-white px-6 py-4
+                       dark:border-zinc-800 dark:bg-zinc-950"
+            >
+                <button
+                    type="button"
+                    wire:click="$set('openModal', false)"
+                    wire:loading.attr="disabled"
+                    class="rounded-lg border border-zinc-200 px-4 py-2
+                           text-sm font-medium text-zinc-700 hover:bg-zinc-50
+                           disabled:cursor-not-allowed disabled:opacity-50
+                           dark:border-zinc-800 dark:text-zinc-200
+                           dark:hover:bg-zinc-900"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    form="formUsuario"
+                    wire:loading.attr="disabled"
+                    wire:target="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
+                    class="inline-flex min-w-32 items-center justify-center rounded-lg
+                           bg-zinc-900 px-4 py-2 text-sm font-medium text-white
+                           hover:bg-zinc-800 disabled:cursor-not-allowed
+                           disabled:opacity-60
+                           dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                >
+                    <span
+                        wire:loading.remove
+                        wire:target="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
+                    >
+                        {{ $modoEditar ? 'Guardar cambios' : 'Crear usuario' }}
+                    </span>
+
+                    <span
+                        wire:loading
+                        wire:target="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
+                    >
+                        Guardando...
+                    </span>
+                </button>
+            </div>
+
         </div>
-    @endif
+    </div>
+@endif
 
 
     {{-- DataTable --}}

@@ -84,17 +84,17 @@ public function puedeRevisarProducto(PqrsProducto $producto): bool
     $resultado = collect($correosNormalizados)
         ->contains($correoUsuario);
 
-    \Log::info('DEPURACIÓN puedeRevisarProducto', [
-        'producto_id' => $producto->id,
-        'causal_id' => $producto->causal_id,
-        'responsable_id_producto' => $producto->responsable_id,
-        'responsable_producto_encontrado' => $responsableProducto?->id,
-        'responsable_causal_encontrado' => $responsableCausal?->id,
-        'responsable_usado' => $responsable?->id,
-        'correo_usuario' => $correoUsuario,
-        'correos_responsable' => $correosNormalizados,
-        'resultado' => $resultado,
-    ]);
+    // \Log::info('DEPURACIÓN puedeRevisarProducto', [
+    //     'producto_id' => $producto->id,
+    //     'causal_id' => $producto->causal_id,
+    //     'responsable_id_producto' => $producto->responsable_id,
+    //     'responsable_producto_encontrado' => $responsableProducto?->id,
+    //     'responsable_causal_encontrado' => $responsableCausal?->id,
+    //     'responsable_usado' => $responsable?->id,
+    //     'correo_usuario' => $correoUsuario,
+    //     'correos_responsable' => $correosNormalizados,
+    //     'resultado' => $resultado,
+    // ]);
 
     return $resultado;
 }
