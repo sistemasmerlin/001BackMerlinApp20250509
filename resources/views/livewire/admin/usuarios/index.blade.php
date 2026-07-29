@@ -136,10 +136,9 @@
     </div>
 
 
-    {{-- Modal --}}
 {{-- Modal --}}
 @if ($openModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-3 sm:p-4">
 
         {{-- Fondo --}}
         <div
@@ -147,17 +146,18 @@
             wire:click="$set('openModal', false)"
         ></div>
 
-        {{-- Contenedor principal --}}
+        {{-- Contenedor del modal --}}
         <div
-            class="relative flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden
-                   rounded-2xl border border-zinc-200 bg-white shadow-xl
+            class="relative flex w-full max-w-2xl flex-col overflow-hidden
+                   rounded-2xl border border-zinc-200 bg-white shadow-2xl
                    dark:border-zinc-800 dark:bg-zinc-950"
+            style="height: calc(100dvh - 24px); max-height: calc(100dvh - 24px);"
         >
 
             {{-- Encabezado fijo --}}
             <div
                 class="flex shrink-0 items-center justify-between
-                       border-b border-zinc-200 px-6 py-4
+                       border-b border-zinc-200 px-5 py-4 sm:px-6
                        dark:border-zinc-800"
             >
                 <div>
@@ -166,24 +166,24 @@
                     </h2>
 
                     <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        Completa la información del usuario y asigna sus roles.
+                        Completa la información y asigna los roles.
                     </p>
                 </div>
 
                 <button
                     type="button"
                     wire:click="$set('openModal', false)"
-                    class="flex h-9 w-9 items-center justify-center rounded-lg
-                           text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700
-                           dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
+                           text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800
+                           dark:hover:bg-zinc-900 dark:hover:text-white"
                     aria-label="Cerrar"
                 >
                     ✕
                 </button>
             </div>
 
-            {{-- Contenido desplazable --}}
-            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            {{-- Contenido con scroll --}}
+            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
 
                 {{-- Resumen de errores --}}
                 @if ($errors->any())
@@ -204,7 +204,6 @@
                 <form
                     id="formUsuario"
                     wire:submit.prevent="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
-                    class="space-y-4"
                 >
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
@@ -430,7 +429,7 @@
 
                         {{-- Roles --}}
                         <div class="sm:col-span-2">
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between gap-3">
                                 <label class="text-xs font-medium text-zinc-600 dark:text-zinc-300">
                                     Roles
                                 </label>
@@ -441,12 +440,11 @@
                             </div>
 
                             <div
-                                class="mt-2 grid max-h-64 grid-cols-1 gap-2 overflow-y-auto
-                                       rounded-xl border border-zinc-200 p-3
-                                       sm:grid-cols-2
-                                       dark:border-zinc-800"
+                                class="mt-2 grid grid-cols-1 gap-2 rounded-xl
+                                       border border-zinc-200 p-3
+                                       sm:grid-cols-2 dark:border-zinc-800"
                             >
-                                @forelse($roles as $rol)
+                                @forelse ($roles as $rol)
                                     <label
                                         wire:key="rol-usuario-{{ $rol->id }}"
                                         class="flex cursor-pointer items-center gap-3 rounded-lg
@@ -459,17 +457,19 @@
                                             type="checkbox"
                                             wire:model.defer="rolesSeleccionados"
                                             value="{{ $rol->id }}"
-                                            class="h-4 w-4 rounded border-zinc-300
-                                                   text-zinc-900 focus:ring-zinc-400
+                                            class="h-4 w-4 shrink-0 rounded border-zinc-300
+                                                   text-blue-600 focus:ring-blue-500
                                                    dark:border-zinc-700 dark:bg-zinc-900"
                                         >
 
-                                        <span>{{ $rol->name }}</span>
+                                        <span class="break-words">
+                                            {{ $rol->name }}
+                                        </span>
                                     </label>
                                 @empty
-                                    <div class="sm:col-span-2 py-4 text-center text-sm text-zinc-500">
+                                    <p class="py-4 text-center text-sm text-zinc-500 sm:col-span-2">
                                         No existen roles disponibles.
-                                    </div>
+                                    </p>
                                 @endforelse
                             </div>
 
@@ -484,19 +484,21 @@
                 </form>
             </div>
 
-            {{-- Pie fijo --}}
+            {{-- Botones fijos --}}
             <div
-                class="flex shrink-0 items-center justify-end gap-2
-                       border-t border-zinc-200 bg-white px-6 py-4
-                       dark:border-zinc-800 dark:bg-zinc-950"
+                class="relative z-10 flex shrink-0 items-center justify-end gap-2
+                       border-t border-zinc-200 bg-white px-5 py-4
+                       shadow-[0_-4px_12px_rgba(0,0,0,0.05)]
+                       sm:px-6 dark:border-zinc-800 dark:bg-zinc-950"
             >
                 <button
                     type="button"
                     wire:click="$set('openModal', false)"
                     wire:loading.attr="disabled"
                     class="rounded-lg border border-zinc-200 px-4 py-2
-                           text-sm font-medium text-zinc-700 hover:bg-zinc-50
-                           disabled:cursor-not-allowed disabled:opacity-50
+                           text-sm font-medium text-zinc-700 transition
+                           hover:bg-zinc-50 disabled:cursor-not-allowed
+                           disabled:opacity-50
                            dark:border-zinc-800 dark:text-zinc-200
                            dark:hover:bg-zinc-900"
                 >
@@ -508,9 +510,9 @@
                     form="formUsuario"
                     wire:loading.attr="disabled"
                     wire:target="{{ $modoEditar ? 'actualizarUsuario' : 'guardarUsuario' }}"
-                    class="inline-flex min-w-32 items-center justify-center rounded-lg
+                    class="inline-flex min-w-36 items-center justify-center rounded-lg
                            bg-zinc-900 px-4 py-2 text-sm font-medium text-white
-                           hover:bg-zinc-800 disabled:cursor-not-allowed
+                           transition hover:bg-zinc-800 disabled:cursor-not-allowed
                            disabled:opacity-60
                            dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
