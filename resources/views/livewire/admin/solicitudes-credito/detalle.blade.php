@@ -31,6 +31,13 @@
             </div>
 
 
+
+            <div>
+                <span class="text-gray-400 font-semibold">Cupo asignado </span>
+                <span
+                    class="font-bold text-gray-800">{{ $solicitud->cupo_asignado ? '$ ' . number_format($solicitud->cupo_asignado, 0, ',', '.') : '—' }}</span>
+            </div>
+
             <div>
                 <span class="text-gray-400 font-semibold">Primer pendiente:</span>
                 <span class="font-bold text-gray-800">

@@ -55,59 +55,108 @@
 
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">id</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Fecha</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Razón social</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">NIT / C.C.</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Ciudad</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Estado</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Acciones</th>
-                </tr>
-            </thead>
+<thead class="bg-gray-50">
+    <tr>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">ID</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Fecha</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Razón social</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">NIT / C.C.</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Ciudad</th>
+
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Código asesor</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Asesor</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Email asesor</th>
+        <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Cupo solicitado</th>
+        <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Cupo aprobado</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Condición pago</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Cotización</th>
+
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Estado</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Acciones</th>
+    </tr>
+</thead>
             <tbody class="divide-y divide-gray-100 bg-white">
                 @forelse ($solicitudes as $item)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item->id }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ optional($item->fecha_solicitud)->format('Y-m-d') }}</td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $item->razon_social }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item->nit_cc }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item->ciudad }}</td>
-                        <td class="px-4 py-3">
-                            <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                                {{ strtoupper($item->estado) }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-2">
+<tr class="hover:bg-gray-50">
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->id }}
+    </td>
 
-                                    {{-- <button
-                                        wire:click="verDetalle({{ $item->id }})"
-                                        class="inline-flex items-center rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-900"
-                                    >
-                                        Ver
-                                    </button>
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ optional($item->fecha_solicitud)->format('Y-m-d') }}
+    </td>
 
-                                    <a
-                                        href="{{ route('admin.solicitudes-credito.pdf.unificado.ver', $item->id) }}"
-                                        target="_blank"
-                                        class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                                    >
-                                        Ver PDF Unificado
-                                    </a> --}}
+    <td class="px-4 py-3 text-sm font-medium text-gray-800">
+        {{ $item->razon_social }}
+    </td>
 
-                                    <a
-                                        href="{{ route('admin.solicitudes-credito.show', $item->id) }}"
-                                        class="inline-flex items-center rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-900"
-                                    >
-                                        Ver detalle
-                                    </a>
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->nit_cc }}
+    </td>
 
-                            </div>
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->ciudad }}
+    </td>
 
-                        </td>
-                    </tr>
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->codigo_asesor ?? '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->nombre_asesor ?? '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->email_asesor ?? '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-right text-gray-700">
+        {{ $item->cupo_sugerido ? '$ '.number_format($item->cupo_sugerido,0,',','.') : '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-right font-medium text-green-700">
+        {{ $item->cupo_asignado ? '$ '.number_format($item->cupo_asignado,0,',','.') : '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->condicion_pago_aprobada ?? '—' }}
+    </td>
+
+    <td class="px-4 py-3 text-sm text-gray-700">
+        {{ $item->numero_cotizacion ?? '—' }}
+    </td>
+
+    <td class="px-4 py-3">
+        @php
+            $estado = strtoupper(trim($item->estado));
+
+            $colorEstado = match ($estado) {
+                'APROBADO' => 'bg-green-100 text-green-700',
+                'PENDIENTE' => 'bg-yellow-100 text-yellow-700',
+                'RECIBIDO' => 'bg-blue-100 text-blue-700',
+                'RECHAZADO' => 'bg-red-100 text-red-700',
+                'EN REVISIÓN', 'EN_REVISION' => 'bg-purple-100 text-purple-700',
+                'EN ESTUDIO' => 'bg-indigo-100 text-indigo-700',
+                'DEVUELTO' => 'bg-orange-100 text-orange-700',
+                'ANULADO' => 'bg-gray-200 text-gray-700',
+                default => 'bg-zinc-100 text-zinc-700',
+            };
+        @endphp
+
+        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $colorEstado }}">
+            {{ $estado }}
+        </span>
+    </td>
+
+    <td class="px-4 py-3">
+        <a
+            href="{{ route('admin.solicitudes-credito.show', $item->id) }}"
+            class="inline-flex items-center rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-900"
+        >
+            Ver detalle
+        </a>
+    </td>
+</tr>
                 @empty
                     <tr>
                         <td colspan="5" class="px-4 py-10 text-center text-sm text-gray-500">
