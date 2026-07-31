@@ -8,7 +8,16 @@ class ReciboCaja extends Model
 {
     protected $table = 'recibo_cajas';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'recibo_encabezado_id',
+        'F350_ID_TIPO_DOCTO',
+        'F350_CONSEC_DOCTO',
+        'F358_ID_MEDIOS_PAGO',
+        'F358_VALOR',
+        'F358_REFERENCIA_OTROS',
+        'F358_FECHA_CONSIGNACION',
+        'f358_docto_banco_cg',
+    ];
 
     protected $casts = [
         'F358_VALOR' => 'decimal:2',
@@ -17,6 +26,9 @@ class ReciboCaja extends Model
 
     public function encabezado()
     {
-        return $this->belongsTo(RecibosEncabezado::class, 'recibo_encabezado_id');
+        return $this->belongsTo(
+            RecibosEncabezado::class,
+            'recibo_encabezado_id'
+        );
     }
 }

@@ -118,5 +118,36 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bancos-recaudo', [RecaudoController::class, 'bancos']);
 });
     
-
 Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionesController::class, 'sincronizarConTienda']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Recaudos
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/bancos-recaudo', [
+        RecaudoController::class,
+        'bancos',
+    ]);
+
+    Route::post('/recaudos', [
+        RecaudoController::class,
+        'store',
+    ]);
+
+    Route::get('/recaudos/{recibo}', [
+        RecaudoController::class,
+        'show',
+    ]);
+
+    /*
+     * Conserva aquí la ruta que ya tienes para consultar
+     * la cartera del cliente.
+     */
+    Route::post('/recaudo-cliente', [
+        RecaudoController::class,
+        'consultar',
+    ]);
+});
