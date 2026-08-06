@@ -653,20 +653,21 @@ class IntegracionesController extends Controller
             ], 404);
         }
 
-        $total = (float) $data['total'];
-        $monto = (float) $fleteCiudad->monto;
-        $minimo = (float) $fleteCiudad->minimo;
+$total = (float) $data['total'];
+$monto = (float) $fleteCiudad->monto;
+$minimo = (float) $fleteCiudad->minimo;
+$menor = (float) $fleteCiudad->menor;
+$mayor = (float) $fleteCiudad->mayor;
 
-        $porcentaje = $total > $monto
-            ? (float) $fleteCiudad->mayor
-            : (float) $fleteCiudad->menor;
+if ($total <= $monto && $menor == 0) {
+    $valorFlete = 0;
+} else {
+    $porcentaje = $total > $monto ? $mayor : $menor;
 
-        $valorCalculado = ($total * $porcentaje) / 100;
+    $valorCalculado = ($total * $porcentaje) / 100;
 
-        $valorFlete = $valorCalculado < $minimo
-            ? $minimo
-            : $valorCalculado;
-
+    $valorFlete = max($valorCalculado, $minimo);
+}
         return response()->json([
             'ok' => true,
             'codigo_departamento' => $data['codigo_departamento'],
