@@ -281,7 +281,7 @@ class RecaudoController extends Controller
                 'max:10240',
             ],
             'numero_soporte' => [
-                'nullable',
+                'required',
                 'string',
                 'max:255',
             ],
@@ -289,6 +289,11 @@ class RecaudoController extends Controller
                 'nullable',
                 'string',
                 'max:2000',
+            ],
+            'digito_verificacion' => [
+                'nullable',
+                'string',
+                'max:5',
             ],
         ], [
             'nit.required' => 'El NIT del cliente es obligatorio.',
@@ -300,6 +305,8 @@ class RecaudoController extends Controller
             'valor_comprobante.required' => 'El valor del comprobante es obligatorio.',
             'valor_comprobante.numeric' => 'El valor del comprobante debe ser numérico.',
             'valor_comprobante.gt' => 'El valor del comprobante debe ser mayor que cero.',
+            'numero_soporte.required' => 'El número de soporte del comprobante es obligatorio.',
+            'numero_soporte.max' =>'El número de soporte no puede superar los 255 caracteres.',
             'correo_cliente.required' => 'El correo del cliente es obligatorio.',
             'correo_cliente.email' => 'El correo del cliente no tiene un formato válido.',
             'total_aplicado.required' => 'El total aplicado es obligatorio.',
@@ -620,6 +627,7 @@ class RecaudoController extends Controller
                     ?? null,
 
                 'nit_cliente' => $request->input('nit'),
+                'digito_verificacion' => $request->input('digito_verificacion'),
                 'email_cliente' => $request->input('correo_cliente'),
 
                 'numero_soporte' => $request->input('numero_soporte'),
@@ -628,7 +636,7 @@ class RecaudoController extends Controller
                 'total_recibido' => $valorComprobante,
                 'total_restante' => $totalRestanteCalculado,
 
-                'banco_recaudo_id' => $banco->id,
+                'id_banco' => $banco->id,
 
                 'notas' => $request->input('notas'),
                 'notas_rechazo' => null,

@@ -23,6 +23,7 @@ class RecibosEncabezado extends Model
 
         'razon_social',
         'nit_cliente',
+        'digito_verificacion',
         'email_cliente',
 
         'numero_soporte',
@@ -32,7 +33,6 @@ class RecibosEncabezado extends Model
         'total_restante',
 
         'id_banco',
-
 
         'notas',
         'notas_rechazo',
@@ -106,4 +106,21 @@ class RecibosEncabezado extends Model
             'recibo_encabezado_id'
         );
     }
+
+
+    public function bancoRecaudo()
+    {
+        return $this->belongsTo(
+            BancoRecaudo::class,
+            'id_banco'
+        );
+    }
+
+    public function movimientoBancario()
+{
+    return $this->hasOne(
+        MovimientoBancario::class,
+        'recibo_encabezado_id'
+    );
+}
 }

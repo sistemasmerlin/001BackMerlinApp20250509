@@ -42,6 +42,9 @@ use App\Livewire\Admin\SolicitudesCredito\Index as SolicitudesCreditoIndex;
 use App\Livewire\Admin\SolicitudesCredito\Detalle  as SolicitudesCreditoIDetalle;
 use App\Livewire\Admin\BancosRecaudo\Index as BancosRecaudoIndex;
 use App\Livewire\Admin\Integradores\Index as IntegradoresIndex;
+use App\Livewire\Admin\RecibosCaja\Index as RecibosCajaIndex;
+use App\Livewire\Admin\RecibosCaja\Detalle as RecibosCajaDetalle;
+use App\Livewire\Admin\MovimientosBancarios\Index as MovimientosBancariosIndex;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -152,8 +155,6 @@ Route::middleware('auth:sanctum')->get(
     [ComisionesController::class, 'clientesImpactados']
 );
 
-
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/bancos-recaudo', BancosRecaudoIndex::class)
         ->name('admin.bancos-recaudo.index');
@@ -161,5 +162,27 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/integradores', IntegradoresIndex::class)
     ->name('integradores.index');
 });
+
+
+Route::middleware([
+    'auth',
+])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/recibos-caja', RecibosCajaIndex::class)
+        ->name('recibos-caja.index');
+    Route::get('/recibos-caja/{recibo}', RecibosCajaDetalle::class)
+        ->name('recibos-caja.show');
+});
+
+
+
+Route::middleware('auth')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get(
+            '/movimientos-bancarios',
+            MovimientosBancariosIndex::class
+        )->name('movimientos-bancarios.index');
+    });
 
 require __DIR__ . '/auth.php';

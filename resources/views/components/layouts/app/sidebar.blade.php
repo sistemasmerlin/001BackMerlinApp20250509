@@ -218,6 +218,7 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
                     @can('Administrar presupuesto cartera')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('presupuesto.cartera.index')" :current="request()->routeIs('presupuesto.cartera.*')" wire:navigate>
@@ -225,6 +226,22 @@
                         </flux:navlist.item>
                     </div>
                     @endcan
+
+                    @can('Administrar presupuesto cartera')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('admin.recibos-caja.index')" :current="request()->routeIs('admin.recibos-caja.*')" wire:navigate>
+                            {{ __('Recibos de Caja') }}
+                        </flux:navlist.item>
+                    </div>
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item :href="route('admin.movimientos-bancarios.index')" :current="request()->routeIs('admin.movimientos-bancarios.*')" wire:navigate>
+                            {{ __('Movimientos Bancarios') }}
+                        </flux:navlist.item>
+                    </div>
+
+                   
+                    @endcan
+
                     @can('Administrar pedidos')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>

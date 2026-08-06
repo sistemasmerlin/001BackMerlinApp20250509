@@ -68,7 +68,7 @@
                 @endphp
 
                 <div class="mt-2">
-                    @if ($estadoActual === 'en_revision')
+                    @if ($estadoActual === 'en_revision' || $estadoActual === 'pendiente')
                         <button type="button"
                             onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
                             wire:click="pasarAPendiente"
