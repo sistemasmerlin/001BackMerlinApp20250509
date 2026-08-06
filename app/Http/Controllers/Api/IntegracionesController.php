@@ -634,51 +634,46 @@ class IntegracionesController extends Controller
             }
     }
 
-public function calcularFlete(Request $request)
-{
-    $data = $request->validate([
-        'codigo_ciudad' => 'required|string',
-        'codigo_departamento' => 'required|string',
-        'total' => 'required|numeric|min:0',
-    ]);
+    public function calcularFlete(Request $request)
+    {
+        $data = $request->validate([
+            'codigo_ciudad' => 'required|string',
+            'codigo_departamento' => 'required|string',
+            'total' => 'required|numeric|min:0',
+        ]);
 
-    $fleteCiudad = FleteCiudad::where('cod_ciudad', $data['codigo_ciudad'])
-        ->where('cod_depto', $data['codigo_departamento'])
-        ->first();
+        $fleteCiudad = FleteCiudad::where('cod_ciudad', $data['codigo_ciudad'])
+            ->where('cod_depto', $data['codigo_departamento'])
+            ->first();
 
-    if (!$fleteCiudad) {
-        return response()->json([
-            'ok' => false,
-            'mensaje' => 'No se encontró configuración de flete para la ciudad enviada.',
-        ], 404);
-    }
+        if (!$fleteCiudad) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'No se encontró configuración de flete para la ciudad enviada.',
+            ], 404);
+        }
 
-    $total = (float) $data['total'];
-    $monto = (float) $fleteCiudad->monto;
-    $minimo = (float) $fleteCiudad->minimo;
+        $total = (float) $data['total'];
+        $monto = (float) $fleteCiudad->monto;
+        $minimo = (float) $fleteCiudad->minimo;
 
-    $porcentaje = $total > $monto
-        ? (float) $fleteCiudad->mayor
-        : (float) $fleteCiudad->menor;
+        $porcentaje = $total > $monto
+            ? (float) $fleteCiudad->mayor
+            : (float) $fleteCiudad->menor;
 
-    // Si el porcentaje que aplica es 0, el flete también es 0
-    if ($porcentaje == 0) {
-        $valorFlete = 0;
-    } else {
         $valorCalculado = ($total * $porcentaje) / 100;
 
         $valorFlete = $valorCalculado < $minimo
             ? $minimo
             : $valorCalculado;
-    }
 
-    return response()->json([
-        'ok' => true,
-        'codigo_departamento' => $data['codigo_departamento'],
-        'codigo_ciudad' => $data['codigo_ciudad'],
-        'flete' => round($valorFlete, 2),
-    ]);
-}
+        return response()->json([
+            'ok' => true,
+            'codigo_departamento' => $data['codigo_departamento'],
+            'codigo_ciudad' => $data['codigo_ciudad'],
+            'flete' => round($valorFlete, 2)
+        ]);
+    }
 
     private function obtenerFleteCalculado(string $codigoCiudad,string $codigoDepartamento,float $total
     ): array {
