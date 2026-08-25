@@ -85,7 +85,7 @@ class Index extends Component
         // marcas / categorías que cuentan por unidades
         return str_contains($m, 'RINOVA TIRES')
             || str_contains($m, 'CST TIRES')
-            || str_contains($m, 'WORCRAFT')
+            || str_contains($m, 'WORCRAFT - RINOVA ATV')
             || str_contains($m, 'FORERUNNER')
             || str_contains($m, 'WDT TUBE ')
             || str_contains($m, 'WDT E-SCOOTER ')

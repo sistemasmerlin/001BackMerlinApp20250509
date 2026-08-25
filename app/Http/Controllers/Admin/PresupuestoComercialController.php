@@ -52,7 +52,7 @@ class PresupuestoComercialController extends Controller
                 AND t106.f106_descripcion IN (
                     'RINOVA TIRES','PIRELLI','RINOVA LIGHTING','RINOVA LIGHTING LED','PIRELLI RADIAL',
                     'NARVA','KOYO','PFI','RNV','BATERIAS RINOVA','RINOVA - GOOD TUBE','HAKUBA - ARMOR - WDT',
-                    'WDT','CST TIRES','WDT BIKE','WDT TUBE','WDT E-SCOOTER','FORERUNNER','CST ATV','WORCRAFT',
+                    'WDT','CST TIRES','WDT BIKE','WDT TUBE','WDT E-SCOOTER','FORERUNNER','CST ATV','WORCRAFT - RINOVA ATV',
                     'CST E-SCOOTER','RINOVA PARTS'
                 )
                 AND bi_t461.f_parametro_biable = 3

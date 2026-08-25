@@ -308,7 +308,7 @@ class ProductosController extends Controller
                 rtrim(t106.f106_descripcion) END AS marca
                 ,CASE 
                     WHEN rtrim(t106.f106_descripcion) = 'HAKUBA - ARMOR - WDT' THEN 'Llantas'
-                    WHEN rtrim(t106.f106_descripcion) = 'WORCRAFT' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WORCRAFT - RINOVA ATV' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'WDT' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'Marca-Propia'
@@ -383,7 +383,7 @@ class ProductosController extends Controller
                             'WDT E-SCOOTER',
                             'WDT BIKE',
                             'WDT TUBE',
-                            'WORCRAFT',
+                            'WORCRAFT - RINOVA ATV',
                             'RINOVA LIGHTING LED',
                             'FORERUNNER')
                 LEFT JOIN

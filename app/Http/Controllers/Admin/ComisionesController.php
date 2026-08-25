@@ -47,7 +47,7 @@ class ComisionesController extends Controller
                         WHEN t106.f106_descripcion IN (
                             'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT'
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV'
                         )
                         THEN [f_cant_base] ELSE 0 END)) AS llantas,
 
@@ -55,7 +55,7 @@ class ComisionesController extends Controller
                         WHEN t106.f106_descripcion IN (
                             'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT'
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS llantas_dinero,
 
@@ -80,7 +80,7 @@ class ComisionesController extends Controller
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total,
 
@@ -90,7 +90,7 @@ class ComisionesController extends Controller
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total_sin_pirelli
                 FROM BI_T461_1 AS t461_1
