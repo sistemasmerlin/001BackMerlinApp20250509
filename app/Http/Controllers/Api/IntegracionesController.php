@@ -684,6 +684,8 @@ public function calcularFlete(Request $request)
         'flete' => round($valorFlete, 2),
     ]);
 }
+
+/*
     private function obtenerFleteCalculado(string $codigoCiudad,string $codigoDepartamento,float $total
     ): array {
         
@@ -730,6 +732,64 @@ public function calcularFlete(Request $request)
         ];
         }
     }
+*/
+
+private function obtenerFleteCalculado(
+    string $codigoCiudad,
+    string $codigoDepartamento,
+    float $total
+): array {
+    // Medellín tiene flete gratuito
+    if ($codigoDepartamento === '05' && $codigoCiudad === '001') {
+        return [
+            'flete' => 0,
+            'valor_calculado' => 0,
+            'porcentaje_aplicado' => 0,
+            'minimo' => 0,
+            'monto_base' => 0,
+            'dias_entrega' => 0,
+        ];
+    }
+
+    $fleteCiudad = FleteCiudad::where('cod_ciudad', $codigoCiudad)
+        ->where('cod_depto', $codigoDepartamento)
+        ->first();
+
+    if (!$fleteCiudad) {
+        throw new \Exception(
+            'No se encontró configuración de flete para la ciudad enviada.'
+        );
+    }
+
+    $monto = (float) $fleteCiudad->monto;
+    $minimo = (float) $fleteCiudad->minimo;
+
+    $porcentaje = $total > $monto
+        ? (float) $fleteCiudad->mayor
+        : (float) $fleteCiudad->menor;
+
+    // Si supera el monto y el porcentaje mayor es cero,
+    // el envío es gratuito y no se cobra el mínimo.
+    if ($total > $monto && $porcentaje == 0) {
+        $valorCalculado = 0;
+        $valorFlete = 0;
+    } else {
+        $valorCalculado = ($total * $porcentaje) / 100;
+
+        $valorFlete = $valorCalculado < $minimo
+            ? $minimo
+            : $valorCalculado;
+    }
+
+    return [
+        'flete' => round($valorFlete, 2),
+        'valor_calculado' => round($valorCalculado, 2),
+        'porcentaje_aplicado' => $porcentaje,
+        'minimo' => $minimo,
+        'monto_base' => $monto,
+        'dias_entrega' => $fleteCiudad->entrega,
+    ];
+}
 
 //Sincronizar existencias, precios y fletes 
     public function sincronizarConTienda(Request $request)
