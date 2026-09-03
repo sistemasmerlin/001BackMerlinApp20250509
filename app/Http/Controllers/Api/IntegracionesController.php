@@ -829,16 +829,16 @@ public function calcularFlete(Request $request)
             ], 403);
         }
 
-        $referenciaBloqueada = '101101100';
+        $referenciaBloqueada = '101101107770';
 
         $tieneProductoBloqueado = collect($data['productos'])
             ->contains(fn ($producto) => trim((string) $producto['referencia']) === $referenciaBloqueada);
 
         if ($tieneProductoBloqueado) {
             return response()->json([
-                'ok' => false,
                 'mensaje' => 'No se puede crear el pedido.',
                 'error' => 'No hay unidades disponibles para la referencia 101101100.',
+                'success' => false,
             ], 422);
         }
 
@@ -906,6 +906,7 @@ public function calcularFlete(Request $request)
 
         if (!empty($errores)) {
             return response()->json([
+                'success' => 'false',
                 'error' => 'No hay unidades disponibles para algunos productos',
                 'detalles' => $errores,
             ], 422);
@@ -997,6 +998,7 @@ public function calcularFlete(Request $request)
                 DB::rollBack();
 
                 return response()->json([
+                    'success' => 'false',
                     'error' => 'Error al generar XML',
                     'mensaje' => 'Error al procesar el pedido en el ERP: ' . $f_detalle,
                 ], 500);
@@ -1027,6 +1029,8 @@ public function calcularFlete(Request $request)
 
                 return response()->json([
                     'error' => 'No se ha creado el pedido en Siesa',
+                    'success' => 'false',
+
                 ], 500);
             }
 
@@ -1176,7 +1180,7 @@ public function calcularFlete(Request $request)
                     ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
 
                 return response()->json([
-                    'success' => 'ok full',
+                    'success' => 'true',
                     'pedido_id' => $pedido->id,
                     'pedido_siesa' => $pedido_siesa,
                     'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $pedido_siesa . ' - Correos enviados.',
@@ -1187,6 +1191,7 @@ public function calcularFlete(Request $request)
                     'pedido_id' => $pedido->id,
                     'pedido_siesa' => $pedido_siesa,
                     'error' => $e->getMessage(),
+                    'success' => 'true',
                     'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $pedido_siesa . ' - No se han enviado los correos.',
                 ], 200);
             }
@@ -1194,6 +1199,7 @@ public function calcularFlete(Request $request)
             DB::rollBack();
 
             return response()->json([
+                'success' => 'false',
                 'error' => 'Ocurrió un error al guardar el pedido',
                 'mensaje' => $e->getMessage(),
             ], 500);
