@@ -67,6 +67,8 @@ class PresupuestoComercialController extends Controller
     {
         return DB::connection('sqlsrv')->select("
             SELECT
+      t120.[f120_referencia] referencia,
+      t120.[f120_descripcion] descripcion,
                 t106.f106_descripcion AS marca,
                 SUM(ISNULL(t431.f431_cant1_comprometida, 0)) AS unidades_comprometidas,
                 SUM(ISNULL(t431.f431_vlr_bruto, 0) - ISNULL(t431.f431_vlr_dscto_linea, 0)) AS valor_bruto_menos_dscto_linea
@@ -92,7 +94,9 @@ class PresupuestoComercialController extends Controller
             WHERE t430.f430_id_cia = 3
             AND t431.f431_id_cia = 3
             AND t054.f054_descripcion = 'Comprometido'
-            GROUP BY t106.f106_descripcion
+			AND  t120.[f120_referencia] NOT IN ('ZLE99999', 'ZLE99998')
+            GROUP BY t106.f106_descripcion,  t120.[f120_referencia],
+      t120.[f120_descripcion]
             ORDER BY valor_bruto_menos_dscto_linea DESC;");
     }
 

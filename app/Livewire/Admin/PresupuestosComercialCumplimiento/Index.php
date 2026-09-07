@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 use App\Models\PresupuestoComercial;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Exports\ProductosComprometidosExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
@@ -20,6 +22,7 @@ class Index extends Component
     public array $ventaPorMarcaUnidades = [];
     public array $rows = [];
 
+    public ?int $openMarcaComprometida = null;
     // KPIs globales
     public float $totalVenta = 0;
     public float $totalPresupuesto = 0;
@@ -55,11 +58,21 @@ class Index extends Component
         $this->openAsesor = ($this->openAsesor === $vendedor) ? null : $vendedor;
     }
 
+    public function toggleMarcaComprometida(int $indice): void
+    {
+        $this->openMarcaComprometida =
+            $this->openMarcaComprometida === $indice
+            ? null
+            : $indice;
+    }
     public function toggleComprometidos(): void
     {
         $this->openComprometidos = ! $this->openComprometidos;
-    }
 
+        if (! $this->openComprometidos) {
+            $this->openMarcaComprometida = null;
+        }
+    }
     private function buildPeriodos(int $meses = 12): array
     {
         Carbon::setLocale('es');
@@ -96,11 +109,43 @@ class Index extends Component
 
         // 0) Comprometidos
         $comp = collect($ctrl->comprometidosData());
-        $this->comprometidos = $comp->map(fn($r) => [
-            'marca' => trim((string)($r->marca ?? '')),
-            'unidades' => (float)($r->unidades_comprometidas ?? 0),
-            'valor' => (float)($r->valor_bruto_menos_dscto_linea ?? 0),
-        ])->values()->all();
+
+        $this->comprometidos = $comp
+            ->groupBy(function ($registro) {
+                return trim((string) ($registro->marca ?? 'SIN MARCA'));
+            })
+            ->map(function (Collection $registros, string $marca) {
+                $referencias = $registros
+                    ->map(function ($registro) {
+                        return [
+                            'referencia' => trim((string) ($registro->referencia ?? '')),
+                            'descripcion' => trim((string) ($registro->descripcion ?? '')),
+                            'unidades' => (float) ($registro->unidades_comprometidas ?? 0),
+                            'valor' => (float) ($registro->valor_bruto_menos_dscto_linea ?? 0),
+                        ];
+                    })
+                    ->sortByDesc('valor')
+                    ->values()
+                    ->all();
+
+                return [
+                    'marca' => $marca,
+
+                    'unidades' => (float) $registros->sum(function ($registro) {
+                        return (float) ($registro->unidades_comprometidas ?? 0);
+                    }),
+
+                    'valor' => (float) $registros->sum(function ($registro) {
+                        return (float) ($registro->valor_bruto_menos_dscto_linea ?? 0);
+                    }),
+
+                    'cantidad_referencias' => count($referencias),
+                    'referencias' => $referencias,
+                ];
+            })
+            ->sortByDesc('valor')
+            ->values()
+            ->all();
 
         // 1) Ventas
         $data = collect($ctrl->cumplimientoData($this->periodo));
@@ -187,6 +232,34 @@ class Index extends Component
             ->sortByDesc('venta') // si quieres ranking por unidades: ->sortByDesc('unidades')
             ->values()
             ->all();
+    }
+
+
+    public function exportarComprometidos()
+    {
+        $productos = collect($this->comprometidos)
+            ->flatMap(function ($marca) {
+                return collect($marca['referencias'])->map(function ($producto) use ($marca) {
+                    return [
+                        'referencia'  => $producto['referencia'],
+                        'descripcion' => $producto['descripcion'],
+                        'marca'       => $marca['marca'],
+                        'unidades'    => (float) $producto['unidades'],
+                        'valor'       => (float) $producto['valor'],
+                    ];
+                });
+            })
+            ->sortBy([
+                ['marca', 'asc'],
+                ['referencia', 'asc'],
+            ])
+            ->values()
+            ->all();
+
+        return Excel::download(
+            new ProductosComprometidosExport($productos),
+            'productos_comprometidos_' . now()->format('Y-m-d_H-i-s') . '.xlsx'
+        );
     }
 
     public function render()

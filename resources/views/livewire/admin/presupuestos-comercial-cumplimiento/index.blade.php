@@ -223,55 +223,270 @@
 
     </div>
 
-    {{-- COMPROMETIDOS (ACORDEÓN) --}}
-    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <button type="button" wire:click="toggleComprometidos" class="w-full px-5 py-4 text-left">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <div class="text-sm font-semibold text-zinc-900 dark:text-white">Comprometidos</div>
-                    <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                        Unidades comprometidas y valor (bruto - descuento línea)
-                    </div>
-                </div>
+    {{-- PRODUCTOS COMPROMETIDOS --}}
+<div class="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm">
 
-                <div class="flex items-center gap-2 text-zinc-900 dark:text-white">
-                    <span class="text-xs font-semibold">{{ $openComprometidos ? 'Ocultar' : 'Ver' }}</span>
-                    <svg class="h-4 w-4 transition-transform {{ $openComprometidos ? 'rotate-180' : '' }}" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
+    {{-- Encabezado general --}}
+    <div class="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+
+        {{-- Título: abre y cierra el detalle --}}
+        <button
+            type="button"
+            wire:click="toggleComprometidos"
+            class="min-w-0 flex-1 text-left"
+        >
+            <div class="text-base font-bold text-black">
+                Productos comprometidos
+            </div>
+
+            <div class="mt-1 text-xs font-medium text-black">
+                Detalle por marca y referencia
             </div>
         </button>
 
-        @if($openComprometidos)
-            <div class="border-t border-zinc-100 dark:border-zinc-800">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-left text-zinc-800 dark:text-zinc-100">
-                        <thead class="text-xs uppercase bg-zinc-100 text-zinc-900 dark:bg-zinc-900/60 dark:text-zinc-100">
-                            <tr>
-                                <th class="px-5 py-3">Marca</th>
-                                <th class="px-5 py-3 text-right">Unidades</th>
-                                <th class="px-5 py-3 text-right">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            @forelse($comprometidos as $c)
-                                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
-                                    <td class="px-5 py-3 font-semibold text-zinc-900 dark:text-white">{{ $c['marca'] }}</td>
-                                    <td class="px-5 py-3 text-right font-semibold">{{ number_format($c['unidades'], 0, ',', '.') }}</td>
-                                    <td class="px-5 py-3 text-right font-semibold">{{ number_format($c['valor'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                                        Sin datos
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        @endif
+        {{-- Acciones --}}
+        <div class="flex items-center gap-3">
+
+            {{-- Exportar --}}
+            <button
+                type="button"
+                wire:click="exportarComprometidos"
+                wire:loading.attr="disabled"
+                wire:target="exportarComprometidos"
+                class="inline-flex items-center justify-center gap-2 rounded-lg
+                       border border-red-600 bg-white px-3 py-2
+                       text-xs font-bold text-red-600 transition
+                       hover:bg-red-600 hover:text-white
+                       disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                <svg
+                    wire:loading.remove
+                    wire:target="exportarComprometidos"
+                    class="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        d="M10.75 2.75a.75.75 0 0 0-1.5 0v7.69L6.53
+                           7.72a.75.75 0 0 0-1.06 1.06l4 4a.75.75
+                           0 0 0 1.06 0l4-4a.75.75 0 0 0-1.06-1.06
+                           l-2.72 2.72V2.75Z"
+                    />
+
+                    <path
+                        d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75
+                           2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0
+                           18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5
+                           c0 .69-.56 1.25-1.25 1.25H4.75c-.69
+                           0-1.25-.56-1.25-1.25v-2.5Z"
+                    />
+                </svg>
+
+                <svg
+                    wire:loading
+                    wire:target="exportarComprometidos"
+                    class="h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                >
+                    <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                    />
+
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"
+                    />
+                </svg>
+
+                <span wire:loading.remove wire:target="exportarComprometidos">
+                    Exportar Excel
+                </span>
+
+                <span wire:loading wire:target="exportarComprometidos">
+                    Generando...
+                </span>
+            </button>
+
+            {{-- Abrir/cerrar --}}
+            <button
+                type="button"
+                wire:click="toggleComprometidos"
+                class="inline-flex items-center gap-2 rounded-lg
+                       bg-red-600 px-3 py-2 text-xs font-bold
+                       text-white transition hover:bg-red-700"
+            >
+                <span>
+                    {{ $openComprometidos ? 'Ocultar' : 'Ver detalle' }}
+                </span>
+
+                <svg
+                    class="h-4 w-4 transition-transform duration-200
+                           {{ $openComprometidos ? 'rotate-180' : '' }}"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10
+                           10.94l3.71-3.71a.75.75 0 1 1 1.06
+                           1.06l-4.24 4.24a.75.75 0 0 1-1.06
+                           0L5.21 8.29a.75.75 0 0 1 .02-1.08Z"
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </button>
+
+        </div>
     </div>
+
+    @if($openComprometidos)
+        {{-- Aquí continúa el contenido que ya tienes --}}
+        <div class="divide-y divide-zinc-200 border-t border-zinc-200
+                    dark:divide-zinc-800 dark:border-zinc-800">
+
+            @forelse($comprometidos as $indice => $marca)
+                @php
+                    $marcaAbierta = $openMarcaComprometida === $indice;
+                @endphp
+
+                <div wire:key="marca-comprometida-{{ $indice }}">
+
+                    {{-- Resumen de la marca --}}
+                    <button
+                        type="button"
+                        wire:click="toggleMarcaComprometida({{ $indice }})"
+                        class="w-full px-5 py-4 text-left hover:bg-zinc-50
+                               dark:hover:bg-zinc-900/30"
+                    >
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                            <div class="min-w-0">
+                                <div class="font-semibold text-zinc-900 dark:text-white">
+                                    {{ $marca['marca'] }}
+                                </div>
+
+                                <div class="mt-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                    {{ number_format($marca['cantidad_referencias'], 0, ',', '.') }}
+                                    referencias
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-6">
+                                <div class="text-right">
+                                    <div class="text-[11px] font-medium uppercase text-zinc-500">
+                                        Unidades
+                                    </div>
+
+                                    <div class="font-semibold text-zinc-900 dark:text-white">
+                                        {{ number_format($marca['unidades'], 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                <div class="text-right">
+                                    <div class="text-[11px] font-medium uppercase text-zinc-500">
+                                        Valor
+                                    </div>
+
+                                    <div class="font-semibold text-zinc-900 dark:text-white">
+                                        ${{ number_format($marca['valor'], 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                <svg
+                                    class="h-4 w-4 text-zinc-600 transition-transform
+                                           dark:text-zinc-300 {{ $marcaAbierta ? 'rotate-180' : '' }}"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10
+                                           10.94l3.71-3.71a.75.75 0 1 1 1.06
+                                           1.06l-4.24 4.24a.75.75 0 0 1-1.06
+                                           0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                    </button>
+
+                    {{-- Referencias de la marca --}}
+                    @if($marcaAbierta)
+                        <div class="border-t border-zinc-200 bg-zinc-50
+                                    dark:border-zinc-800 dark:bg-zinc-900/30">
+
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-left text-sm text-zinc-800
+                                              dark:text-zinc-100">
+
+                                    <thead class="bg-zinc-100 text-xs uppercase text-zinc-900
+                                                  dark:bg-zinc-900 dark:text-zinc-100">
+                                        <tr>
+                                            <th class="px-5 py-3">Referencia</th>
+                                            <th class="px-5 py-3">Descripción</th>
+                                            <th class="px-5 py-3 text-right">Unidades</th>
+                                            <th class="px-5 py-3 text-right">Valor</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                                        @forelse($marca['referencias'] as $producto)
+                                            <tr class="hover:bg-white dark:hover:bg-zinc-950/40">
+
+                                                <td class="whitespace-nowrap px-5 py-3 font-semibold
+                                                           text-zinc-900 dark:text-white">
+                                                    {{ $producto['referencia'] ?: 'Sin referencia' }}
+                                                </td>
+
+                                                <td class="min-w-[300px] px-5 py-3">
+                                                    {{ $producto['descripcion'] ?: 'Sin descripción' }}
+                                                </td>
+
+                                                <td class="whitespace-nowrap px-5 py-3 text-right font-semibold">
+                                                    {{ number_format($producto['unidades'], 0, ',', '.') }}
+                                                </td>
+
+                                                <td class="whitespace-nowrap px-5 py-3 text-right font-semibold
+                                                    {{ $producto['valor'] < 0
+                                                        ? 'text-rose-600'
+                                                        : 'text-zinc-900 dark:text-white' }}">
+                                                    ${{ number_format($producto['valor'], 0, ',', '.') }}
+                                                </td>
+
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td
+                                                    colspan="4"
+                                                    class="px-6 py-8 text-center text-zinc-600
+                                                           dark:text-zinc-300"
+                                                >
+                                                    No hay referencias comprometidas para esta marca.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+            @empty
+                <div class="px-6 py-10 text-center text-sm font-medium
+                            text-zinc-700 dark:text-zinc-300">
+                    No existen productos comprometidos.
+                </div>
+            @endforelse
+        </div>
+    @endif
+</div>
 </div>
