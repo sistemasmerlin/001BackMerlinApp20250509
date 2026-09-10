@@ -45,6 +45,8 @@ use App\Livewire\Admin\Integradores\Index as IntegradoresIndex;
 use App\Livewire\Admin\RecibosCaja\Index as RecibosCajaIndex;
 use App\Livewire\Admin\RecibosCaja\Detalle as RecibosCajaDetalle;
 use App\Livewire\Admin\MovimientosBancarios\Index as MovimientosBancariosIndex;
+use App\Http\Controllers\Admin\MeliEventoController;
+use App\Livewire\Admin\Meli\EventosIndex;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -184,5 +186,18 @@ Route::middleware('auth')
             MovimientosBancariosIndex::class
         )->name('movimientos-bancarios.index');
     });
+
+
+    Route::middleware(['auth', 'can:Administrar pedidos meli'])->group(function () {
+        Route::get('/admin/meli/eventos', EventosIndex::class)
+            ->name('admin.meli.eventos');
+    });
+
+    Route::get('/meli/callback', [MeliEventoController::class, 'callback'])
+        ->name('meli.callback');
+
+    Route::post('/meli/webhook', [MeliEventoController::class, 'webhook'])
+        ->name('meli.webhook');
+
 
 require __DIR__ . '/auth.php';
