@@ -10,8 +10,6 @@ class EventosIndex extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
-
     public string $buscar = '';
     public string $tipo = '';
     public string $estado = '';
