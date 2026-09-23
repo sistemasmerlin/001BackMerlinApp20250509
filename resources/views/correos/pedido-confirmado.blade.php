@@ -47,6 +47,21 @@
     <p><strong>Cliente:</strong> {{ $encabezado->razon_social ?? '-' }}</p>
     <p><strong>Dirección:</strong> {{ $encabezado->direccion ?? '-' }} {{ $encabezado->ciudad ?? '-' }} {{ $encabezado->depto ?? '-' }}</p>
     <p><strong>Notas:</strong> {{ $encabezado->notas ?? 'N/A' }}</p>
+
+    @if(!empty($cotizacion))
+        <p>
+            <strong>Cotización:</strong>
+            {{ $cotizacion }}
+        </p>
+    @endif
+
+    @if(!empty($numero_carro))
+        <p>
+            <strong>Número de carro:</strong>
+            {{ $numero_carro }}
+        </p>
+    @endif
+
   </div>
 
   <div class="seccion">

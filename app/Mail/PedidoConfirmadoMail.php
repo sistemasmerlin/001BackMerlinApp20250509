@@ -17,13 +17,17 @@ class PedidoConfirmadoMail extends Mailable
     public $detalles;
     public $subtotal_pedido;
     public $subtotal_descuento;
+    public $cotizacion;
+    public $numero_carro;
 
-    public function __construct($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento)
+    public function __construct($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento, $cotizacion = null,$numero_carro = null)
     {
         $this->encabezados = $encabezados;
         $this->detalles = $detalles;
         $this->subtotal_pedido = $subtotal_pedido;
         $this->subtotal_descuento = $subtotal_descuento;
+        $this->cotizacion = $cotizacion;
+        $this->numero_carro = $numero_carro;       
     }
 
     public function build()

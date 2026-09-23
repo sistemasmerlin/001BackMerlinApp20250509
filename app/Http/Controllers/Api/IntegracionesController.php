@@ -62,7 +62,7 @@ class IntegracionesController extends Controller
         $bagistoData = $response->json();
 
         $referencias = collect($bagistoData['referencias'] ?? $bagistoData['       referencias'] ?? [])
-            ->map(fn ($ref) => trim((string) $ref))
+            ->map(fn($ref) => trim((string) $ref))
             ->filter()
             ->unique()
             ->values()
@@ -346,10 +346,10 @@ class IntegracionesController extends Controller
 
         $prefijo = $prefijos[$nit_integrador];
 
-            $referenciasValidar = collect($request->productos)->pluck('referencia')->unique()->toArray();
-            $referenciasSql = "'" . implode("','", array_map('addslashes', $referenciasValidar)) . "'";
+        $referenciasValidar = collect($request->productos)->pluck('referencia')->unique()->toArray();
+        $referenciasSql = "'" . implode("','", array_map('addslashes', $referenciasValidar)) . "'";
 
-            $validacion = DB::connection('sqlsrv')->select("SELECT RTRIM(t120.f120_referencia) AS referencia,
+        $validacion = DB::connection('sqlsrv')->select("SELECT RTRIM(t120.f120_referencia) AS referencia,
                 SUM(t400.f400_cant_existencia_1) AS existencia
                 FROM t400_cm_existencia t400
                 INNER JOIN t121_mc_items_extensiones t121
@@ -365,141 +365,141 @@ class IntegracionesController extends Controller
                 WHERE t120.f120_referencia IN ($referenciasSql)
                 GROUP BY t120.f120_referencia");
 
-            $existencias = collect($validacion)->keyBy('referencia')->map(fn($i) => (float) $i->existencia);
-            $errores = [];
+        $existencias = collect($validacion)->keyBy('referencia')->map(fn($i) => (float) $i->existencia);
+        $errores = [];
 
-            foreach ($request->productos as $producto) {
-                $referencia = $producto['referencia'];
-                $cantidadSolicitada = (float) $producto['cantidad'];
-                $existenciaDisponible = $existencias[$referencia] ?? 0;
+        foreach ($request->productos as $producto) {
+            $referencia = $producto['referencia'];
+            $cantidadSolicitada = (float) $producto['cantidad'];
+            $existenciaDisponible = $existencias[$referencia] ?? 0;
 
-                if ($cantidadSolicitada > $existenciaDisponible) {
-                    $errores[] = [
-                        'referencia' => $referencia,
-                        'cantidad_solicitada' => $cantidadSolicitada,
-                        'existencia_disponible' => $existenciaDisponible,
-                    ];
-                }
+            if ($cantidadSolicitada > $existenciaDisponible) {
+                $errores[] = [
+                    'referencia' => $referencia,
+                    'cantidad_solicitada' => $cantidadSolicitada,
+                    'existencia_disponible' => $existenciaDisponible,
+                ];
             }
+        }
 
-            if (!empty($errores)) {
-                return response()->json([
-                    'error' => 'No hay unidades disponibles para algunos productos',
-                    'detalles' => $errores
-                ], 422);
-            }
+        if (!empty($errores)) {
+            return response()->json([
+                'error' => 'No hay unidades disponibles para algunos productos',
+                'detalles' => $errores
+            ], 422);
+        }
 
-            $orden_compra = $prefijo.$oc;
+        $orden_compra = $prefijo . $oc;
 
-            $notasOriginal = 'NO ENVIAR FACTURA - Cliente: '.$request->nombre_cliente.' - CC/Nit: '.$request->documento_cliente.' - Telefono: '.$request->telefono_cliente.' - Direccion: '.$request->direccion_envio.' ('.$request->nombre_ciudad.' - '.$request->nombre_departamento.') - OC: '.$oc ;
+        $notasOriginal = 'NO ENVIAR FACTURA - Cliente: ' . $request->nombre_cliente . ' - CC/Nit: ' . $request->documento_cliente . ' - Telefono: ' . $request->telefono_cliente . ' - Direccion: ' . $request->direccion_envio . ' (' . $request->nombre_ciudad . ' - ' . $request->nombre_departamento . ') - OC: ' . $oc;
 
-            $notasLimpias = strtr($notasOriginal, [
-                'á' => 'a',
-                'é' => 'e',
-                'í' => 'i',
-                'ó' => 'o',
-                'ú' => 'u',
-                'Á' => 'A',
-                'É' => 'E',
-                'Í' => 'I',
-                'Ó' => 'O',
-                'Ú' => 'U',
-                'ñ' => 'n',
-                'Ñ' => 'N'
+        $notasLimpias = strtr($notasOriginal, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'Á' => 'A',
+            'É' => 'E',
+            'Í' => 'I',
+            'Ó' => 'O',
+            'Ú' => 'U',
+            'ñ' => 'n',
+            'Ñ' => 'N'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $pedido = Pedido::create([
+                'codigo_asesor' => 'Virtual Llantas',
+                'nombre_asesor' => 'App Merlin',
+                'nit' => '900447351',
+                'razon_social' => 'VIRTUAL LLANTAS S.A.S.',
+                'lista_precio' => '001',
+                'estado_siesa' => 'Comprometido',
+                'id_estado_pedido' => 1,
+                'prefijo' => $prefijo,
+                'nota' => $notasLimpias,
+                'orden_compra' => $orden_compra,
+                'correo_cliente' =>  'sistemas@merlinrod.com',
+                'estado' => '1',
+                'id_sucursal' => '020',
+                'flete' => $fleteCalculado['flete'],
+                'observaciones' => $notasLimpias,
+                'condicion_pago' => '30D',
+                'fecha_pedido' => now(),
             ]);
 
-            DB::beginTransaction();
-            try {
-                $pedido = Pedido::create([
-                    'codigo_asesor' => 'Virtual Llantas',
-                    'nombre_asesor' => 'App Merlin',
-                    'nit' => '900447351',
-                    'razon_social' => 'VIRTUAL LLANTAS S.A.S.',
-                    'lista_precio' => '001',
-                    'estado_siesa' => 'Comprometido',
-                    'id_estado_pedido' => 1,
-                    'prefijo' => $prefijo,
-                    'nota' => $notasLimpias,
-                    'orden_compra' => $orden_compra,
-                    'correo_cliente' =>  'sistemas@merlinrod.com',
-                    'estado' => '1',
-                    'id_sucursal' => '020',
-                    'flete' => $fleteCalculado['flete'],
-                    'observaciones' => $notasLimpias,
-                    'condicion_pago' => '30D',
-                    'fecha_pedido' => now(),
-                ]);
-
             // return $pedido;
-                
-                foreach ($request->productos as $producto) {
-                    DetallePedido::create([
-                        'pedido_id' => $pedido->id,
-                        'referencia' => $producto['referencia'],
-                        'descripcion' => $producto['descripcion'] ?? '',
-                        'cantidad' => $producto['cantidad'],
-                        'precio_unitario' => $producto['precio'] ?? 0,
-                        'descuento' => $producto['descuento'] ?? 0,
-                        'subtotal' => $producto['subtotal'] ?? 0,
-                    ]);
-                }
 
-                    DireccionEnvio::create([
-                        'pedido_id' => $pedido->id,
-                        'id_punto_envio' => '000',
-                        'direccion' => $request->direccion_envio,
-                        'ciudad' => $request->nombre_ciudad,
-                        'departamento' => $request->nombre_departamento,
-                        'codigo_ciudad' => $request->codigo_ciudad,
-                        'codigo_departamento' => $request->codigo_departamento,
-                    ]);
+            foreach ($request->productos as $producto) {
+                DetallePedido::create([
+                    'pedido_id' => $pedido->id,
+                    'referencia' => $producto['referencia'],
+                    'descripcion' => $producto['descripcion'] ?? '',
+                    'cantidad' => $producto['cantidad'],
+                    'precio_unitario' => $producto['precio'] ?? 0,
+                    'descuento' => $producto['descuento'] ?? 0,
+                    'subtotal' => $producto['subtotal'] ?? 0,
+                ]);
+            }
 
-                $pedidoXml = new PedidoXml();
-                
-                $resultadoXml = $pedidoXml->generarXml($pedido);
-                //$resultadoXml = $pedidoXml->generarXml($pedido);
-    
-                if ($resultadoXml['status'] !== 'success') {
+            DireccionEnvio::create([
+                'pedido_id' => $pedido->id,
+                'id_punto_envio' => '000',
+                'direccion' => $request->direccion_envio,
+                'ciudad' => $request->nombre_ciudad,
+                'departamento' => $request->nombre_departamento,
+                'codigo_ciudad' => $request->codigo_ciudad,
+                'codigo_departamento' => $request->codigo_departamento,
+            ]);
 
-                    $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;
-                    $xmlObject = simplexml_load_string($xmlResponse, "SimpleXMLElement", LIBXML_NOCDATA);
-                    $f_detalle = (string) $xmlObject->NewDataSet->Table->f_detalle;
+            $pedidoXml = new PedidoXml();
 
-                    DB::rollBack();
-                    return response()->json([
-                        'error' => 'Error al generar XML',
-                        'mensaje' => 'Error al procesar el pedido en el ERP: ' . $f_detalle,
-                    ], 500);
-                }
+            $resultadoXml = $pedidoXml->generarXml($pedido);
+            //$resultadoXml = $pedidoXml->generarXml($pedido);
 
-                $info_pedido = Pedido::with('direccionEnvio')->find($pedido->id);
+            if ($resultadoXml['status'] !== 'success') {
 
-                $validacion_siesa = DB::connection('sqlsrv')->select("SELECT [f_id_tipo_docto] as prefijo, 
+                $xmlResponse = $resultadoXml['xmlResult']->ImportarXMLResult->any;
+                $xmlObject = simplexml_load_string($xmlResponse, "SimpleXMLElement", LIBXML_NOCDATA);
+                $f_detalle = (string) $xmlObject->NewDataSet->Table->f_detalle;
+
+                DB::rollBack();
+                return response()->json([
+                    'error' => 'Error al generar XML',
+                    'mensaje' => 'Error al procesar el pedido en el ERP: ' . $f_detalle,
+                ], 500);
+            }
+
+            $info_pedido = Pedido::with('direccionEnvio')->find($pedido->id);
+
+            $validacion_siesa = DB::connection('sqlsrv')->select("SELECT [f_id_tipo_docto] as prefijo, 
                 [f_nrodocto] as consecutivo 
                 FROM [BI_T430] 
                 WHERE [f_parametro_biable] = 3 
                 AND [f_id_cia] = 3 AND [f_cliente_desp] = ? AND [f_cliente_fact_suc] = ? AND [f_punto_envio] = ? AND [f_orden_compra] = ?", [
-                    $info_pedido->nit,
-                    '020',
-                    '000',
-                    $info_pedido->orden_compra
-                ]);
+                $info_pedido->nit,
+                '020',
+                '000',
+                $info_pedido->orden_compra
+            ]);
 
-                if (empty($validacion_siesa)) {
-                    DB::rollBack();
-                    return response()->json(['error' => 'No se ha creado el pedido en Siesa'], 500);
-                }
+            if (empty($validacion_siesa)) {
+                DB::rollBack();
+                return response()->json(['error' => 'No se ha creado el pedido en Siesa'], 500);
+            }
 
-                foreach ($validacion_siesa as $validar) {
-                    $prefijo_siesa = $validar->prefijo;
-                    $consecutivo_siesa = $validar->consecutivo;
-                }
+            foreach ($validacion_siesa as $validar) {
+                $prefijo_siesa = $validar->prefijo;
+                $consecutivo_siesa = $validar->consecutivo;
+            }
 
-                $pedido_siesa = $prefijo_siesa . '-' . $consecutivo_siesa;
-                $pedido->nota = $resultadoXml['status'] === 'success' ? $pedido_siesa : 'No creado en Siesa';
-                $pedido->save();
+            $pedido_siesa = $prefijo_siesa . '-' . $consecutivo_siesa;
+            $pedido->nota = $resultadoXml['status'] === 'success' ? $pedido_siesa : 'No creado en Siesa';
+            $pedido->save();
 
-                $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
+            $encabezados = DB::connection('sqlsrv')->select("SELECT CONCAT(bi_t430.[f_id_tipo_docto],' ',bi_t430.[f_nrodocto]) as documento
                             ,bi_t430.[f_fecha] as fecha
                             ,bi_t430.[f_estado] as estado
                             ,bi_t430.f_subtotal_local as f_subtotal
@@ -561,7 +561,7 @@ class IntegracionesController extends Controller
                             AND t200.f200_ind_estado = 1
                             ORDER BY bi_t430.f_nrodocto desc;");
 
-                $detalles = DB::connection('sqlsrv')->select("SELECT  
+            $detalles = DB::connection('sqlsrv')->select("SELECT  
                             t120.f120_referencia AS referencia,
                             t106.f106_descripcion AS marca,
                             t120.f120_descripcion AS descripcion,
@@ -596,96 +596,96 @@ class IntegracionesController extends Controller
                         ORDER BY 
                             t120.f120_referencia;");
 
-                $subtotal_pedido = 0;
-                $subtotal_descuento = 0;
+            $subtotal_pedido = 0;
+            $subtotal_descuento = 0;
 
-                foreach ($detalles as  $detalle) {
-                    $subtotal_pedido += $detalle->valor_unitario * $detalle->cantidad;
-                    $subtotal_descuento += $detalle->total_descuento;
-                }
-
-
-                DB::commit();
-
-                try {
-
-                    $correos = ['ecommerce2@merlinrod.com','ecommerce@merlinrod.com','sistemas@merlinrod.com','btob.logistica@virtualllantas.com','usuario09@virtualllantas.com','dmolina@virtualllantas.com'];
-
-                    Mail::to($correos)
-                        ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
-
-                    return response()->json([
-                        'success' => 'ok full',
-                        'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - Correos enviados.'
-                    ], 200);
-                } catch (\Exception $e) {
-                    return response()->json([
-                        'warning' => 'Pedido creado y guardado, pero falló el envío del correo',
-                        'error' => $e->getMessage(),
-                        'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se ha enviado los correos.'
-                    ], 200);
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return response()->json([
-                    'error' => 'Ocurrió un error al guardar el pedido',
-                    'mensaje' => $e->getMessage()
-                ], 500);
+            foreach ($detalles as  $detalle) {
+                $subtotal_pedido += $detalle->valor_unitario * $detalle->cantidad;
+                $subtotal_descuento += $detalle->total_descuento;
             }
+
+
+            DB::commit();
+
+            try {
+
+                $correos = ['ecommerce2@merlinrod.com', 'ecommerce@merlinrod.com', 'sistemas@merlinrod.com', 'btob.logistica@virtualllantas.com', 'usuario09@virtualllantas.com', 'dmolina@virtualllantas.com'];
+
+                Mail::to($correos)
+                    ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
+
+                return response()->json([
+                    'success' => 'ok full',
+                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - Correos enviados.'
+                ], 200);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'warning' => 'Pedido creado y guardado, pero falló el envío del correo',
+                    'error' => $e->getMessage(),
+                    'mensaje' => 'Se ha enviado el pedido, se ha creado en SIESA ' . $prefijo_siesa . '-' . $consecutivo_siesa . ' - No se ha enviado los correos.'
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Ocurrió un error al guardar el pedido',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
     }
 
-public function calcularFlete(Request $request)
-{
-    $data = $request->validate([
-        'codigo_ciudad' => 'required|string',
-        'codigo_departamento' => 'required|string',
-        'total' => 'required|numeric|min:0',
-    ]);
+    public function calcularFlete(Request $request)
+    {
+        $data = $request->validate([
+            'codigo_ciudad' => 'required|string',
+            'codigo_departamento' => 'required|string',
+            'total' => 'required|numeric|min:0',
+        ]);
 
-    $fleteCiudad = FleteCiudad::where('cod_ciudad', $data['codigo_ciudad'])
-        ->where('cod_depto', $data['codigo_departamento'])
-        ->first();
+        $fleteCiudad = FleteCiudad::where('cod_ciudad', $data['codigo_ciudad'])
+            ->where('cod_depto', $data['codigo_departamento'])
+            ->first();
 
-    if (!$fleteCiudad) {
-        return response()->json([
-            'ok' => false,
-            'mensaje' => 'No se encontró configuración de flete para la ciudad enviada.',
-        ], 404);
-    }
+        if (!$fleteCiudad) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'No se encontró configuración de flete para la ciudad enviada.',
+            ], 404);
+        }
 
-    $total = (float) $data['total'];
-    $monto = (float) $fleteCiudad->monto;
-    $minimo = (float) $fleteCiudad->minimo;
+        $total = (float) $data['total'];
+        $monto = (float) $fleteCiudad->monto;
+        $minimo = (float) $fleteCiudad->minimo;
 
-    $porcentaje = $total > $monto
-        ? (float) $fleteCiudad->mayor
-        : (float) $fleteCiudad->menor;
+        $porcentaje = $total > $monto
+            ? (float) $fleteCiudad->mayor
+            : (float) $fleteCiudad->menor;
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Si el pedido supera el monto y el porcentaje "mayor" es 0,
     | el flete es gratuito.
     |--------------------------------------------------------------------------
     */
-    if ($total > $monto && $porcentaje == 0) {
-        $valorFlete = 0;
-    } else {
-        $valorCalculado = ($total * $porcentaje) / 100;
+        if ($total > $monto && $porcentaje == 0) {
+            $valorFlete = 0;
+        } else {
+            $valorCalculado = ($total * $porcentaje) / 100;
 
-        $valorFlete = $valorCalculado < $minimo
-            ? $minimo
-            : $valorCalculado;
+            $valorFlete = $valorCalculado < $minimo
+                ? $minimo
+                : $valorCalculado;
+        }
+
+        return response()->json([
+            'ok' => true,
+            'codigo_departamento' => $data['codigo_departamento'],
+            'codigo_ciudad' => $data['codigo_ciudad'],
+            'flete' => round($valorFlete, 2),
+        ]);
     }
 
-    return response()->json([
-        'ok' => true,
-        'codigo_departamento' => $data['codigo_departamento'],
-        'codigo_ciudad' => $data['codigo_ciudad'],
-        'flete' => round($valorFlete, 2),
-    ]);
-}
-
-/*
+    /*
     private function obtenerFleteCalculado(string $codigoCiudad,string $codigoDepartamento,float $total
     ): array {
         
@@ -734,64 +734,64 @@ public function calcularFlete(Request $request)
     }
 */
 
-private function obtenerFleteCalculado(
-    string $codigoCiudad,
-    string $codigoDepartamento,
-    float $total
-): array {
-    // Medellín tiene flete gratuito
-    if ($codigoDepartamento === '05' && $codigoCiudad === '001') {
+    private function obtenerFleteCalculado(
+        string $codigoCiudad,
+        string $codigoDepartamento,
+        float $total
+    ): array {
+        // Medellín tiene flete gratuito
+        if ($codigoDepartamento === '05' && $codigoCiudad === '001') {
+            return [
+                'flete' => 0,
+                'valor_calculado' => 0,
+                'porcentaje_aplicado' => 0,
+                'minimo' => 0,
+                'monto_base' => 0,
+                'dias_entrega' => 0,
+            ];
+        }
+
+        $fleteCiudad = FleteCiudad::where('cod_ciudad', $codigoCiudad)
+            ->where('cod_depto', $codigoDepartamento)
+            ->first();
+
+        if (!$fleteCiudad) {
+            throw new \Exception(
+                'No se encontró configuración de flete para la ciudad enviada.'
+            );
+        }
+
+        $monto = (float) $fleteCiudad->monto;
+        $minimo = (float) $fleteCiudad->minimo;
+
+        $porcentaje = $total > $monto
+            ? (float) $fleteCiudad->mayor
+            : (float) $fleteCiudad->menor;
+
+        // Si supera el monto y el porcentaje mayor es cero,
+        // el envío es gratuito y no se cobra el mínimo.
+        if ($total > $monto && $porcentaje == 0) {
+            $valorCalculado = 0;
+            $valorFlete = 0;
+        } else {
+            $valorCalculado = ($total * $porcentaje) / 100;
+
+            $valorFlete = $valorCalculado < $minimo
+                ? $minimo
+                : $valorCalculado;
+        }
+
         return [
-            'flete' => 0,
-            'valor_calculado' => 0,
-            'porcentaje_aplicado' => 0,
-            'minimo' => 0,
-            'monto_base' => 0,
-            'dias_entrega' => 0,
+            'flete' => round($valorFlete, 2),
+            'valor_calculado' => round($valorCalculado, 2),
+            'porcentaje_aplicado' => $porcentaje,
+            'minimo' => $minimo,
+            'monto_base' => $monto,
+            'dias_entrega' => $fleteCiudad->entrega,
         ];
     }
 
-    $fleteCiudad = FleteCiudad::where('cod_ciudad', $codigoCiudad)
-        ->where('cod_depto', $codigoDepartamento)
-        ->first();
-
-    if (!$fleteCiudad) {
-        throw new \Exception(
-            'No se encontró configuración de flete para la ciudad enviada.'
-        );
-    }
-
-    $monto = (float) $fleteCiudad->monto;
-    $minimo = (float) $fleteCiudad->minimo;
-
-    $porcentaje = $total > $monto
-        ? (float) $fleteCiudad->mayor
-        : (float) $fleteCiudad->menor;
-
-    // Si supera el monto y el porcentaje mayor es cero,
-    // el envío es gratuito y no se cobra el mínimo.
-    if ($total > $monto && $porcentaje == 0) {
-        $valorCalculado = 0;
-        $valorFlete = 0;
-    } else {
-        $valorCalculado = ($total * $porcentaje) / 100;
-
-        $valorFlete = $valorCalculado < $minimo
-            ? $minimo
-            : $valorCalculado;
-    }
-
-    return [
-        'flete' => round($valorFlete, 2),
-        'valor_calculado' => round($valorCalculado, 2),
-        'porcentaje_aplicado' => $porcentaje,
-        'minimo' => $minimo,
-        'monto_base' => $monto,
-        'dias_entrega' => $fleteCiudad->entrega,
-    ];
-}
-
-//Sincronizar existencias, precios y fletes 
+    //Sincronizar existencias, precios y fletes 
     public function sincronizarConTienda(Request $request)
     {
         $result = DB::connection('sqlsrv')
@@ -864,7 +864,7 @@ private function obtenerFleteCalculado(
                 t120.f120_fecha_creacion
                 ORDER BY disponible");
 
-        $ciudades_fletes = FleteCiudad::select('cod_ciudad', 'ciudad', 'cod_depto', 'depto','monto', 'menor', 'mayor', 'minimo', 'entrega')->get();
+        $ciudades_fletes = FleteCiudad::select('cod_ciudad', 'ciudad', 'cod_depto', 'depto', 'monto', 'menor', 'mayor', 'minimo', 'entrega')->get();
 
         return response()->json([
             'productos' => $result,
@@ -874,7 +874,7 @@ private function obtenerFleteCalculado(
 
     public function guardarPedidoIntegrador(Request $request)
     {
-        
+
         $data = $this->validarPedidoIntegrador($request);
 
         $integrador = Integrador::with('user')
@@ -892,7 +892,7 @@ private function obtenerFleteCalculado(
         $referenciaBloqueada = '101101107770';
 
         $tieneProductoBloqueado = collect($data['productos'])
-            ->contains(fn ($producto) => trim((string) $producto['referencia']) === $referenciaBloqueada);
+            ->contains(fn($producto) => trim((string) $producto['referencia']) === $referenciaBloqueada);
 
         if ($tieneProductoBloqueado) {
             return response()->json([
@@ -946,7 +946,7 @@ private function obtenerFleteCalculado(
 
         $existencias = collect($validacion)
             ->keyBy('referencia')
-            ->map(fn ($i) => (float) $i->existencia);
+            ->map(fn($i) => (float) $i->existencia);
 
         $errores = [];
 
@@ -1229,7 +1229,7 @@ private function obtenerFleteCalculado(
                 ];
 
                 $correosIntegrador = collect(explode(',', (string) $integrador->correo_notificacion))
-                    ->map(fn ($correo) => trim($correo))
+                    ->map(fn($correo) => trim($correo))
                     ->filter()
                     ->values()
                     ->toArray();
@@ -1237,7 +1237,7 @@ private function obtenerFleteCalculado(
                 $correos = array_values(array_unique(array_merge($correosBase, $correosIntegrador)));
 
                 Mail::to($correos)
-                    ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento));
+                    ->send(new PedidoConfirmadoMail($encabezados, $detalles, $subtotal_pedido, $subtotal_descuento,$request->input('cotizacion'),$request->input('numero_carro')));
 
                 return response()->json([
                     'success' => 'true',
@@ -1300,6 +1300,3 @@ private function obtenerFleteCalculado(
         ]);
     }
 }
-
-
-

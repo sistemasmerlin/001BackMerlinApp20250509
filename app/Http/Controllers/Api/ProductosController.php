@@ -313,6 +313,8 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'Rodamientos'
                     WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'Marca-Propia'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA TIRES' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA MOVILIDAD' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST MOVILIDAD' THEN 'Llantas'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA PARTS' THEN 'Marca-Propia'
                     WHEN rtrim(t106.f106_descripcion) = 'NARVA' THEN 'Iluminacion'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA - GOOD TUBE' THEN 'Neumaticos'
@@ -369,6 +371,8 @@ class ProductosController extends Controller
                             'KOYO',
                             'RNV',
                             'RINOVA TIRES',
+                            'RINOVA MOVILIDAD',
+                            'CST MOVILIDAD',
                             'NARVA',
                             'RINOVA - GOOD TUBE',
                             'PFI',
