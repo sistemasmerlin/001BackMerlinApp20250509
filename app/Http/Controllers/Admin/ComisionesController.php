@@ -47,7 +47,7 @@ class ComisionesController extends Controller
                         WHEN t106.f106_descripcion IN (
                             'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV'
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
                         )
                         THEN [f_cant_base] ELSE 0 END)) AS llantas,
 
@@ -55,7 +55,7 @@ class ComisionesController extends Controller
                         WHEN t106.f106_descripcion IN (
                             'CST TIRES','CST ATV','CST E-SCOOTER','RINOVA TIRES',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV'
+                            'FORERUNNER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS llantas_dinero,
 
@@ -80,7 +80,7 @@ class ComisionesController extends Controller
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total,
 
@@ -90,7 +90,7 @@ class ComisionesController extends Controller
                             'RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS',
                             'CST TIRES','CST ATV','CST E-SCOOTER',
                             'HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER',
-                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV'
+                            'FORERUNNER','RINOVA ATV','WDT','RINOVA TIRES','WORCRAFT - RINOVA ATV', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
                         )
                         THEN [f_valor_sub_local] ELSE 0 END)) AS total_sin_pirelli
                 FROM BI_T461_1 AS t461_1
@@ -683,7 +683,7 @@ class ComisionesController extends Controller
                 RTRIM([f_cod_vendedor]) as vendedor,
                 RTRIM([f_cod_vendedor]) as cod_vendedor,
                 CONVERT(int, SUM(CASE 
-                    WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT')
+                    WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT', 'RINOVA MOVILIDAD', 'CST MOVILIDAD')
                     THEN [f_cant_base] ELSE 0 END)) AS llantas,
                 CONVERT(int, SUM(CASE 
                     WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS')
