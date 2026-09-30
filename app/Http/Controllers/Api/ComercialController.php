@@ -646,12 +646,13 @@ class ComercialController extends Controller
 
         $ventasRows = DB::connection('sqlsrv')->select("
 WITH base AS (
-    SELECT
+    SELECT 
         RTRIM(t461_1.[f_cod_vendedor]) AS vendedor,
         CASE
             WHEN t106.[f106_descripcion] IN (
                 'RINOVA TIRES','HAKUBA - ARMOR - WDT','CST TIRES','CST ATV','CST E-SCOOTER',
-                'FORERUNNER','WDT BIKE','WDT TUBE','WDT E-SCOOTER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV'
+                'FORERUNNER','WDT BIKE','WDT TUBE','WDT E-SCOOTER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV',
+                'CST E-SCOOTER','RINOVA PARTS', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
             ) THEN 'LLANTAS'
 
             WHEN t106.[f106_descripcion] IN ('PIRELLI','PIRELLI RADIAL')
