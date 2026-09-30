@@ -40,6 +40,14 @@ class Index extends Component
     public array $comprometidos = [];
     public bool $openComprometidos = false;
 
+    //ventas hoy 
+
+    public string $fechaHoyLabel = '';
+    public float $totalVentaHoy = 0;
+    public float $totalUnidadesHoy = 0;
+    public array $ventaPorMarcaHoy = [];
+    public array $asesoresHoy = [];
+
     public function mount(?string $periodo = null)
     {
         $this->periodo = $periodo ?: now()->format('Ym');
@@ -106,6 +114,73 @@ class Index extends Component
 
         /** @var PresupuestoComercialController $ctrl */
         $ctrl = app(PresupuestoComercialController::class);
+
+        // Ventas del día actual.
+$hoy = now('America/Bogota');
+
+$this->fechaHoyLabel = $hoy->format('d/m/Y');
+
+$ventasHoy = collect(
+    $ctrl->cumplimientoDataDia($hoy->format('Ymd'))
+)->map(fn ($r) => [
+    'vendedor' => trim((string) ($r->vendedor ?? '')),
+    'marca' => trim((string) ($r->marca ?? '')),
+    'venta' => (float) ($r->venta ?? 0),
+    'unidades' => (float) ($r->unidades ?? 0),
+]);
+
+$this->totalVentaHoy = (float) $ventasHoy->sum('venta');
+$this->totalUnidadesHoy = (float) $ventasHoy->sum('unidades');
+
+// Venta del día por marca.
+$this->ventaPorMarcaHoy = $ventasHoy
+    ->groupBy('marca')
+    ->map(fn (Collection $grupo, $marca) => [
+        'marca' => (string) $marca,
+        'venta' => (float) $grupo->sum('venta'),
+        'unidades' => (float) $grupo->sum('unidades'),
+    ])
+    ->sortByDesc('venta')
+    ->values()
+    ->all();
+
+// Nombres de los asesores con ventas hoy.
+$codigosHoy = $ventasHoy
+    ->pluck('vendedor')
+    ->filter()
+    ->unique()
+    ->values()
+    ->all();
+
+$nombresHoy = User::query()
+    ->whereIn('codigo_asesor', $codigosHoy)
+    ->pluck('name', 'codigo_asesor')
+    ->toArray();
+
+// Venta del día por asesor y detalle de sus marcas.
+$this->asesoresHoy = $ventasHoy
+    ->groupBy('vendedor')
+    ->map(function (Collection $grupo, $vendedor) use ($nombresHoy) {
+        return [
+            'vendedor' => (string) $vendedor,
+            'nombre' => $nombresHoy[$vendedor] ?? 'Sin nombre',
+            'venta' => (float) $grupo->sum('venta'),
+            'unidades' => (float) $grupo->sum('unidades'),
+            'marcas' => $grupo
+                ->groupBy('marca')
+                ->map(fn (Collection $marcas, $marca) => [
+                    'marca' => (string) $marca,
+                    'venta' => (float) $marcas->sum('venta'),
+                    'unidades' => (float) $marcas->sum('unidades'),
+                ])
+                ->sortByDesc('venta')
+                ->values()
+                ->all(),
+        ];
+    })
+    ->sortByDesc('venta')
+    ->values()
+    ->all();
 
         // 0) Comprometidos
         $comp = collect($ctrl->comprometidosData());

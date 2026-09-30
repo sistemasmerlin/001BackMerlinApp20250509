@@ -223,6 +223,229 @@
 
     </div>
 
+   {{-- VENTAS DEL DÍA ACTUAL --}}
+<section class="space-y-6">
+
+    {{-- Totales del día --}}
+    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div class="p-5 sm:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                <div>
+                    <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                        Ventas de hoy
+                    </div>
+
+                    <div class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
+                        {{ $fechaHoyLabel }}
+                    </div>
+
+                    <button
+                        type="button"
+                        wire:click="cargar"
+                        wire:loading.attr="disabled"
+                        wire:target="cargar"
+                        class="mt-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900/30"
+                    >
+                        <span wire:loading.remove wire:target="cargar">
+                            Actualizar
+                        </span>
+
+                        <span wire:loading wire:target="cargar">
+                            Actualizando...
+                        </span>
+                    </button>
+                </div>
+
+                <div class="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-2">
+                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                            Unidades del día
+                        </div>
+
+                        <div class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
+                            {{ number_format($totalUnidadesHoy, 0, ',', '.') }}
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                            Venta del día
+                        </div>
+
+                        <div class="mt-1 text-lg font-semibold {{ $totalVentaHoy < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
+                            {{ number_format($totalVentaHoy, 0, ',', '.') }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- Marca + asesor del día --}}
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        {{-- Venta por marca --}}
+        <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+                <div>
+                    <div class="text-sm font-semibold text-zinc-900 dark:text-white">
+                        Venta de hoy por marca
+                    </div>
+
+                    <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                        {{ count($ventaPorMarcaHoy) }} marcas
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left text-zinc-800 dark:text-zinc-100">
+                    <thead class="text-xs uppercase bg-zinc-100 text-zinc-900 dark:bg-zinc-900/60 dark:text-zinc-100">
+                        <tr>
+                            <th class="px-5 py-3">Marca</th>
+                            <th class="px-5 py-3 text-right">Unidades</th>
+                            <th class="px-5 py-3 text-right">Venta</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @forelse($ventaPorMarcaHoy as $r)
+                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
+                                <td class="px-5 py-3 font-semibold text-zinc-900 dark:text-white">
+                                    {{ $r['marca'] }}
+                                </td>
+
+                                <td class="px-5 py-3 text-right font-semibold">
+                                    {{ number_format($r['unidades'], 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-5 py-3 text-right font-semibold {{ $r['venta'] < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
+                                    {{ number_format($r['venta'], 0, ',', '.') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                    No hay ventas registradas hoy.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Venta por asesor --}}
+        <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+                <div>
+                    <div class="text-sm font-semibold text-zinc-900 dark:text-white">
+                        Venta de hoy por asesor
+                    </div>
+
+                    <div class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                        Click para ver detalle por marca
+                    </div>
+                </div>
+            </div>
+
+            <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                @forelse($asesoresHoy as $a)
+                    <details
+                        wire:key="asesor-hoy-{{ $a['vendedor'] }}"
+                        class="group p-4"
+                    >
+                        <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="truncate font-semibold text-zinc-900 dark:text-white">
+                                        {{ $a['nombre'] }}
+
+                                        <span class="text-zinc-800 dark:text-zinc-200">
+                                            ({{ $a['vendedor'] }})
+                                        </span>
+                                    </div>
+
+                                    <div class="mt-0.5 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                                        <span class="group-open:hidden">
+                                            Ver marcas
+                                        </span>
+
+                                        <span class="hidden group-open:inline">
+                                            Ocultar marcas
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <div class="text-sm font-semibold {{ $a['venta'] < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
+                                        {{ number_format($a['venta'], 0, ',', '.') }}
+                                    </div>
+
+                                    <div class="text-zinc-800 dark:text-zinc-200">
+                                        <svg
+                                            class="h-4 w-4 transition-transform group-open:rotate-180"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
+                                                clip-rule="evenodd"
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </summary>
+
+                        {{-- Detalle por marca --}}
+                        <div class="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm text-left text-zinc-800 dark:text-zinc-100">
+                                    <thead class="text-xs uppercase bg-white/70 text-zinc-900 dark:bg-zinc-950/40 dark:text-zinc-100">
+                                        <tr>
+                                            <th class="px-4 py-2">Marca</th>
+                                            <th class="px-4 py-2 text-right">Unidades</th>
+                                            <th class="px-4 py-2 text-right">Venta</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y divide-zinc-200/60 dark:divide-zinc-800">
+                                        @foreach($a['marcas'] as $m)
+                                            <tr class="hover:bg-white/70 dark:hover:bg-zinc-950/40">
+                                                <td class="px-4 py-2 font-semibold text-zinc-900 dark:text-white">
+                                                    {{ $m['marca'] }}
+                                                </td>
+
+                                                <td class="px-4 py-2 text-right font-semibold">
+                                                    {{ number_format($m['unidades'] ?? 0, 0, ',', '.') }}
+                                                </td>
+
+                                                <td class="px-4 py-2 text-right font-semibold {{ $m['venta'] < 0 ? 'text-rose-600' : 'text-zinc-900 dark:text-white' }}">
+                                                    {{ number_format($m['venta'], 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                @empty
+                    <div class="px-6 py-10 text-center text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                        No hay ventas de asesores registradas hoy.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+    </div>
+</section> 
+
+
     {{-- PRODUCTOS COMPROMETIDOS --}}
 <div class="overflow-hidden rounded-xl border border-red-200 bg-white shadow-sm">
 
