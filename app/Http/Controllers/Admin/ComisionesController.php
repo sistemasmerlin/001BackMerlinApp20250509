@@ -683,7 +683,9 @@ class ComisionesController extends Controller
                 RTRIM([f_cod_vendedor]) as vendedor,
                 RTRIM([f_cod_vendedor]) as cod_vendedor,
                 CONVERT(int, SUM(CASE 
-                    WHEN t106.f106_descripcion IN ('PIRELLI','PIRELLI RADIAL','CST TIRES','CST ATV','CST E-SCOOTER','HAKUBA - ARMOR - WDT','WDT TUBE','WDT BIKE','WDT E-SCOOTER','FORERUNNER','RINOVA ATV','WDT', 'RINOVA MOVILIDAD', 'CST MOVILIDAD')
+                    WHEN t106.f106_descripcion IN ('RINOVA TIRES','HAKUBA - ARMOR - WDT','CST TIRES','CST ATV','CST E-SCOOTER',
+                'FORERUNNER','WDT BIKE','WDT TUBE','WDT E-SCOOTER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV',
+                'CST E-SCOOTER','RINOVA PARTS', 'RINOVA MOVILIDAD', 'CST MOVILIDAD')
                     THEN [f_cant_base] ELSE 0 END)) AS llantas,
                 CONVERT(int, SUM(CASE 
                     WHEN t106.f106_descripcion IN ('KOYO','PFI','RNV','BATERIAS RINOVA','NARVA','RINOVA LIGHTING','RINOVA LIGHTING LED','RINOVA - GOOD TUBE', 'RINOVA PARTS')
