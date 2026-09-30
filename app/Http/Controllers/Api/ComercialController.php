@@ -652,7 +652,7 @@ WITH base AS (
             WHEN t106.[f106_descripcion] IN (
                 'RINOVA TIRES','HAKUBA - ARMOR - WDT','CST TIRES','CST ATV','CST E-SCOOTER',
                 'FORERUNNER','WDT BIKE','WDT TUBE','WDT E-SCOOTER','RINOVA ATV','WDT','WORCRAFT - RINOVA ATV',
-                'CST E-SCOOTER','RINOVA PARTS', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
+                'CST E-SCOOTER', 'RINOVA MOVILIDAD', 'CST MOVILIDAD'
             ) THEN 'LLANTAS'
 
             WHEN t106.[f106_descripcion] IN ('PIRELLI','PIRELLI RADIAL')
