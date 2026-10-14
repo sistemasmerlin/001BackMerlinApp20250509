@@ -347,16 +347,42 @@ class ComercialController extends Controller
 
         $dataVentasMarca = DB::connection('sqlsrv')->select($sqlVentasPorMarca, [$periodo, $codigo_asesor]);
 
+        // $ventasPorMarca = [];
+
+        // foreach ($dataVentasMarca as $r) {
+        //     $vendedor = (string) $r->vendedor;
+        //     $marca    = (string) $r->marca;
+        //     $ventasPorMarca[$vendedor][$marca] = [
+        //         'cantidad' => (float) $r->cantidad,
+        //         'dinero'   => (float) $r->dinero,
+        //     ];
+        // }
+
+
         $ventasPorMarca = [];
+
+        $equivalenciasMarca = [
+            'RINOVA MOVILIDAD' => 'RINOVA TIRES',
+            'CST MOVILIDAD'    => 'CST TIRES',
+        ];
 
         foreach ($dataVentasMarca as $r) {
             $vendedor = (string) $r->vendedor;
-            $marca    = (string) $r->marca;
-            $ventasPorMarca[$vendedor][$marca] = [
-                'cantidad' => (float) $r->cantidad,
-                'dinero'   => (float) $r->dinero,
-            ];
+            $marca = trim((string) $r->marca);
+
+            $marca = $equivalenciasMarca[strtoupper($marca)] ?? $marca;
+
+            if (!isset($ventasPorMarca[$vendedor][$marca])) {
+                $ventasPorMarca[$vendedor][$marca] = [
+                    'cantidad' => 0.0,
+                    'dinero'   => 0.0,
+                ];
+            }
+
+            $ventasPorMarca[$vendedor][$marca]['cantidad'] += (float) $r->cantidad;
+            $ventasPorMarca[$vendedor][$marca]['dinero'] += (float) $r->dinero;
         }
+
 
         $mapVentas = [
             // Unidades
