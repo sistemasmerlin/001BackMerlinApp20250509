@@ -127,31 +127,87 @@ class Detalle extends Component
             ->get();
     }
 
-    public function subirDocumento($tipoDocumentoId): void
-    {
-        $this->solicitud->refresh();
+public function subirDocumento($tipoDocumentoId): void
+{
+    $this->solicitud->refresh();
 
-        $estadoBloqueado = in_array(
-            strtolower(trim($this->solicitud->estado ?? '')),
-            ['aprobado_parcial', 'aprobado', 'rechazado'],
-            true
+    $estadoBloqueado = in_array(
+        strtolower(trim($this->solicitud->estado ?? '')),
+        ['aprobado_parcial', 'aprobado', 'rechazado'],
+        true
+    );
+
+    abort_if(
+        $estadoBloqueado
+            && !auth()->user()?->can(
+                'Agregar adjuntos extemporaneos solicitudes de credito'
+            ),
+        403,
+        'No tiene permiso para modificar adjuntos en este estado.'
+    );
+
+    $this->validate([
+        "archivos.$tipoDocumentoId" =>
+            'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+    ], [
+        "archivos.$tipoDocumentoId.required" =>
+            'Seleccione un archivo antes de subirlo.',
+        "archivos.$tipoDocumentoId.file" =>
+            'El archivo seleccionado no es válido.',
+        "archivos.$tipoDocumentoId.mimes" =>
+            'El archivo debe ser PDF, JPG, JPEG o PNG.',
+        "archivos.$tipoDocumentoId.max" =>
+            'El archivo no debe superar los 10 MB.',
+    ]);
+
+    $tipo = TipoDocumentoCredito::findOrFail($tipoDocumentoId);
+
+    $cantidadActual = SolicitudCreditoDocumento::where(
+        'solicitud_credito_id',
+        $this->solicitud->id
+    )
+        ->where('tipo_documento_credito_id', $tipoDocumentoId)
+        ->whereNull('deleted_at')
+        ->count();
+
+    if ($cantidadActual >= $tipo->cantidad_maxima) {
+        session()->flash(
+            'error',
+            'Ya alcanzó la cantidad máxima permitida para este tipo de documento. Elimine el archivo anterior para subir otro.'
         );
 
-        abort_if(
-            $estadoBloqueado
-                && !auth()->user()?->can(
-                    'Agregar adjuntos extemporaneos solicitudes de credito'
-                ),
-            403,
-            'No tiene permiso para modificar adjuntos en este estado.'
-        );
-
-        $this->validate([
-            "archivos.$tipoDocumentoId" => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ]);
-
-        // Aquí continúa el resto de su código actual.
+        return;
     }
+
+    $file = $this->archivos[$tipoDocumentoId];
+
+    $path = $file->store(
+        'solicitudes_credito/documentos/' . $this->solicitud->id,
+        'public'
+    );
+
+    SolicitudCreditoDocumento::create([
+        'solicitud_credito_id' => $this->solicitud->id,
+        'tipo_documento_credito_id' => $tipoDocumentoId,
+        'nombre_original' => $file->getClientOriginalName(),
+        'archivo' => $path,
+        'disk' => 'public',
+        'mime_type' => $file->getMimeType(),
+        'peso' => $file->getSize(),
+        'estado' => 'pendiente',
+    ]);
+
+    unset($this->archivos[$tipoDocumentoId]);
+
+    $this->resetValidation("archivos.$tipoDocumentoId");
+
+    $this->cargarDatos();
+
+    session()->flash(
+        'success',
+        'Documento subido correctamente.'
+    );
+}
     public function aprobarDocumento($documentoId): void
     {
         if ($this->documentosBloqueados()) {
@@ -656,7 +712,7 @@ class Detalle extends Component
             $estadoBloqueado
                 && !auth()->user()?->can(
                     'Agregar adjuntos extemporaneos solicitudes de credito'
-                ),
+                ),// Aquí continúa el resto de su código actual.
             403,
             'No tiene permiso para modificar adjuntos en este estado.'
         );
