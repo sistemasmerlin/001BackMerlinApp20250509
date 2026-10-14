@@ -665,7 +665,27 @@ class Detalle extends Component
             'adjuntoCentralesRiesgo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        // Continúa el resto de su código actual.
+        if ($this->solicitud->centrales_riesgo_path) {
+            Storage::disk($this->solicitud->centrales_riesgo_disk ?? 'public')
+                ->delete($this->solicitud->centrales_riesgo_path);
+        }
+
+        $archivo = $this->adjuntoCentralesRiesgo;
+
+        $path = $archivo->store(
+            'solicitudes_credito/centrales_riesgo/' . $this->solicitud->id,
+            'public'
+        );
+
+        $this->solicitud->update([
+            'centrales_riesgo_disk' => 'public',
+            'centrales_riesgo_path' => $path,
+            'centrales_riesgo_nombre' => $archivo->getClientOriginalName(),
+        ]);
+
+        $this->adjuntoCentralesRiesgo = null;
+
+        session()->flash('success', 'Adjunto de centrales de riesgo cargado correctamente.');
     }
     public function getPuedePasarSegundaAprobacionProperty(): bool
     {

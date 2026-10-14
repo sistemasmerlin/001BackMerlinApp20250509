@@ -267,7 +267,7 @@
                     <h3 class="text-sm font-bold text-gray-800">
                         Referencias comerciales
                     </h3>
-                    @if ($puedeModificarAdjuntos)
+                    @if ($solicitud->estado != 'aprobado_parcial')
                         <button type="button" wire:click="abrirModalReferencia"
                             class="rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
                             Crear nueva referencia
@@ -439,7 +439,7 @@
                             </p>
                         @endif
 
-                        @if ($solicitud->estado != 'aprobado_parcial')
+                        @if ($puedeModificarAdjuntos)
                             <input type="file" wire:model="adjuntoCentralesRiesgo" accept=".pdf,.jpg,.jpeg,.png"
                                 class="mt-3 block w-full text-xs">
 
@@ -656,7 +656,7 @@
                             <td class="w-72 px-3 py-4">
                                 <div class="rounded-xl border border-gray-200 bg-white p-3">
 
-                                    @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado']))
+                                    @if ($puedeModificarAdjuntos)
                                         <input type="file" wire:model="archivos.{{ $tipo->id }}"
                                             accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-xs">
 
