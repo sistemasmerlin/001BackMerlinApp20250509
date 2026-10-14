@@ -129,47 +129,29 @@ class Detalle extends Component
 
     public function subirDocumento($tipoDocumentoId): void
     {
+        $this->solicitud->refresh();
+
+        $estadoBloqueado = in_array(
+            strtolower(trim($this->solicitud->estado ?? '')),
+            ['aprobado_parcial', 'aprobado', 'rechazado'],
+            true
+        );
+
+        abort_if(
+            $estadoBloqueado
+                && !auth()->user()?->can(
+                    'Agregar adjuntos extemporaneos solicitudes de credito'
+                ),
+            403,
+            'No tiene permiso para modificar adjuntos en este estado.'
+        );
+
         $this->validate([
             "archivos.$tipoDocumentoId" => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        $tipo = TipoDocumentoCredito::findOrFail($tipoDocumentoId);
-
-        $cantidadActual = SolicitudCreditoDocumento::where('solicitud_credito_id', $this->solicitud->id)
-            ->where('tipo_documento_credito_id', $tipoDocumentoId)
-            ->whereNull('deleted_at')
-            ->count();
-
-        if ($cantidadActual >= $tipo->cantidad_maxima) {
-            session()->flash('error', 'Ya alcanzaste la cantidad máxima permitida para este tipo de documento.');
-            return;
-        }
-
-        $file = $this->archivos[$tipoDocumentoId];
-
-        $path = $file->store(
-            'solicitudes_credito/documentos/' . $this->solicitud->id,
-            'public'
-        );
-
-        SolicitudCreditoDocumento::create([
-            'solicitud_credito_id' => $this->solicitud->id,
-            'tipo_documento_credito_id' => $tipoDocumentoId,
-            'nombre_original' => $file->getClientOriginalName(),
-            'archivo' => $path,
-            'disk' => 'public',
-            'mime_type' => $file->getMimeType(),
-            'peso' => $file->getSize(),
-            'estado' => 'pendiente',
-        ]);
-
-        unset($this->archivos[$tipoDocumentoId]);
-
-        $this->cargarDatos();
-
-        session()->flash('success', 'Documento subido correctamente.');
+        // Aquí continúa el resto de su código actual.
     }
-
     public function aprobarDocumento($documentoId): void
     {
         if ($this->documentosBloqueados()) {
@@ -218,9 +200,32 @@ class Detalle extends Component
 
     public function eliminarDocumento($documentoId): void
     {
-        $documento = SolicitudCreditoDocumento::findOrFail($documentoId);
+        $this->solicitud->refresh();
 
-        if ($documento->archivo && Storage::disk($documento->disk)->exists($documento->archivo)) {
+        $estadoBloqueado = in_array(
+            strtolower(trim($this->solicitud->estado ?? '')),
+            ['aprobado_parcial', 'aprobado', 'rechazado'],
+            true
+        );
+
+        abort_if(
+            $estadoBloqueado
+                && !auth()->user()?->can(
+                    'Agregar adjuntos extemporaneos solicitudes de credito'
+                ),
+            403,
+            'No tiene permiso para modificar adjuntos en este estado.'
+        );
+
+        $documento = SolicitudCreditoDocumento::where(
+            'solicitud_credito_id',
+            $this->solicitud->id
+        )->findOrFail($documentoId);
+
+        if (
+            $documento->archivo
+            && Storage::disk($documento->disk)->exists($documento->archivo)
+        ) {
             Storage::disk($documento->disk)->delete($documento->archivo);
         }
 
@@ -230,7 +235,6 @@ class Detalle extends Component
 
         session()->flash('success', 'Documento eliminado correctamente.');
     }
-
     private function pasarARevisionSiAplica(): void
     {
         if (!in_array($this->solicitud->estado, ['en_revision', 'aprobado_parcial', 'rechazado', 'aprobado'])) {
@@ -640,31 +644,28 @@ class Detalle extends Component
 
     public function subirAdjuntoCentralesRiesgo()
     {
+        $this->solicitud->refresh();
+
+        $estadoBloqueado = in_array(
+            strtolower(trim($this->solicitud->estado ?? '')),
+            ['aprobado_parcial', 'aprobado', 'rechazado'],
+            true
+        );
+
+        abort_if(
+            $estadoBloqueado
+                && !auth()->user()?->can(
+                    'Agregar adjuntos extemporaneos solicitudes de credito'
+                ),
+            403,
+            'No tiene permiso para modificar adjuntos en este estado.'
+        );
+
         $this->validate([
             'adjuntoCentralesRiesgo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        if ($this->solicitud->centrales_riesgo_path) {
-            Storage::disk($this->solicitud->centrales_riesgo_disk ?? 'public')
-                ->delete($this->solicitud->centrales_riesgo_path);
-        }
-
-        $archivo = $this->adjuntoCentralesRiesgo;
-
-        $path = $archivo->store(
-            'solicitudes_credito/centrales_riesgo/' . $this->solicitud->id,
-            'public'
-        );
-
-        $this->solicitud->update([
-            'centrales_riesgo_disk' => 'public',
-            'centrales_riesgo_path' => $path,
-            'centrales_riesgo_nombre' => $archivo->getClientOriginalName(),
-        ]);
-
-        $this->adjuntoCentralesRiesgo = null;
-
-        session()->flash('success', 'Adjunto de centrales de riesgo cargado correctamente.');
+        // Continúa el resto de su código actual.
     }
     public function getPuedePasarSegundaAprobacionProperty(): bool
     {

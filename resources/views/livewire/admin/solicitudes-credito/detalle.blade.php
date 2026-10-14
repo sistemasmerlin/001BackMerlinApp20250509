@@ -1,5 +1,16 @@
 <div class="rounded-2xl border bg-white p-5 shadow-sm">
 
+    @php
+        $adjuntosBloqueados = in_array(
+            strtolower(trim($solicitud->estado ?? '')),
+            ['aprobado_parcial', 'aprobado', 'rechazado'],
+            true,
+        );
+
+        $puedeModificarAdjuntos =
+            !$adjuntosBloqueados || auth()->user()?->can('Agregar adjuntos extemporaneos solicitudes de credito');
+    @endphp
+
     <div class="sticky top-0 z-40 mb-4 rounded-2xl bg-white/95 px-5 py-4 shadow-md border border-gray-200 backdrop-blur">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4 text-sm">
 
@@ -256,7 +267,7 @@
                     <h3 class="text-sm font-bold text-gray-800">
                         Referencias comerciales
                     </h3>
-                    @if ($solicitud->estado != 'aprobado_parcial')
+                    @if ($puedeModificarAdjuntos)
                         <button type="button" wire:click="abrirModalReferencia"
                             class="rounded-lg bg-zinc-800 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-900">
                             Crear nueva referencia
@@ -593,14 +604,12 @@
                                                     {{ strtoupper($doc->estado) }}
                                                 </span>
 
-                                                    <a href="{{ Storage::disk($doc->disk)->url($doc->archivo) }}"
-                                                        target="_blank"
-                                                        class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
-                                                        Ver
-                                                    </a>
-                                                @if (!in_array($solicitud->estado, ['aprobado_parcial', 'aprobado', 'rechazado']))
-
-
+                                                <a href="{{ Storage::disk($doc->disk)->url($doc->archivo) }}"
+                                                    target="_blank"
+                                                    class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                                                    Ver
+                                                </a>
+                                                @if (!$adjuntosBloqueados)
                                                     <button wire:click="aprobarDocumento({{ $doc->id }})"
                                                         class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700">
                                                         Aprobar
@@ -610,8 +619,10 @@
                                                         class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">
                                                         Rechazar
                                                     </button>
+                                                @endif
 
-                                                    <button
+                                                @if ($puedeModificarAdjuntos)
+                                                    <button type="button"
                                                         onclick="confirm('¿Eliminar este documento?') || event.stopImmediatePropagation()"
                                                         wire:click="eliminarDocumento({{ $doc->id }})"
                                                         class="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50">
