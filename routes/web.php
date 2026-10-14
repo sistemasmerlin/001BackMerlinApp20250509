@@ -47,6 +47,7 @@ use App\Livewire\Admin\RecibosCaja\Detalle as RecibosCajaDetalle;
 use App\Livewire\Admin\MovimientosBancarios\Index as MovimientosBancariosIndex;
 use App\Http\Controllers\Admin\MeliEventoController;
 use App\Livewire\Admin\Meli\EventosIndex;
+use App\Livewire\Admin\ImagenesProductos\Index as ImagenesProductosIndex;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -185,6 +186,10 @@ Route::middleware('auth')
             '/movimientos-bancarios',
             MovimientosBancariosIndex::class
         )->name('movimientos-bancarios.index');
+
+        Route::get('/imagenes-productos', ImagenesProductosIndex::class)
+        ->middleware('can:Administrar imagenes productos')
+        ->name('imagenes-productos.index');
     });
 
 

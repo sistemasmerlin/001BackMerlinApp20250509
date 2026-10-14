@@ -294,6 +294,22 @@
                 </div> 
             @endcan
 
+            @can('Administrar imagenes productos')
+    <div class="px-4">
+        <a
+            href="{{ route('admin.imagenes-productos.index') }}"
+            wire:navigate
+            @class([
+                'flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium transition-colors',
+                'bg-white text-blue-500' => request()->routeIs('admin.imagenes-productos.*'),
+                'text-zinc-200 hover:bg-white hover:text-blue-500' => !request()->routeIs('admin.imagenes-productos.*'),
+            ])
+        >
+            <flux:icon name="photo" class="h-5 w-5" />
+            <span>Imágenes de productos</span>
+        </a>
+    </div>
+@endcan
 @can('Tecnologia')
     <div
         x-data="{
