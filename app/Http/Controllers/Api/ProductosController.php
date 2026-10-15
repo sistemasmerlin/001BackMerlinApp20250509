@@ -357,7 +357,8 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'WDT TUBE' THEN 'Llantas y neumaticos'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA LIGHTING LED' THEN 'Repuestos'
                     WHEN rtrim(t106.f106_descripcion) = 'FORERUNNER' THEN 'Llantas y neumaticos'
-                ELSE 'n/a'END AS categoria_excel
+                ELSE 'n/a'END AS categoria_excel,
+                ,rtrim(t106.f106_descripcion) AS marca_excel
                 ,rtrim(t120.f120_notas) notas
                 ,CASE
                     WHEN DATEDIFF(DAY, f120_fecha_creacion, GETDATE()) <= 30 THEN 'Si'
