@@ -488,7 +488,7 @@ class ProductosController extends Controller
         Gate::authorize('Administrar imagenes productos');
 
         set_time_limit(180);
-        
+
         $datos = $request->validate([
             'lista' => ['required', Rule::in(['001', '202'])],
             'imagenes' => ['nullable', 'boolean'],
@@ -559,7 +559,7 @@ class ProductosController extends Controller
             new ListaPreciosExport(
                 $productos,
                 $lista,
-                $request->boolean('imagenes')
+    false
             ),
             'lista_precios_' . $lista . '_' . now()->format('Ymd_His')
                 . '.xlsx'
