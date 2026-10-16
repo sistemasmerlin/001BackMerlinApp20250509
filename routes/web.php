@@ -48,6 +48,7 @@ use App\Livewire\Admin\MovimientosBancarios\Index as MovimientosBancariosIndex;
 use App\Http\Controllers\Admin\MeliEventoController;
 use App\Livewire\Admin\Meli\EventosIndex;
 use App\Livewire\Admin\ImagenesProductos\Index as ImagenesProductosIndex;
+use App\Http\Controllers\Admin\ProductosController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -204,5 +205,17 @@ Route::middleware('auth')
     Route::post('/meli/webhook', [MeliEventoController::class, 'webhook'])
         ->name('meli.webhook');
 
+
+        Route::middleware('auth')->group(function () {
+    Route::get(
+        '/admin/listas-precios',
+        [ProductosController::class, 'listasPrecios']
+    )->name('admin.listas-precios.index');
+
+    Route::post(
+        '/admin/listas-precios/exportar',
+        [ProductosController::class, 'exportarListaPrecios']
+    )->name('admin.listas-precios.exportar');
+});
 
 require __DIR__ . '/auth.php';

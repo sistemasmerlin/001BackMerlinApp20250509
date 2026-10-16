@@ -1,378 +1,382 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
-    <head>
-        @include('partials.head')
-        @livewireStyles
 
-        <!-- DataTables CSS -->
-        <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
+<head>
+    @include('partials.head')
+    @livewireStyles
 
-    </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800 text-base">
-        <flux:sidebar sticky stashable class="border-e text-accent border-zinc-200 bg-neutral-900 dark:border-zinc-700 dark:bg-zinc-900 text-base">
-            <flux:sidebar.toggle class="lg:hidden text-base" icon="x-mark" />
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
-                <a href="{{ route('dashboard') }}" class="me-8 flex items-center space-x-2 rtl:space-x-reverse px-3 " wire:navigate>
-                    <x-app-logo />
-                </a>
+</head>
 
-                <flux:navlist variant="outline" class="px-4">
-                    <flux:navlist.group :heading="__('Panel de Control')" class="text-base bg-blue-500 rounded-lg text-center">
-                    </flux:navlist.group>
-                </flux:navlist>
+<body class="min-h-screen bg-white dark:bg-zinc-800 text-base">
+    <flux:sidebar sticky stashable
+        class="border-e text-accent border-zinc-200 bg-neutral-900 dark:border-zinc-700 dark:bg-zinc-900 text-base">
+        <flux:sidebar.toggle class="lg:hidden text-base" icon="x-mark" />
 
-                <div class="px-4">
-                    <a href="{{ route('dashboard') }}" wire:navigate 
-                    class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium hover:bg-white rounded-lg transition-colors text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue">
-                        <flux:icon name="home" class="h-5 w-5" />
-                        <span>{{ __('Inicio') }}</span>
-                    </a>
-                </div>
+        <a href="{{ route('dashboard') }}" class="me-8 flex items-center space-x-2 rtl:space-x-reverse px-3 "
+            wire:navigate>
+            <x-app-logo />
+        </a>
 
-            @can('Usuarios')
-                <div x-data="{ open: false }" class="px-4">
-                    <button 
-                        @click="open = !open" variant="outline"
-                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
-                    >
+        <flux:navlist variant="outline" class="px-4">
+            <flux:navlist.group :heading="__('Panel de Control')" class="text-base bg-blue-500 rounded-lg text-center">
+            </flux:navlist.group>
+        </flux:navlist>
+
+        <div class="px-4">
+            <a href="{{ route('dashboard') }}" wire:navigate
+                class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium hover:bg-white rounded-lg transition-colors text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue">
+                <flux:icon name="home" class="h-5 w-5" />
+                <span>{{ __('Inicio') }}</span>
+            </a>
+        </div>
+
+        @can('Usuarios')
+            <div x-data="{ open: false }" class="px-4">
+                <button @click="open = !open" variant="outline"
+                    class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors">
                     <flux:icon name="users" class="h-5 w-5" />
-                        <span>{{ __('Usuarios') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
-                    </button>
+                    <span>{{ __('Usuarios') }}</span>
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
 
-                    <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('usuarios.index')" :current="request()->routeIs('usuarios.*')"  wire:navigate>
-                            {{ __('Lista de Usuarios') }}
-                        </flux:navlist.item>
-                        <flux:navlist.item :href="route('roles.index')" :current="request()->routeIs('roles.*')" wire:navigate>
-                            {{ __('Roles') }}
-                        </flux:navlist.item>
-                        <flux:navlist.item :href="route('permisos.index')" :current="request()->routeIs('permisos.*')" wire:navigate>
-                            {{ __('Permisos') }}
-                        </flux:navlist.item>
-                        <flux:navlist.item :href="route('relacion.asesores.index')" :current="request()->routeIs('relacion.asesores.*')" wire:navigate>
-                            {{ __('Relacion Asesores') }}
-                        </flux:navlist.item>
-                    </div>
+                <div x-show="open" class="ms-6 mt-1 space-y-1">
+                    <flux:navlist.item :href="route('usuarios.index')" :current="request()->routeIs('usuarios.*')"
+                        wire:navigate>
+                        {{ __('Lista de Usuarios') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item :href="route('roles.index')" :current="request()->routeIs('roles.*')" wire:navigate>
+                        {{ __('Roles') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item :href="route('permisos.index')" :current="request()->routeIs('permisos.*')"
+                        wire:navigate>
+                        {{ __('Permisos') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item :href="route('relacion.asesores.index')"
+                        :current="request()->routeIs('relacion.asesores.*')" wire:navigate>
+                        {{ __('Relacion Asesores') }}
+                    </flux:navlist.item>
                 </div>
-            @endcan
-            @can('Comercial')
-                <div x-data="{ open: false }" class="px-4">
-                    <button
-                        @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
-                    >
+            </div>
+        @endcan
+        @can('Comercial')
+            <div x-data="{ open: false }" class="px-4">
+                <button @click="open = !open"
+                    class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors">
                     <flux:icon name="briefcase" class="h-5 w-5" />
-                        <span>{{ __('Comercial') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
-                    </button>
-                    @can('Administrar promociones')
+                    <span>{{ __('Comercial') }}</span>
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
+                @can('Administrar promociones')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('promociones.index')" :current="request()->routeIs('promociones.*')" wire:navigate>
+                        <flux:navlist.item :href="route('promociones.index')" :current="request()->routeIs('promociones.*')"
+                            wire:navigate>
                             {{ __('Lista de Promociones') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar pedidos')
+                @endcan
+                @can('Administrar pedidos')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>
+                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')"
+                            wire:navigate>
                             {{ __('Listar Pedidos') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar motivos visita')
+                @endcan
+                @can('Administrar motivos visita')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('motivosVisita.index')" :current="request()->routeIs('motivosVisita.*')" wire:navigate>
+                        <flux:navlist.item :href="route('motivosVisita.index')"
+                            :current="request()->routeIs('motivosVisita.*')" wire:navigate>
                             {{ __('Motivos Visita') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar reporte visitas')
+                @endcan
+                @can('Administrar reporte visitas')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('reporte/visitas.index')" :current="request()->routeIs('reporte/visitas.*')" wire:navigate>
+                        <flux:navlist.item :href="route('reporte/visitas.index')"
+                            :current="request()->routeIs('reporte/visitas.*')" wire:navigate>
                             {{ __('Reportes de Visita') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar backorder')
+                @endcan
+                @can('Administrar backorder')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('backOrder.index')" :current="request()->routeIs('backOrder.*')" wire:navigate>
+                        <flux:navlist.item :href="route('backOrder.index')" :current="request()->routeIs('backOrder.*')"
+                            wire:navigate>
                             {{ __('Listar BackOrder') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar noticias')
+                @endcan
+                @can('Administrar noticias')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('noticias.index')" :current="request()->routeIs('noticias.*')" wire:navigate>
+                        <flux:navlist.item :href="route('noticias.index')" :current="request()->routeIs('noticias.*')"
+                            wire:navigate>
                             {{ __('Listar Noticias') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar noticias')
+                @endcan
+                @can('Administrar noticias')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('presupuesto.index')" :current="request()->routeIs('presupuesto.*')" wire:navigate>
+                        <flux:navlist.item :href="route('presupuesto.index')" :current="request()->routeIs('presupuesto.*')"
+                            wire:navigate>
                             {{ __('Presupuesto Comercial') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Ver fletes')
+                @can('Ver fletes')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
+                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')"
+                            wire:navigate>
                             {{ __('Fletes') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Ver cumplimiento presupuesto comercial')
+                @can('Ver cumplimiento presupuesto comercial')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('presupuestos.comercial.cumplimiento')" :current="request()->routeIs('presupuestos.comercial.cumplimiento')" wire:navigate>
+                        <flux:navlist.item :href="route('presupuestos.comercial.cumplimiento')"
+                            :current="request()->routeIs('presupuestos.comercial.cumplimiento')" wire:navigate>
                             {{ __('Cumplimiento Presupuesto') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Ver cumplimiento presupuesto comercial')
+                @can('Ver cumplimiento presupuesto comercial')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('comisiones.index')" :current="request()->routeIs('comisiones.*')" wire:navigate>
+                        <flux:navlist.item :href="route('comisiones.index')" :current="request()->routeIs('comisiones.*')"
+                            wire:navigate>
                             {{ __('Comisiones') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Ver cumplimiento presupuesto comercial')
+                @can('Ver cumplimiento presupuesto comercial')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('presupuestos.ventas.unidades')" :current="request()->routeIs('presupuestos.ventas.unidades')" wire:navigate>
+                        <flux:navlist.item :href="route('presupuestos.ventas.unidades')"
+                            :current="request()->routeIs('presupuestos.ventas.unidades')" wire:navigate>
                             {{ __('Ventas por mes (Unidades y Valor)') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Ver efectividad clientes')
+                @can('Ver efectividad clientes')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('efectividad.clientes')" :current="request()->routeIs('efectividad.clientes')" wire:navigate>
+                        <flux:navlist.item :href="route('efectividad.clientes')"
+                            :current="request()->routeIs('efectividad.clientes')" wire:navigate>
                             {{ __('Efectividad clientes') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                </div>
-            @endcan
-            @can('Logistica')
-                <div x-data="{ open: false }" class="px-4">
-                    <button
-                        @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
-                    >
+                @endcan
+            </div>
+        @endcan
+        @can('Logistica')
+            <div x-data="{ open: false }" class="px-4">
+                <button @click="open = !open"
+                    class="flex w-full items-center gap-2 py-1 px-1  text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors">
                     <flux:icon name="truck" class="h-5 w-5" />
-                        <span>{{ __('Fletes') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
-                    </button>
+                    <span>{{ __('Fletes') }}</span>
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
 
-                    @can('Administrar fletes')
+                @can('Administrar fletes')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')" wire:navigate>
+                        <flux:navlist.item :href="route('fletes.index')" :current="request()->routeIs('fletes.*')"
+                            wire:navigate>
                             {{ __('Lista de ciudades') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                </div>
-            @endcan
-            @can('Cartera')
-                <div x-data="{ open: false }" class="px-4">
-                    <button
-                        @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
-                    >
+                @endcan
+            </div>
+        @endcan
+        @can('Cartera')
+            <div x-data="{ open: false }" class="px-4">
+                <button @click="open = !open"
+                    class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors">
                     <flux:icon name="wallet" class="h-5 w-5" />
-                        <span>{{ __('Cartera') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
-                    </button>
+                    <span>{{ __('Cartera') }}</span>
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
 
-                    @can('Intereses por mora')
+                @can('Intereses por mora')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('intereses.cartera.index')" :current="request()->routeIs('intereses.cartera.*')" wire:navigate>
+                        <flux:navlist.item :href="route('intereses.cartera.index')"
+                            :current="request()->routeIs('intereses.cartera.*')" wire:navigate>
                             {{ __('Intereses por mora') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
 
-                    @can('Intereses por mora')
+                @can('Intereses por mora')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('admin.bancos-recaudo.index')" :current="request()->routeIs('admin.bancos-recaudo.*')" wire:navigate>
+                        <flux:navlist.item :href="route('admin.bancos-recaudo.index')"
+                            :current="request()->routeIs('admin.bancos-recaudo.*')" wire:navigate>
                             {{ __('Manejo de bancos') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Administrar solicitudes de credito')
+                @can('Administrar solicitudes de credito')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('admin.solicitudes-credito.index')" :current="request()->routeIs('admin.solicitudes-credito.index')" wire:navigate>
+                        <flux:navlist.item :href="route('admin.solicitudes-credito.index')"
+                            :current="request()->routeIs('admin.solicitudes-credito.index')" wire:navigate>
                             {{ __('Solicitudes de credito') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Administrar presupuesto cartera')
+                @can('Administrar presupuesto cartera')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('presupuesto.cartera.index')" :current="request()->routeIs('presupuesto.cartera.*')" wire:navigate>
+                        <flux:navlist.item :href="route('presupuesto.cartera.index')"
+                            :current="request()->routeIs('presupuesto.cartera.*')" wire:navigate>
                             {{ __('Presupuesto Cartera') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
+                @endcan
 
-                    @can('Administrar presupuesto cartera')
+                @can('Administrar presupuesto cartera')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('admin.recibos-caja.index')" :current="request()->routeIs('admin.recibos-caja.*')" wire:navigate>
+                        <flux:navlist.item :href="route('admin.recibos-caja.index')"
+                            :current="request()->routeIs('admin.recibos-caja.*')" wire:navigate>
                             {{ __('Recibos de Caja') }}
                         </flux:navlist.item>
                     </div>
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('admin.movimientos-bancarios.index')" :current="request()->routeIs('admin.movimientos-bancarios.*')" wire:navigate>
+                        <flux:navlist.item :href="route('admin.movimientos-bancarios.index')"
+                            :current="request()->routeIs('admin.movimientos-bancarios.*')" wire:navigate>
                             {{ __('Movimientos Bancarios') }}
                         </flux:navlist.item>
                     </div>
+                @endcan
 
-                   
-                    @endcan
-
-                    @can('Administrar pedidos')
+                @can('Administrar pedidos')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')" wire:navigate>
+                        <flux:navlist.item :href="route('pedidos.index')" :current="request()->routeIs('pedidos.*')"
+                            wire:navigate>
                             {{ __('Listar Pedidos') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                </div>
-            @endcan
+                @endcan
+            </div>
+        @endcan
 
-            @can('Administrar SAC')
-                <div x-data="{ open: false }" class="px-4">
-                    <button
-                        @click="open = !open"
-                        class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors"
-                    >
+        @can('Administrar SAC')
+            <div x-data="{ open: false }" class="px-4">
+                <button @click="open = !open"
+                    class="flex w-full items-center gap-2 py-1 px-1 text-base font-medium text-zinc-200 hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue hover:bg-white rounded-lg transition-colors">
                     <flux:icon name="wallet" class="h-5 w-5" />
-                        <span>{{ __('SAC') }}</span>
-                        <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
-                        <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
-                    </button>
+                    <span>{{ __('SAC') }}</span>
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
 
+                <div x-show="open" class="ms-6 mt-1 space-y-1">
+                    <flux:navlist.item :href="route('pqrs.inicio')" :current="request()->routeIs(' pqrs.inicio.*')"
+                        wire:navigate>
+                        {{ __('PQRS') }}
+                    </flux:navlist.item>
+                </div>
+
+                @can('Administrar SAC Catalogos')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pqrs.inicio')" :current="request()->routeIs(' pqrs.inicio.*')" wire:navigate>
-                            {{ __('PQRS') }}
-                        </flux:navlist.item>
-                    </div>
-                    
-                    @can('Administrar SAC Catalogos')
-                    <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pqrs.catalogos')" :current="request()->routeIs('pqrs.catalogos.*')" wire:navigate>
+                        <flux:navlist.item :href="route('pqrs.catalogos')" :current="request()->routeIs('pqrs.catalogos.*')"
+                            wire:navigate>
                             {{ __('Catalogos') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar SAC Transportadoras')
+                @endcan
+                @can('Administrar SAC Transportadoras')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pqrs.transportadoras')" :current="request()->routeIs('pqrs.transportadoras.*')" wire:navigate>
+                        <flux:navlist.item :href="route('pqrs.transportadoras')"
+                            :current="request()->routeIs('pqrs.transportadoras.*')" wire:navigate>
                             {{ __('Transportadoras') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                    @can('Administrar SAC Responsables')
+                @endcan
+                @can('Administrar SAC Responsables')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item :href="route('pqrs.responsables')" :current="request()->routeIs('pqrs.responsables.*')" wire:navigate>
+                        <flux:navlist.item :href="route('pqrs.responsables')"
+                            :current="request()->routeIs('pqrs.responsables.*')" wire:navigate>
                             {{ __('Responsables') }}
                         </flux:navlist.item>
                     </div>
-                    @endcan
-                </div> 
-            @endcan
-
-            @can('Administrar imagenes productos')
-    <div class="px-4">
-        <a
-            href="{{ route('admin.imagenes-productos.index') }}"
-            wire:navigate
-            @class([
-                'flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium transition-colors',
-                'bg-white text-blue-500' => request()->routeIs('admin.imagenes-productos.*'),
-                'text-zinc-200 hover:bg-white hover:text-blue-500' => !request()->routeIs('admin.imagenes-productos.*'),
-            ])
-        >
-            <flux:icon name="photo" class="h-5 w-5" />
-            <span>Imágenes de productos</span>
-        </a>
-    </div>
-@endcan
-@can('Tecnologia')
-    <div
-        x-data="{
-            open: @js(
-                request()->routeIs('integradores.*') ||
-                request()->routeIs('admin.meli.*')
-            )
-        }"
-        class="px-4"
-    >
-        <button
-            type="button"
-            @click="open = !open"
-            class="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium text-zinc-200 transition-colors hover:bg-white hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue-500"
-        >
-            <flux:icon name="wallet" class="h-5 w-5" />
-
-            <span>{{ __('Tecnología') }}</span>
-
-            <flux:icon
-                x-show="!open"
-                name="chevron-down"
-                class="ms-auto h-5 w-5"
-            />
-
-            <flux:icon
-                x-show="open"
-                name="chevron-up"
-                class="ms-auto h-5 w-5"
-            />
-        </button>
-
-        <div
-            x-show="open"
-            x-collapse
-            class="ms-6 mt-1 space-y-1"
-        >
-            <flux:navlist.item
-                :href="route('integradores.index')"
-                :current="request()->routeIs('integradores.*')"
-                wire:navigate
-            >
-                {{ __('Integradores') }}
-            </flux:navlist.item>
-
-            <flux:navlist.item
-                :href="route('admin.meli.eventos')"
-                :current="request()->routeIs('admin.meli.*')"
-                wire:navigate
-            >
-                {{ __('Mercado Libre') }}
-            </flux:navlist.item>
-        </div>
-    </div>
-@endcan
-           
-            <flux:spacer />
-
-            <div x-data="{ open: false }" class="px-4">
-Versión 1.1.1
-
+                @endcan
             </div>
-           <!--  <flux:navlist variant="outline">
+        @endcan
+
+        @can('Administrar imagenes productos')
+            <div class="px-4">
+                <a href="{{ route('admin.imagenes-productos.index') }}" wire:navigate @class([
+                    'flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium transition-colors',
+                    'bg-white text-blue-500' => request()->routeIs(
+                        'admin.imagenes-productos.*'),
+                    'text-zinc-200 hover:bg-white hover:text-blue-500' => !request()->routeIs(
+                        'admin.imagenes-productos.*'),
+                ])>
+                    <flux:icon name="photo" class="h-5 w-5" />
+                    <span>Imágenes de productos</span>
+                </a>
+            </div>
+        @endcan
+
+        @can('Administrar imagenes productos')
+            <div class="px-4">
+                <a href="{{ route('admin.listas-precios.index') }}" wire:navigate @class([
+                    'flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium transition-colors',
+                    'bg-white text-blue-500' => request()->routeIs('admin.listas-precios.*'),
+                    'text-zinc-200 hover:bg-white hover:text-blue-500' => !request()->routeIs(
+                        'admin.listas-precios.*'),
+                ])>
+                    <flux:icon name="document-arrow-down" class="h-5 w-5" />
+                    <span>Listas de precios</span>
+                </a>
+            </div>
+        @endcan
+        @can('Tecnologia')
+            <div x-data="{
+                open: @js(request()->routeIs('integradores.*') || request()->routeIs('admin.meli.*'))
+            }" class="px-4">
+                <button type="button" @click="open = !open"
+                    class="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-base font-medium text-zinc-200 transition-colors hover:bg-white hover:text-blue-500 dark:text-zinc-200 dark:hover:text-blue-500">
+                    <flux:icon name="wallet" class="h-5 w-5" />
+
+                    <span>{{ __('Tecnología') }}</span>
+
+                    <flux:icon x-show="!open" name="chevron-down" class="ms-auto h-5 w-5" />
+
+                    <flux:icon x-show="open" name="chevron-up" class="ms-auto h-5 w-5" />
+                </button>
+
+                <div x-show="open" x-collapse class="ms-6 mt-1 space-y-1">
+                    <flux:navlist.item :href="route('integradores.index')" :current="request()->routeIs('integradores.*')"
+                        wire:navigate>
+                        {{ __('Integradores') }}
+                    </flux:navlist.item>
+
+                    <flux:navlist.item :href="route('admin.meli.eventos')" :current="request()->routeIs('admin.meli.*')"
+                        wire:navigate>
+                        {{ __('Mercado Libre') }}
+                    </flux:navlist.item>
+                </div>
+            </div>
+        @endcan
+
+        <flux:spacer />
+
+        <div x-data="{ open: false }" class="px-4">
+            Versión 1.1.1
+
+        </div>
+        <!--  <flux:navlist variant="outline">
                 <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
                 {{ __('Repository') }}
                 </flux:navlist.item>
@@ -382,116 +386,113 @@ Versión 1.1.1
                 </flux:navlist.item>
             </flux:navlist> -->
 
-            <!-- Desktop User Menu -->
-            <flux:dropdown position="bottom" align="start">
-                <flux:profile
-                    :name="auth()->user()->name"
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevrons-up-down"
-                />
+        <!-- Desktop User Menu -->
+        <flux:dropdown position="bottom" align="start">
+            <flux:profile :name="auth()->user()->name" :initials="auth()->user()->initials()"
+                icon-trailing="chevrons-up-down" />
 
-                <flux:menu class="w-[220px]">
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-base font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
-                                    >
-                                        {{ auth()->user()->initials() }}
-                                    </span>
+            <flux:menu class="w-[220px]">
+                <flux:menu.radio.group>
+                    <div class="p-0 text-base font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span
+                                    class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
                                 </span>
+                            </span>
 
-                                <div class="grid flex-1 text-start text-base leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                </div>
+                            <div class="grid flex-1 text-start text-base leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                             </div>
                         </div>
-                    </flux:menu.radio.group>
+                    </div>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Configuración') }}</flux:menu.item>
-                    </flux:menu.radio.group>
+                <flux:menu.radio.group>
+                    <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>
+                        {{ __('Configuración') }}</flux:menu.item>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Salir') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
-        </flux:sidebar>
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle"
+                        class="w-full">
+                        {{ __('Salir') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
+    </flux:sidebar>
 
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+    <!-- Mobile User Menu -->
+    <flux:header class="lg:hidden">
+        <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-            <flux:spacer />
+        <flux:spacer />
 
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
+        <flux:dropdown position="top" align="end">
+            <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" />
 
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-base font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
-                                    >
-                                        {{ auth()->user()->initials() }}
-                                    </span>
+            <flux:menu>
+                <flux:menu.radio.group>
+                    <div class="p-0 text-base font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-base">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span
+                                    class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
                                 </span>
+                            </span>
 
-                                <div class="grid flex-1 text-start text-base leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                </div>
+                            <div class="grid flex-1 text-start text-base leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                             </div>
                         </div>
-                    </flux:menu.radio.group>
+                    </div>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Configuración') }}</flux:menu.item>
-                    </flux:menu.radio.group>
+                <flux:menu.radio.group>
+                    <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>
+                        {{ __('Configuración') }}</flux:menu.item>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Salir') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
-        </flux:header>
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle"
+                        class="w-full">
+                        {{ __('Salir') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
+    </flux:header>
 
-        {{ $slot }}
-        
-        @fluxScripts
-        <!-- Livewire scripts -->
+    {{ $slot }}
 
-        @livewireScripts
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
-        <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    @fluxScripts
+    <!-- Livewire scripts -->
 
-        <!-- Aquí irán los scripts personalizados de cada vista -->
-        @stack('scripts')
+    @livewireScripts
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 
-    </body>
+    <!-- Aquí irán los scripts personalizados de cada vista -->
+    @stack('scripts')
+
+</body>
+
 </html>
