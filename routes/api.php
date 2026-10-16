@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\IntegracionesController;
 use App\Http\Controllers\Api\RecaudoController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
+use App\Http\Controllers\Api\ListaPreciosController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -118,6 +119,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bancos-recaudo', [RecaudoController::class, 'bancos']);
 });
     
+Route::middleware('auth:sanctum')->get(
+    '/listas-precios/descargar',
+    [ListaPreciosController::class, 'descargar']
+);
+
 Route::middleware('auth:sanctum')->get('/productos/tienda', [IntegracionesController::class, 'sincronizarConTienda']);
 
 Route::middleware('auth:sanctum')->group(function () {
