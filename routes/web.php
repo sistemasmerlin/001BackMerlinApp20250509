@@ -218,4 +218,11 @@ Route::middleware('auth')
     )->name('admin.listas-precios.exportar');
 });
 
+Route::get(
+    '/admin/listas-precios/descargar/{id}',
+    [ProductosController::class, 'descargarListaPrecios']
+)
+    ->whereNumber('id')
+    ->name('admin.listas-precios.descargar');
+
 require __DIR__ . '/auth.php';

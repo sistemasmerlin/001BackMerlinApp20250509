@@ -10,6 +10,8 @@ use App\Exports\ListaPreciosExport;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Jobs\GenerarListaPrecios;
+use Illuminate\Support\Facades\Storage;
 
 class ProductosController extends Controller
 {
@@ -483,86 +485,98 @@ class ProductosController extends Controller
         return view('admin.listas-precios.index');
     }
 
-    public function exportarListaPrecios(Request $request)
-    {
-        Gate::authorize('Administrar imagenes productos');
+public function exportarListaPrecios(Request $request)
+{
+    Gate::authorize('Administrar imagenes productos');
 
-        set_time_limit(180);
+    $datos = $request->validate([
+        'lista' => ['required', Rule::in(['001', '202'])],
+        'imagenes' => ['nullable', 'boolean'],
+    ]);
 
-        $datos = $request->validate([
-            'lista' => ['required', Rule::in(['001', '202'])],
-            'imagenes' => ['nullable', 'boolean'],
-        ]);
+    $userId = (int) $request->user()->getAuthIdentifier();
 
-        /*
-     * Reutiliza exactamente la consulta SQL de su método index().
-     * No hace una petición HTTP ni descarga imágenes por internet.
-     */
-        $respuesta = $this->index($request);
-        $contenido = $respuesta->getData(true);
+    $id = DB::transaction(function () use ($request, $datos, $userId) {
+        // Serializa las solicitudes del mismo usuario.
+        $request->user()
+            ->newQuery()
+            ->whereKey($userId)
+            ->lockForUpdate()
+            ->firstOrFail();
 
-        $lista = $datos['lista'];
-        $sufijo = $lista === '001' ? '1' : '202';
+        $pendiente = DB::table('listas_precios_exportaciones')
+            ->where('user_id', $userId)
+            ->whereIn('estado', ['pendiente', 'procesando'])
+            ->exists();
 
-        $campoPrecio = "precio_{$sufijo}";
-        $campoTotal = "precio_{$sufijo}_mas_iva";
-
-        $productos = collect($contenido['productos'] ?? [])
-            ->filter(function (array $producto) use (
-                $campoPrecio,
-                $campoTotal
-            ) {
-                return is_numeric($producto['disponible'] ?? null)
-                    && (float) $producto['disponible'] > 0
-                    && is_numeric($producto[$campoPrecio] ?? null)
-                    && is_numeric($producto[$campoTotal] ?? null)
-                    && (float) $producto[$campoPrecio] >= 0
-                    && (float) $producto[$campoTotal]
-                    >= (float) $producto[$campoPrecio];
-            })
-            ->map(function (array $producto) use (
-                $campoPrecio,
-                $campoTotal
-            ) {
-                return [
-                    'referencia' => trim(
-                        (string) ($producto['referencia'] ?? '')
-                    ),
-                    'descripcion' => trim(
-                        (string) ($producto['descripcion'] ?? '')
-                    ),
-                    'categoria' => trim(
-                        (string) ($producto['categoria_excel'] ?? '')
-                    ) ?: 'SIN CATEGORÍA',
-                    'marca' => trim(
-                        (string) ($producto['marca_excel'] ?? '')
-                    ) ?: 'SIN MARCA',
-                    'precio' => (float) $producto[$campoPrecio],
-                    'precio_iva' => (float) $producto[$campoTotal],
-                ];
-            })
-            ->filter(
-                fn(array $producto) =>
-                $producto['referencia'] !== ''
-            )
-            ->values()
-            ->all();
-
-        if (!$productos) {
-            return back()->withErrors([
-                'exportacion' =>
-                'No hay productos disponibles con precios válidos.',
-            ]);
+        if ($pendiente) {
+            return null;
         }
 
-        return Excel::download(
-            new ListaPreciosExport(
-                $productos,
-                $lista,
-    false
-            ),
-            'lista_precios_' . $lista . '_' . now()->format('Ymd_His')
-                . '.xlsx'
-        );
+        return DB::table('listas_precios_exportaciones')
+            ->insertGetId([
+                'user_id' => $userId,
+                'lista' => $datos['lista'],
+                'imagenes' => $request->boolean('imagenes'),
+                'estado' => 'pendiente',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+    });
+
+    if (!$id) {
+        return redirect()
+            ->route('admin.listas-precios.index')
+            ->with('success', 'Ya tiene una exportación en preparación.');
     }
+
+    try {
+        GenerarListaPrecios::dispatch($id);
+    } catch (\Throwable $e) {
+        report($e);
+
+        DB::table('listas_precios_exportaciones')
+            ->where('id', $id)
+            ->update([
+                'estado' => 'error',
+                'mensaje' => 'No se pudo enviar la exportación a la cola.',
+                'updated_at' => now(),
+            ]);
+
+        return redirect()
+            ->route('admin.listas-precios.index')
+            ->withErrors([
+                'exportacion' => 'No se pudo iniciar la generación.',
+            ]);
+    }
+
+    return redirect()
+        ->route('admin.listas-precios.index')
+        ->with('success', 'La lista quedó en cola. Aquí aparecerá la descarga.');
+}
+
+public function descargarListaPrecios(int $id)
+{
+    Gate::authorize('Administrar imagenes productos');
+
+    $exportacion = DB::table('listas_precios_exportaciones')
+        ->where('id', $id)
+        ->where('user_id', auth()->id())
+        ->where('estado', 'listo')
+        ->first();
+
+    abort_unless($exportacion && $exportacion->ruta, 404);
+
+    abort_unless(
+        Storage::disk('local')->exists($exportacion->ruta),
+        404,
+        'El archivo ya no está disponible.'
+    );
+
+    return Storage::disk('local')->download(
+        $exportacion->ruta,
+        'lista_precios_' . $exportacion->lista
+            . '_' . $exportacion->id . '.xlsx'
+    );
+}
 }

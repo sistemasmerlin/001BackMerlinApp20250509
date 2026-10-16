@@ -92,4 +92,80 @@
             Generar Excel
         </button>
     </form>
+
+
+    @if (session('success'))
+    <div class="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">
+        {{ session('success') }}
+    </div>
+@endif
+
+<div
+    @if ($exportaciones->contains(
+        fn ($fila) => in_array($fila->estado, ['pendiente', 'procesando'])
+    ))
+        wire:poll.5s
+    @endif
+    class="space-y-3"
+>
+    <h2 class="font-semibold text-zinc-900 dark:text-white">
+        Mis últimas exportaciones
+    </h2>
+
+    @forelse ($exportaciones as $exportacion)
+        <div
+            wire:key="exportacion-{{ $exportacion->id }}"
+            class="flex flex-wrap items-center justify-between gap-3
+                   rounded-xl border border-zinc-200 p-4
+                   dark:border-zinc-800"
+        >
+            <div>
+                <p class="text-sm font-medium text-zinc-900 dark:text-white">
+                    Lista {{ $exportacion->lista }}
+                    · {{ $exportacion->imagenes ? 'Con imágenes' : 'Sin imágenes' }}
+                </p>
+
+                <p class="text-xs text-zinc-500">
+                    {{ $exportacion->created_at }}
+                </p>
+
+                @if ($exportacion->estado === 'pendiente')
+                    <p class="mt-1 text-sm text-amber-600">
+                        En cola…
+                    </p>
+                @elseif ($exportacion->estado === 'procesando')
+                    <p class="mt-1 text-sm text-blue-600">
+                        Generando archivo…
+                    </p>
+                @elseif ($exportacion->estado === 'error')
+                    <p class="mt-1 text-sm text-rose-600">
+                        {{ $exportacion->mensaje }}
+                    </p>
+                @else
+                    <p class="mt-1 text-sm text-emerald-600">
+                        Listo para descargar
+                    </p>
+                @endif
+            </div>
+
+            @if ($exportacion->estado === 'listo')
+                <a
+                    href="{{ route(
+                        'admin.listas-precios.descargar',
+                        $exportacion->id
+                    ) }}"
+                    class="rounded-lg bg-zinc-900 px-4 py-2
+                           text-sm font-medium text-white
+                           dark:bg-white dark:text-zinc-900"
+                >
+                    Descargar Excel
+                </a>
+            @endif
+        </div>
+    @empty
+        <p class="text-sm text-zinc-500">
+            Todavía no ha generado listas.
+        </p>
+    @endforelse
+</div>
 </div>
