@@ -487,6 +487,8 @@ class ProductosController extends Controller
     {
         Gate::authorize('Administrar imagenes productos');
 
+        set_time_limit(180);
+        
         $datos = $request->validate([
             'lista' => ['required', Rule::in(['001', '202'])],
             'imagenes' => ['nullable', 'boolean'],
