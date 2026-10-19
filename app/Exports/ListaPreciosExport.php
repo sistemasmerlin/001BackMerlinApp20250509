@@ -13,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Protection;
 
 class ListaPreciosExport implements WithEvents, WithTitle
 {
@@ -22,8 +23,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
         private array $productos,
         private string $lista,
         private bool $incluirImagenes = true
-    ) {
-    }
+    ) {}
 
     public function title(): string
     {
@@ -92,7 +92,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
 
             $conImagenes = $this->incluirImagenes
                 && preg_match(
-                    '/\b(LLANTAS?|NEUMATICOS?)\b/',
+                    '/\b(LLANTAS?|NEUMATICOS?|REPUESTOS?)\b/',
                     Str::upper(Str::ascii($grupo['categoria']))
                 );
 
@@ -154,9 +154,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
                     ->setRowHeight($conImagenes ? 96 : 32);
 
                 if ($conImagenes) {
-                    $ruta = $imagenes[
-                        'ref:' . strtolower($producto['referencia'])
-                    ] ?? null;
+                    $ruta = $imagenes['ref:' . strtolower($producto['referencia'])] ?? null;
 
                     if (!$ruta || !$this->insertarImagen(
                         $hoja,
@@ -210,12 +208,23 @@ class ListaPreciosExport implements WithEvents, WithTitle
             );
         }
 
+        $this->protegerHoja($hoja, $ultimaFila);
+
         $base = $libro->createSheet();
         $base->setTitle('_BASE_PEDIDO');
 
         $this->crearResumen($resumen, $base, $enlaces);
 
+        // Estas hojas se calculan automáticamente y no se diligencian.
+        $this->protegerHoja($resumen);
+        $this->protegerHoja($base);
+
         $base->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+
+        // Evitar eliminar, renombrar o mostrar hojas desde Excel.
+        $libro->getSecurity()->setLockStructure(true);
+        $libro->getSecurity()->setWorkbookPassword('MerlinLista2026!');
+
         $libro->setActiveSheetIndex(0);
     }
 
@@ -355,14 +364,16 @@ class ListaPreciosExport implements WithEvents, WithTitle
             }
         }
 
-        foreach ([
-            'A' => 24,
-            'B' => 20,
-            'C' => 60,
-            'D' => 14,
-            'E' => 20,
-            'F' => 22,
-        ] as $columna => $ancho) {
+        foreach (
+            [
+                'A' => 24,
+                'B' => 20,
+                'C' => 60,
+                'D' => 14,
+                'E' => 20,
+                'F' => 22,
+            ] as $columna => $ancho
+        ) {
             $resumen->getColumnDimension($columna)
                 ->setWidth($ancho);
         }
@@ -488,7 +499,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
 
         usort(
             $archivos,
-            fn ($a, $b) => strcmp($a['ruta'], $b['ruta'])
+            fn($a, $b) => strcmp($a['ruta'], $b['ruta'])
         );
 
         $resultado = [];
@@ -590,5 +601,47 @@ class ListaPreciosExport implements WithEvents, WithTitle
         $dibujo->setWorksheet($hoja);
 
         return true;
+    }
+
+
+    private function protegerHoja(
+        Worksheet $hoja,
+        ?int $ultimaFilaEditable = null
+    ): void {
+        // Todas las celdas quedan bloqueadas por defecto.
+        $hoja->getStyle($hoja->calculateWorksheetDimension())
+            ->getProtection()
+            ->setLocked(Protection::PROTECTION_PROTECTED);
+
+        // Únicamente las cantidades de los productos quedan editables.
+        if ($ultimaFilaEditable !== null && $ultimaFilaEditable >= 6) {
+            $hoja->getStyle("E6:E{$ultimaFilaEditable}")
+                ->getProtection()
+                ->setLocked(Protection::PROTECTION_UNPROTECTED);
+        }
+
+        $proteccion = $hoja->getProtection();
+
+        // Cambie esta contraseña por una de administración.
+        $proteccion->setPassword('MerlinLista2026!');
+        $proteccion->setSheet(true);
+
+        // Permitir utilizar los filtros existentes.
+        $proteccion->setAutoFilter(false);
+
+        // Impedir alterar la estructura y el formato.
+        $proteccion->setSort(true);
+        $proteccion->setInsertRows(true);
+        $proteccion->setDeleteRows(true);
+        $proteccion->setInsertColumns(true);
+        $proteccion->setDeleteColumns(true);
+        $proteccion->setFormatCells(true);
+        $proteccion->setFormatRows(true);
+        $proteccion->setFormatColumns(true);
+        $proteccion->setObjects(true);
+
+        // Permitir seleccionar y copiar, sin editar las bloqueadas.
+        $proteccion->setSelectLockedCells(false);
+        $proteccion->setSelectUnlockedCells(false);
     }
 }
