@@ -194,6 +194,19 @@
                         </flux:navlist.item>
                     </div>
                 @endcan
+
+                @can('Ver unidades por empaque')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item
+                            :href="route('fletes.empaques.index')"
+                            :current="request()->routeIs('fletes.empaques.*')"
+                            wire:navigate
+                        >
+                            {{ __('Unidades por empaque') }}
+                        </flux:navlist.item>
+                    </div>
+                @endcan
+
             </div>
         @endcan
         @can('Cartera')

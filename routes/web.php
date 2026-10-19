@@ -49,6 +49,8 @@ use App\Http\Controllers\Admin\MeliEventoController;
 use App\Livewire\Admin\Meli\EventosIndex;
 use App\Livewire\Admin\ImagenesProductos\Index as ImagenesProductosIndex;
 use App\Http\Controllers\Admin\ProductosController;
+use App\Livewire\Admin\ProductosEmpaques\Index as ProductosEmpaquesIndex;
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -224,5 +226,13 @@ Route::get(
 )
     ->whereNumber('id')
     ->name('admin.listas-precios.descargar');
+
+Route::get('/fletes/unidades-por-empaque', ProductosEmpaquesIndex::class)
+    ->middleware([
+        'auth',
+        'can:Logistica',
+        'can:Administrar fletes',
+    ])
+    ->name('fletes.empaques.index');
 
 require __DIR__ . '/auth.php';

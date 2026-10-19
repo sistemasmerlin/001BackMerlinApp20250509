@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\RecaudoController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
 use App\Http\Controllers\Api\ListaPreciosController;
+use App\Http\Controllers\Api\ProductosEmpaquesController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -156,4 +157,10 @@ Route::middleware('auth:sanctum')->group(function () {
         RecaudoController::class,
         'consultar',
     ]);
+
+
+
+Route::middleware('auth:sanctum')
+    ->get('/productos-empaques', [ProductosEmpaquesController::class, 'index'])
+    ->name('api.productos-empaques.index');
 });
