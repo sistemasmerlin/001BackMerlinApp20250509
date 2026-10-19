@@ -206,9 +206,11 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 $ultimaColumna,
                 $ultimaFila
             );
+
+            $this->protegerHoja($hoja, $ultimaFila);
+
         }
 
-        $this->protegerHoja($hoja, $ultimaFila);
 
         $base = $libro->createSheet();
         $base->setTitle('_BASE_PEDIDO');
