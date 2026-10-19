@@ -15,5 +15,5 @@ Schedule::command('listas-precios:renovar')
 
 Schedule::command('listas-precios:renovar')
     ->timezone('America/Bogota')
-    ->dailyAt('14:03')
+    ->dailyAt('14:10')
     ->withoutOverlapping();
