@@ -864,7 +864,14 @@ class IntegracionesController extends Controller
                 t120.f120_fecha_creacion
                 ORDER BY disponible");
 
-        $ciudades_fletes = FleteCiudad::select('cod_ciudad', 'ciudad', 'cod_depto', 'depto', 'monto', 'menor', 'mayor', 'minimo', 'entrega')->get();
+                $ciudades_fletes = FleteCiudad::select(
+                    'cod_ciudad', 'ciudad', 'cod_depto', 'depto',
+                    'monto', 'menor', 'mayor', 'minimo', 'entrega'
+                )->get()->transform(function ($flete) {
+                    $flete->minimo = round((float) $flete->minimo * 1.19, 2);
+
+                    return $flete;
+                });
 
         return response()->json([
             'productos' => $result,
