@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -46,28 +48,48 @@ class ListaPreciosExport implements WithEvents, WithTitle
         Spreadsheet $libro,
         Worksheet $resumen
     ): void {
-        $productos = $this->productos;
-
-        usort($productos, function (array $a, array $b) {
-            return strnatcasecmp($a['categoria'], $b['categoria'])
-                ?: strnatcasecmp($a['marca'], $b['marca'])
-                ?: strnatcasecmp($a['referencia'], $b['referencia']);
-        });
-
-        $grupos = [];
-
-        foreach ($productos as $producto) {
-            $clave = 'cat:' . mb_strtoupper($producto['categoria']);
-
-            if (!isset($grupos[$clave])) {
-                $grupos[$clave] = [
-                    'categoria' => $producto['categoria'],
-                    'productos' => [],
+        // Leer la configuración vigente una sola vez al generar el archivo.
+        $configuraciones = DB::table('listas_precios_subcategorias')
+            ->where('activa', true)->orderBy('orden')->orderBy('nombre')->get();
+        $ids = $configuraciones->pluck('id');
+        $marcas = DB::table('listas_precios_subcategoria_marcas')
+            ->whereIn('subcategoria_id', $ids)->get()->groupBy('subcategoria_id');
+        $rangos = DB::table('listas_precios_subcategoria_rangos')
+            ->whereIn('subcategoria_id', $ids)->orderBy('desde')->get()->groupBy('subcategoria_id');
+        $porMarca = [];
+        foreach ($configuraciones as $config) {
+            foreach ($marcas->get($config->id, collect()) as $marca) {
+                $porMarca[mb_strtoupper(trim($marca->marca_excel))] = [
+                    'id' => $config->id, 'nombre' => $config->nombre,
+                    'tipo' => $config->tipo_calculo,
+                    'rangos' => $rangos->get($config->id, collect())->all(),
+                    'orden' => (int) $config->orden,
                 ];
             }
-
+        }
+        $grupos = [];
+        foreach ($this->productos as $producto) {
+            $config = $porMarca[mb_strtoupper(trim($producto['marca']))] ?? null;
+            $clave = $config ? 'sub:'.$config['id'] : 'cat:'.mb_strtoupper($producto['categoria']);
+            if (!isset($grupos[$clave])) {
+                $grupos[$clave] = [
+                    'categoria' => $config['nombre'] ?? $producto['categoria'],
+                    'config' => $config, 'productos' => [],
+                ];
+            }
             $grupos[$clave]['productos'][] = $producto;
         }
+        uasort($grupos, function ($a, $b) {
+            $ordenA = $a['config']['orden'] ?? PHP_INT_MAX;
+            $ordenB = $b['config']['orden'] ?? PHP_INT_MAX;
+            return ($ordenA <=> $ordenB) ?: strnatcasecmp($a['categoria'], $b['categoria']);
+        });
+        foreach ($grupos as &$grupoOrdenado) {
+            usort($grupoOrdenado['productos'], fn ($a, $b) =>
+                strnatcasecmp($a['marca'], $b['marca']) ?: strnatcasecmp($a['referencia'], $b['referencia'])
+            );
+        }
+        unset($grupoOrdenado);
 
         $nombres = [
             'resumen pedido' => true,
@@ -90,13 +112,20 @@ class ListaPreciosExport implements WithEvents, WithTitle
             $hoja = $libro->createSheet();
             $hoja->setTitle($nombre);
 
-            $conImagenes = $this->incluirImagenes
-                && preg_match(
-                    '/\b(LLANTAS?|NEUMATICOS?|REPUESTOS?)\b/',
-                    Str::upper(Str::ascii($grupo['categoria']))
-                );
+            // La decisión de imágenes depende de la categoría original del producto.
+            $conImagenes = $this->incluirImagenes && collect($grupo['productos'])->contains(
+                fn ($p) => (bool) preg_match('/\b(LLANTAS?|NEUMATICOS?|REPUESTOS?)\b/', Str::upper(Str::ascii($p['categoria'])))
+            );
+            $porcentajes = collect($grupo['config']['rangos'] ?? [])
+                ->map(fn ($r) => (float) $r->porcentaje)->unique()->sort()->values()->all();
+            $ultimaColumna = count($porcentajes) ? Coordinate::stringFromColumnIndex(7 + count($porcentajes)) : ($conImagenes ? 'G' : 'F');
 
-            $ultimaColumna = $conImagenes ? 'G' : 'F';
+            $indiceColumnaAuxiliar =
+                Coordinate::columnIndexFromString($ultimaColumna) + 1;
+
+            $columnaAuxiliar = Coordinate::stringFromColumnIndex(
+                $indiceColumnaAuxiliar
+            );
 
             $this->texto($hoja, 'A1', $grupo['categoria']);
             $this->texto(
@@ -105,11 +134,61 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 "Lista {$this->lista} · Generada "
                     . now()->format('d/m/Y H:i')
             );
-            $this->texto(
-                $hoja,
-                'A3',
-                'Moneda: COP. Digite las unidades en Cantidad.'
-            );
+
+
+            $escalas = [];
+
+                foreach ($grupo['config']['rangos'] ?? [] as $rango) {
+                    $esUnidades = ($grupo['config']['tipo'] ?? '') === 'unidades';
+
+                    $desde = $esUnidades
+                        ? number_format((float) $rango->desde, 0, ',', '.')
+                        : '$' . number_format((float) $rango->desde, 2, ',', '.');
+
+                    $hasta = $rango->hasta === null
+                        ? null
+                        : (
+                            $esUnidades
+                                ? number_format((float) $rango->hasta, 0, ',', '.')
+                                : '$' . number_format(
+                                    (float) $rango->hasta,
+                                    2,
+                                    ',',
+                                    '.'
+                                )
+                        );
+
+                    $porcentaje = rtrim(
+                        rtrim(
+                            number_format((float) $rango->porcentaje, 2, ',', ''),
+                            '0'
+                        ),
+                        ','
+                    );
+
+                    $intervalo = $hasta === null
+                        ? "Desde {$desde}"
+                        : "{$desde} a {$hasta}";
+
+                    $escalas[] = "{$intervalo}: {$porcentaje}%";
+                }
+
+                if (count($escalas) > 0) {
+                    $tipoEscala = ($grupo['config']['tipo'] ?? '') === 'unidades'
+                        ? 'Escalas por unidades'
+                        : 'Escalas por subtotal antes de IVA';
+
+                    $textoEncabezado = $tipoEscala
+                        . ' | '
+                        . implode('  ·  ', $escalas);
+                } else {
+                    $textoEncabezado =
+                        'Moneda: COP. Digite las unidades en Cantidad. '
+                        . 'Esta hoja no tiene descuentos configurados.';
+                }
+
+$this->texto($hoja, 'A3', $textoEncabezado);
+
 
             foreach ([1, 2, 3] as $fila) {
                 $hoja->mergeCells("A{$fila}:{$ultimaColumna}{$fila}");
@@ -129,6 +208,11 @@ class ListaPreciosExport implements WithEvents, WithTitle
             }
 
             $hoja->fromArray($encabezados, null, 'A5');
+            foreach ($porcentajes as $i => $porcentaje) {
+                $columna = Coordinate::stringFromColumnIndex(8 + $i);
+                $this->texto($hoja, $columna.'5', 'Precio sin IVA - '.rtrim(rtrim(number_format($porcentaje, 2, '.', ''), '0'), '.').'%');
+                $hoja->getColumnDimension($columna)->setWidth(22);
+            }
 
             $fila = 6;
 
@@ -148,7 +232,22 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 $hoja->setCellValue("D{$fila}", $producto['precio_iva']);
                 $hoja->setCellValue("E{$fila}", 0);
 
+                $hoja->setCellValue(
+                    "{$columnaAuxiliar}{$fila}",
+                    "=IFERROR(IF(AND("
+                        . "ISNUMBER(E{$fila}),"
+                        . "E{$fila}>0,"
+                        . "E{$fila}=INT(E{$fila})"
+                        . "),E{$fila},0),0)"
+                );
+
                 $this->texto($hoja, "F{$fila}", $producto['marca']);
+                foreach ($porcentajes as $i => $porcentaje) {
+                    $columna = Coordinate::stringFromColumnIndex(8 + $i);
+                    $factor = number_format($porcentaje / 100, 6, '.', '');
+                    $hoja->setCellValue("{$columna}{$fila}", "=ROUND(C{$fila}*(1-{$factor}),2)");
+                    $hoja->getStyle("{$columna}{$fila}")->getNumberFormat()->setFormatCode(self::MONEDA);
+                }
 
                 $hoja->getRowDimension($fila)
                     ->setRowHeight($conImagenes ? 96 : 32);
@@ -175,6 +274,43 @@ class ListaPreciosExport implements WithEvents, WithTitle
             }
 
             $ultimaFila = $fila - 1;
+            $this->texto($hoja, 'A4', ($grupo['config']['tipo'] ?? '') === 'unidades' ? 'Unidades válidas' : 'Subtotal sin IVA');
+            // Se ignoran cantidades vacías, texto, fracciones y negativos, igual que en el resumen.
+
+            $rangoCantidades =
+    "{$columnaAuxiliar}6:{$columnaAuxiliar}{$ultimaFila}";
+
+if (($grupo['config']['tipo'] ?? '') === 'unidades') {
+    // Suma las cantidades válidas de toda la subcategoría.
+    $hoja->setCellValue(
+        'B4',
+        "=SUM({$rangoCantidades})"
+    );
+} else {
+    // Suma precio antes de IVA × cantidad válida.
+    $hoja->setCellValue(
+        'B4',
+        "=SUMPRODUCT(C6:C{$ultimaFila},{$rangoCantidades})"
+    );
+}
+
+// La columna auxiliar no necesita ser visible.
+$hoja->getColumnDimension($columnaAuxiliar)
+    ->setVisible(false);
+            
+
+            $this->texto($hoja, 'C4', 'Descuento aplicado');
+            $formulaDescuento = '0';
+            foreach (array_reverse($grupo['config']['rangos'] ?? []) as $rango) {
+                $desde = number_format((float) $rango->desde, 2, '.', '');
+                $hasta = $rango->hasta === null ? null : number_format((float) $rango->hasta, 2, '.', '');
+                $porcentaje = number_format((float) $rango->porcentaje / 100, 6, '.', '');
+                $condicion = $hasta === null ? "B4>={$desde}" : "AND(B4>={$desde},B4<={$hasta})";
+                $formulaDescuento = "IF({$condicion},{$porcentaje},{$formulaDescuento})";
+            }
+            $hoja->setCellValue('D4', '='.$formulaDescuento);
+            $hoja->getStyle('D4')->getNumberFormat()->setFormatCode('0.00%');
+            $hoja->getStyle('B4')->getNumberFormat()->setFormatCode(($grupo['config']['tipo'] ?? '') === 'unidades' ? '0' : self::MONEDA);
 
             $hoja->getColumnDimension('A')->setWidth(20);
             $hoja->getColumnDimension('B')->setWidth(60);
@@ -201,13 +337,17 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 ->getStartColor()
                 ->setARGB('FFFFF2CC');
 
-            $this->estilo(
-                $hoja,
-                $ultimaColumna,
-                $ultimaFila
-            );
+$this->estilo(
+    $hoja,
+    $ultimaColumna,
+    $ultimaFila
+);
 
-            $this->protegerHoja($hoja, $ultimaFila);
+// Dar espacio para mostrar las escalas del encabezado.
+$hoja->getRowDimension(3)->setRowHeight(42);
+
+$this->protegerHoja($hoja, $ultimaFila);
+
 
         }
 
@@ -244,6 +384,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
             'Total',
             'Acumulado',
             'Orden seleccionado',
+            'Descuento',
         ], null, 'A1');
 
         foreach ($enlaces as $indice => $enlace) {
@@ -280,13 +421,15 @@ class ListaPreciosExport implements WithEvents, WithTitle
 
             $base->setCellValue(
                 "E{$fila}",
-                "={$hoja}!D{$origen}"
+                "=ROUND({$hoja}!D{$origen}*(1-{$hoja}!\$D\$4),2)"
             );
 
             $base->setCellValue(
                 "F{$fila}",
                 "=ROUND(D{$fila}*E{$fila},2)"
             );
+
+            $base->setCellValue("I{$fila}", "={$hoja}!\$D\$4");
 
             $anterior = $indice === 0 ? '0' : 'G' . ($fila - 1);
 
@@ -305,16 +448,16 @@ class ListaPreciosExport implements WithEvents, WithTitle
         $ultimaResumen = count($enlaces) + 5;
 
         $this->texto($resumen, 'A1', 'RESUMEN PEDIDO');
-        $resumen->mergeCells('A1:F1');
+        $resumen->mergeCells('A1:G1');
 
         $this->texto(
             $resumen,
             'A2',
             'Digite cantidades enteras en las hojas de cada categoría. '
-                . 'Este resumen no calcula descuentos ni flete.'
+                . 'Incluye descuentos configurados. El flete no está incluido.'
         );
 
-        $resumen->mergeCells('A2:F2');
+        $resumen->mergeCells('A2:G2');
 
         // No combinar la fila 3: allí están los totales.
         $this->texto($resumen, 'A3', 'Total unidades');
@@ -342,8 +485,9 @@ class ListaPreciosExport implements WithEvents, WithTitle
             'Referencia',
             'Descripción',
             'Cantidad',
-            'Precio más IVA',
+            'Precio con descuento e IVA',
             'Total',
+            'Descuento aplicado',
         ], null, 'A5');
 
         foreach ($enlaces as $indice => $enlace) {
@@ -354,13 +498,14 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 "MATCH({$orden},"
                 . "'_BASE_PEDIDO'!\$H\$2:\$H\${$ultimaBase},0)";
 
-            foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $columna) {
+            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $columna) {
+                $columnaBase = $columna === 'G' ? 'I' : $columna;
                 $resumen->setCellValue(
                     "{$columna}{$fila}",
                     "=IFERROR(INDEX("
                         . "'_BASE_PEDIDO'!"
-                        . "\${$columna}\$2:"
-                        . "\${$columna}\${$ultimaBase},"
+                        . "\${$columnaBase}\$2:"
+                        . "\${$columnaBase}\${$ultimaBase},"
                         . "{$coincidencia}),\"\")"
                 );
             }
@@ -374,6 +519,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
                 'D' => 14,
                 'E' => 20,
                 'F' => 22,
+                'G' => 22,
             ] as $columna => $ancho
         ) {
             $resumen->getColumnDimension($columna)
@@ -386,7 +532,8 @@ class ListaPreciosExport implements WithEvents, WithTitle
         $resumen->getStyle("E6:F{$ultimaResumen}")
             ->getNumberFormat()->setFormatCode(self::MONEDA);
 
-        $this->estilo($resumen, 'F', $ultimaResumen);
+        $resumen->getStyle("G6:G{$ultimaResumen}")->getNumberFormat()->setFormatCode('0.00%');
+        $this->estilo($resumen, 'G', $ultimaResumen);
         $resumen->getRowDimension(2)->setRowHeight(42);
     }
 
