@@ -38,11 +38,18 @@ return [
         'password' => env('BAGISTO_API_PASSWORD'),
     ],
 
+    // 'numrot' => [
+    //     'key' => env('NUMROT_KEY'),
+    //     'secret' => env('NUMROT_SECRET'),
+    //     'empresa_nit' => env('NUMROT_EMPRESA_NIT'),
+    //     'url' => env('NUMROT_URL'),
+    // ],
+
     'numrot' => [
-        'key' => env('NUMROT_KEY'),
-        'secret' => env('NUMROT_SECRET'),
-        'empresa_nit' => env('NUMROT_EMPRESA_NIT'),
         'url' => env('NUMROT_URL'),
+        'user' => env('NUMROT_USER'),
+        'password' => env('NUMROT_PASSWORD'),
+        'empresa_nit' => env('NUMROT_EMPRESA_NIT'),
     ],
 
     'auco' => [

@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Http;
 
 class FacturasController extends Controller
 {
-    public function cargarFacturasAsesor($codigo_asesor){
-        
+    public function cargarFacturasAsesor($codigo_asesor)
+    {
+
         $facturas = DB::connection('sqlsrv')
-        ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
+            ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
             ELSE 'CNC' end as prefijo_fe
@@ -61,10 +62,11 @@ class FacturasController extends Controller
         ], 200);
     }
 
-    public function cargarFacturasCliente($nit){
-        
+    public function cargarFacturasCliente($nit)
+    {
+
         $facturas = DB::connection('sqlsrv')
-        ->select("SELECT TOP (20) [f_id_tipo_docto] as prefijo
+            ->select("SELECT TOP (20) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
             ELSE 'CNC' end as prefijo_fe
@@ -113,44 +115,139 @@ class FacturasController extends Controller
         ], 200);
     }
 
+    use Illuminate\Support\Facades\Http;
+    use Illuminate\Support\Facades\Log;
+
     public function consultarFactura($prefijo, $consecutivo)
     {
+        try {
 
+            $url = rtrim(config('services.numrot.url'), '/');
 
-        if($prefijo == 'CNC'){
+            // 1. AUTENTICACIÓN NUMROT
+            $authResponse = Http::acceptJson()
+                ->timeout(30)
+                ->post($url . '/Auth/GetToken', [
+                    'User' => config('services.numrot.user'),
+                    'Password' => config('services.numrot.password'),
+                ]);
+
+            if (!$authResponse->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al autenticar con Numrot',
+                    'status' => $authResponse->status(),
+                ], 502);
+            }
+
+            $authData = $authResponse->json();
+
+            // Ajustar según la estructura real de respuesta de Numrot
+            $token = data_get($authData, 'Token')
+                ?? data_get($authData, 'token')
+                ?? data_get($authData, 'access_token')
+                ?? data_get($authData, 'AccessToken')
+                ?? data_get($authData, 'Data.Token');
+
+            if (!$token || !is_string($token)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró el token en la respuesta de Numrot',
+                ], 502);
+            }
+
+            // 2. CONFIGURAR FILTROS
+            $esNota = strtoupper(trim($prefijo)) === 'CNC';
+
             $body = [
-                "Key" => "12177dc3ec45485eada8014a6d1d32ca",
-                "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
-                "Filters" => [
-                    "DocumentoTipoEstandar" => "nota",
-                    "EmpresaNit" => "9013683375",
-                    "DocumentoNumeroCompleto" => $consecutivo,
-                ]
-            ];
-        }else{
-            $body = [
-                "Key" => "12177dc3ec45485eada8014a6d1d32ca",
-                "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
-                "Filters" => [
-                    "DocumentoTipoEstandar" => "facturadeventa",
-                    "EmpresaNit" => "9013683375",
-                    "DocumentoNumeroCompleto" => $prefijo.$consecutivo,
-                ]
+                'Filters' => [
+                    'DocumentoTipoEstandar' => $esNota
+                        ? 'nota'
+                        : 'facturadeventa',
+
+                    'EmpresaNit' => config('services.numrot.empresa_nit'),
+
+                    'DocumentoNumeroCompleto' => $esNota
+                        ? (string) $consecutivo
+                        : $prefijo . $consecutivo,
+                ],
             ];
 
+            // 3. CONSULTAR FACTURA CON TOKEN
+            $response = Http::acceptJson()
+                ->withToken($token)
+                ->timeout(30)
+                ->post($url . '/Documents/Find', $body);
+
+            if (!$response->successful()) {
+                Log::warning('Error consultando factura Numrot', [
+                    'prefijo' => $prefijo,
+                    'consecutivo' => $consecutivo,
+                    'status' => $response->status(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error consultando documento en Numrot',
+                    'status' => $response->status(),
+                    'detalle' => $response->json(),
+                ], 502);
+            }
+
+            // 4. DEVOLVER RESPUESTA ORIGINAL
+            return response()->json($response->json());
+        } catch (\Throwable $e) {
+
+            Log::error('Error integración Numrot', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible consultar la factura',
+            ], 500);
         }
-
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post('https://www.numrot.net/NRWApi/api/Documents/Find', $body);
-
-        return response()->json($response->json());
     }
 
-    public function cargarFacturasFechaCliente($codigo_asesor,$nit, $desde, $hasta){
-        
+    // public function consultarFactura($prefijo, $consecutivo)
+    // {
+
+
+    //     if($prefijo == 'CNC'){
+    //         $body = [
+    //             "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+    //             "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+    //             "Filters" => [
+    //                 "DocumentoTipoEstandar" => "nota",
+    //                 "EmpresaNit" => "9013683375",
+    //                 "DocumentoNumeroCompleto" => $consecutivo,
+    //             ]
+    //         ];
+    //     }else{
+    //         $body = [
+    //             "Key" => "12177dc3ec45485eada8014a6d1d32ca",
+    //             "Secret" => "0abcfb0be01c27edc595ad962c1af3d4",
+    //             "Filters" => [
+    //                 "DocumentoTipoEstandar" => "facturadeventa",
+    //                 "EmpresaNit" => "9013683375",
+    //                 "DocumentoNumeroCompleto" => $prefijo.$consecutivo,
+    //             ]
+    //         ];
+
+    //     }
+
+    //     $response = Http::withHeaders([
+    //         'Content-Type' => 'application/json',
+    //     ])->post('https://www.numrot.net/NRWApi/api/Documents/Find', $body);
+
+    //     return response()->json($response->json());
+    // }
+
+    public function cargarFacturasFechaCliente($codigo_asesor, $nit, $desde, $hasta)
+    {
+
         $facturas = DB::connection('sqlsrv')
-        ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
+            ->select("SELECT TOP (100) [f_id_tipo_docto] as prefijo
             ,CASE 
                 WHEN [f_id_tipo_docto]  = 'FVM' THEN 'FEDQ'
             ELSE 'CNC' end as prefijo_fe
@@ -202,5 +299,4 @@ class FacturasController extends Controller
             'mensaje' => 'Se retornan los pedidos que no llegaron a Siesa pero se crearon en la app',
         ], 200);
     }
-
 }
