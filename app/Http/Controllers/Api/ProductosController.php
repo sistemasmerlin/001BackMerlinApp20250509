@@ -359,6 +359,32 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'FORERUNNER' THEN 'Cuatrimoto'
                 ELSE 'n/a'END AS categoria_excel
                 ,rtrim(t106.f106_descripcion) AS marca_excel
+                ,CASE 
+                    WHEN rtrim(t106.f106_descripcion) = 'HAKUBA - ARMOR - WDT' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WORCRAFT - RINOVA ATV' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WDT' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA TIRES' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA MOVILIDAD' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST MOVILIDAD' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA PARTS' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'NARVA' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA - GOOD TUBE' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'PFI' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'PIRELLI' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'PIRELLI RADIAL' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'BATERIAS RINOVA' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA LIGHTING' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST TIRES' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST E-SCOOTER' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'CST ATV' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WDT E-SCOOTER' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WDT BIKE' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'WDT TUBE' THEN 'Llantas'
+                    WHEN rtrim(t106.f106_descripcion) = 'RINOVA LIGHTING LED' THEN 'Repuestos'
+                    WHEN rtrim(t106.f106_descripcion) = 'FORERUNNER' THEN 'Llantas'
+                ELSE 'n/a'END AS categoria_empaque
                 ,rtrim(t120.f120_notas) notas
                 ,CASE
                     WHEN DATEDIFF(DAY, f120_fecha_creacion, GETDATE()) <= 30 THEN 'Si'
