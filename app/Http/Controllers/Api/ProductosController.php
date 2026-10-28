@@ -336,7 +336,7 @@ class ProductosController extends Controller
                     WHEN rtrim(t106.f106_descripcion) = 'HAKUBA - ARMOR - WDT' THEN 'Cuatrimoto'
                     WHEN rtrim(t106.f106_descripcion) = 'WORCRAFT - RINOVA ATV' THEN 'Cuatrimoto'
                     WHEN rtrim(t106.f106_descripcion) = 'WDT' THEN 'Cuatrimoto'
-                    WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'PFI - Koyo'
+                    WHEN rtrim(t106.f106_descripcion) = 'KOYO' THEN 'PFI-Koyo'
                     WHEN rtrim(t106.f106_descripcion) = 'RNV' THEN 'RNV'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA TIRES' THEN 'Rinova Tires'
                     WHEN rtrim(t106.f106_descripcion) = 'RINOVA MOVILIDAD' THEN 'Mov alternativa'
