@@ -118,13 +118,17 @@ class FacturasController extends Controller
     }
 
 
-public function consultarFactura($prefijo, $consecutivo)
+
+    
+
+
+    public function consultarFactura($prefijo, $consecutivo)
 {
     try {
 
         $url = rtrim(config('services.numrot.url'), '/');
 
-        // Obtener JWT desde caché o autenticar
+        // Obtener token de Numrot
         $obtenerToken = function () use ($url) {
 
             $response = Http::acceptJson()
@@ -136,41 +140,40 @@ public function consultarFactura($prefijo, $consecutivo)
 
             if (!$response->successful()) {
                 throw new \RuntimeException(
-                    'Error autenticando Numrot: HTTP ' . $response->status()
+                    'Error autenticando Numrot. HTTP ' . $response->status()
                 );
             }
 
-            $data = $response->json();
+            // Numrot devuelve el JWT directamente como texto
+            $token = trim($response->body(), " \t\n\r\0\x0B\"");
 
-            $token = data_get($data, 'token')
-                ?? data_get($data, 'Token')
-                ?? data_get($data, 'access_token')
-                ?? data_get($data, 'data.token')
-                ?? data_get($data, 'data.accessToken');
-
-            if (!is_string($token) || $token === '') {
+            if (
+                empty($token) ||
+                count(explode('.', $token)) !== 3
+            ) {
                 throw new \RuntimeException(
-                    'No se encontró el token de Numrot'
+                    'Numrot devolvió un token JWT inválido'
                 );
             }
 
             return $token;
         };
 
+        // Guardar token en caché por 20 minutos
         $token = Cache::remember(
             'numrot_jwt_token',
             now()->addMinutes(20),
             $obtenerToken
         );
 
-        // Mantener regla de notas crédito
+        // Identificar tipo de documento
         $esNota = strtoupper(trim($prefijo)) === 'CNC';
 
         $numeroDocumento = $esNota
             ? (string) $consecutivo
             : $prefijo . $consecutivo;
 
-        // EXACTAMENTE el body probado en Postman
+        // Body comprobado en Postman
         $body = [
             'filters' => [
                 'DocumentoTipoEstandar' => $esNota
@@ -189,7 +192,7 @@ public function consultarFactura($prefijo, $consecutivo)
 
         $response = $consultar($token);
 
-        // Renovar el token automáticamente cuando expire
+        // Renovar automáticamente si el token expiró
         if ($response->status() === 401) {
 
             Cache::forget('numrot_jwt_token');
@@ -207,7 +210,7 @@ public function consultarFactura($prefijo, $consecutivo)
 
         if (!$response->successful()) {
 
-            Log::warning('Error consultando factura Numrot', [
+            Log::warning('Error consultando Numrot', [
                 'documento' => $numeroDocumento,
                 'status' => $response->status(),
             ]);
@@ -220,13 +223,13 @@ public function consultarFactura($prefijo, $consecutivo)
             ], 502);
         }
 
-        // Respuesta original de Numrot
+        // Devolver respuesta original a Ionic
         return response()->json($response->json());
 
     } catch (\Throwable $e) {
 
         Log::error('Error integración Numrot', [
-            'message' => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
 
         return response()->json([
@@ -236,6 +239,123 @@ public function consultarFactura($prefijo, $consecutivo)
     }
 }
 
+
+public function consultarFactura($prefijo, $consecutivo)
+{
+    try {
+
+        $url = rtrim(config('services.numrot.url'), '/');
+
+        // Obtener token de Numrot
+        $obtenerToken = function () use ($url) {
+
+            $response = Http::acceptJson()
+                ->timeout(30)
+                ->post($url . '/Auth/GetToken', [
+                    'User' => config('services.numrot.user'),
+                    'Password' => config('services.numrot.password'),
+                ]);
+
+            if (!$response->successful()) {
+                throw new \RuntimeException(
+                    'Error autenticando Numrot. HTTP ' . $response->status()
+                );
+            }
+
+            // Numrot devuelve el JWT directamente como texto
+            $token = trim($response->body(), " \t\n\r\0\x0B\"");
+
+            if (
+                empty($token) ||
+                count(explode('.', $token)) !== 3
+            ) {
+                throw new \RuntimeException(
+                    'Numrot devolvió un token JWT inválido'
+                );
+            }
+
+            return $token;
+        };
+
+        // Guardar token en caché por 20 minutos
+        $token = Cache::remember(
+            'numrot_jwt_token',
+            now()->addMinutes(20),
+            $obtenerToken
+        );
+
+        // Identificar tipo de documento
+        $esNota = strtoupper(trim($prefijo)) === 'CNC';
+
+        $numeroDocumento = $esNota
+            ? (string) $consecutivo
+            : $prefijo . $consecutivo;
+
+        // Body comprobado en Postman
+        $body = [
+            'filters' => [
+                'DocumentoTipoEstandar' => $esNota
+                    ? 'nota'
+                    : 'facturadeventa',
+
+                'DocumentoNumeroCompleto' => $numeroDocumento,
+            ],
+        ];
+
+        // Consultar factura con Bearer Token
+        $consultar = fn ($jwt) => Http::acceptJson()
+            ->withToken($jwt)
+            ->timeout(30)
+            ->post($url . '/Documents/Find', $body);
+
+        $response = $consultar($token);
+
+        // Renovar automáticamente si el token expiró
+        if ($response->status() === 401) {
+
+            Cache::forget('numrot_jwt_token');
+
+            $token = $obtenerToken();
+
+            Cache::put(
+                'numrot_jwt_token',
+                $token,
+                now()->addMinutes(20)
+            );
+
+            $response = $consultar($token);
+        }
+
+        if (!$response->successful()) {
+
+            Log::warning('Error consultando Numrot', [
+                'documento' => $numeroDocumento,
+                'status' => $response->status(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error consultando factura en Numrot',
+                'status' => $response->status(),
+                'detalle' => $response->json(),
+            ], 502);
+        }
+
+        // Devolver respuesta original a Ionic
+        return response()->json($response->json());
+
+    } catch (\Throwable $e) {
+
+        Log::error('Error integración Numrot', [
+            'error' => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No fue posible consultar la factura',
+        ], 500);
+    }
+}
 
 
     // public function consultarFactura($prefijo, $consecutivo)
