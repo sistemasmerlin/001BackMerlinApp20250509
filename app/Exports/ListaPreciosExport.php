@@ -19,6 +19,8 @@ use PhpOffice\PhpSpreadsheet\Style\Protection;
 
 class ListaPreciosExport implements WithEvents, WithTitle
 {
+    private const FACTOR_IVA = 1.19;
+
     private const MONEDA = '"$" #,##0.00';
 
     public function __construct(
@@ -187,7 +189,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
                         . 'Esta hoja no tiene descuentos configurados.';
                 }
 
-$this->texto($hoja, 'A3', $textoEncabezado);
+$this->texto($hoja, 'A3', 'Precios con IVA incluido (19 %). ' . $textoEncabezado);
 
 
             foreach ([1, 2, 3] as $fila) {
@@ -197,8 +199,8 @@ $this->texto($hoja, 'A3', $textoEncabezado);
             $encabezados = [
                 'Referencia',
                 'Descripción',
-                'Precio',
-                'Precio más IVA',
+                'Precio base sin IVA',
+                'Precio IVA incluido',
                 'Cantidad',
                 'Marca',
             ];
@@ -210,7 +212,7 @@ $this->texto($hoja, 'A3', $textoEncabezado);
             $hoja->fromArray($encabezados, null, 'A5');
             foreach ($porcentajes as $i => $porcentaje) {
                 $columna = Coordinate::stringFromColumnIndex(8 + $i);
-                $this->texto($hoja, $columna.'5', 'Precio sin IVA - '.rtrim(rtrim(number_format($porcentaje, 2, '.', ''), '0'), '.').'%');
+                $this->texto($hoja, $columna.'5', 'IVA incluido · Dto. '.rtrim(rtrim(number_format($porcentaje, 2, '.', ''), '0'), '.').'%');
                 $hoja->getColumnDimension($columna)->setWidth(22);
             }
 
@@ -229,7 +231,10 @@ $this->texto($hoja, 'A3', $textoEncabezado);
                 );
 
                 $hoja->setCellValue("C{$fila}", $producto['precio']);
-                $hoja->setCellValue("D{$fila}", $producto['precio_iva']);
+                $hoja->setCellValue(
+                    "D{$fila}",
+                    round((float) $producto['precio'] * self::FACTOR_IVA, 2)
+                );
                 $hoja->setCellValue("E{$fila}", 0);
 
                 $hoja->setCellValue(
@@ -245,7 +250,7 @@ $this->texto($hoja, 'A3', $textoEncabezado);
                 foreach ($porcentajes as $i => $porcentaje) {
                     $columna = Coordinate::stringFromColumnIndex(8 + $i);
                     $factor = number_format($porcentaje / 100, 6, '.', '');
-                    $hoja->setCellValue("{$columna}{$fila}", "=ROUND(C{$fila}*(1-{$factor}),2)");
+                    $hoja->setCellValue("{$columna}{$fila}", "=ROUND(D{$fila}*(1-{$factor}),2)");
                     $hoja->getStyle("{$columna}{$fila}")->getNumberFormat()->setFormatCode(self::MONEDA);
                 }
 
@@ -299,7 +304,7 @@ $hoja->getColumnDimension($columnaAuxiliar)
     ->setVisible(false);
             
 
-            $this->texto($hoja, 'C4', 'Descuento aplicado');
+            $this->texto($hoja, 'E4', 'Descuento');
             $formulaDescuento = '0';
             foreach (array_reverse($grupo['config']['rangos'] ?? []) as $rango) {
                 $desde = number_format((float) $rango->desde, 2, '.', '');
@@ -314,7 +319,7 @@ $hoja->getColumnDimension($columnaAuxiliar)
 
             $hoja->getColumnDimension('A')->setWidth(20);
             $hoja->getColumnDimension('B')->setWidth(60);
-            $hoja->getColumnDimension('C')->setWidth(18);
+            $hoja->getColumnDimension('C')->setVisible(false);
             $hoja->getColumnDimension('D')->setWidth(20);
             $hoja->getColumnDimension('E')->setWidth(12);
             $hoja->getColumnDimension('F')->setWidth(24);
@@ -344,7 +349,7 @@ $this->estilo(
 );
 
 // Dar espacio para mostrar las escalas del encabezado.
-$hoja->getRowDimension(3)->setRowHeight(42);
+$hoja->getRowDimension(3)->setRowHeight(52);
 
 $this->protegerHoja($hoja, $ultimaFila);
 
@@ -380,8 +385,8 @@ $this->protegerHoja($hoja, $ultimaFila);
             'Referencia',
             'Descripción',
             'Cantidad',
-            'Precio más IVA',
-            'Total',
+            'Precio IVA incluido',
+            'Total IVA incluido',
             'Acumulado',
             'Orden seleccionado',
             'Descuento',
@@ -454,7 +459,7 @@ $this->protegerHoja($hoja, $ultimaFila);
             $resumen,
             'A2',
             'Digite cantidades enteras en las hojas de cada categoría. '
-                . 'Incluye descuentos configurados. El flete no está incluido.'
+                . 'Precios con IVA incluido (19 %). Incluye descuentos configurados. El flete no está incluido.'
         );
 
         $resumen->mergeCells('A2:G2');
@@ -467,7 +472,7 @@ $this->protegerHoja($hoja, $ultimaFila);
             "=SUM('_BASE_PEDIDO'!D2:D{$ultimaBase})"
         );
 
-        $this->texto($resumen, 'E3', 'Total pedido');
+        $this->texto($resumen, 'E3', 'Total pedido · IVA incluido');
 
         $resumen->setCellValue(
             'F3',
@@ -485,8 +490,8 @@ $this->protegerHoja($hoja, $ultimaFila);
             'Referencia',
             'Descripción',
             'Cantidad',
-            'Precio con descuento e IVA',
-            'Total',
+            'Precio con descuento · IVA incluido',
+            'Total IVA incluido',
             'Descuento aplicado',
         ], null, 'A5');
 
