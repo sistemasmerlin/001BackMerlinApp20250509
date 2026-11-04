@@ -189,7 +189,7 @@ class ListaPreciosExport implements WithEvents, WithTitle
                         . 'Esta hoja no tiene descuentos configurados.';
                 }
 
-$this->texto($hoja, 'A3', 'Precios con IVA incluido (19 %). ' . $textoEncabezado);
+$this->texto($hoja, 'A3', 'Precios base sin IVA; precios finales y descuentos con IVA incluido (19 %). ' . $textoEncabezado);
 
 
             foreach ([1, 2, 3] as $fila) {
@@ -304,7 +304,7 @@ $hoja->getColumnDimension($columnaAuxiliar)
     ->setVisible(false);
             
 
-            $this->texto($hoja, 'E4', 'Descuento');
+            $this->texto($hoja, 'C4', 'Descuento aplicado');
             $formulaDescuento = '0';
             foreach (array_reverse($grupo['config']['rangos'] ?? []) as $rango) {
                 $desde = number_format((float) $rango->desde, 2, '.', '');
@@ -319,7 +319,7 @@ $hoja->getColumnDimension($columnaAuxiliar)
 
             $hoja->getColumnDimension('A')->setWidth(20);
             $hoja->getColumnDimension('B')->setWidth(60);
-            $hoja->getColumnDimension('C')->setVisible(false);
+            $hoja->getColumnDimension('C')->setWidth(20);
             $hoja->getColumnDimension('D')->setWidth(20);
             $hoja->getColumnDimension('E')->setWidth(12);
             $hoja->getColumnDimension('F')->setWidth(24);
