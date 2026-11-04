@@ -76,4 +76,17 @@ class BackorderController extends Controller
         ], 200);
     }
 
+
+    public function eliminar(Backorder $backorder)
+    {
+        Backorder::whereKey($backorder->getKey())
+            ->toBase()
+            ->update(['estado' => 0]);
+
+        return response()->json([
+            'estado' => 'success',
+            'mensaje' => 'Backorder eliminado correctamente.',
+        ]);
+    }
+
 }

@@ -46,6 +46,8 @@ Route::middleware('auth:sanctum')->get('/backorders/{codigo_asesor}', [Backorder
 
 Route::middleware('auth:sanctum')->post('/backorders/crear/pedido', [BackorderController::class, 'crearPedido']);
 
+Route::middleware('auth:sanctum')->patch('/backorders/{backorder}/eliminar',[BackorderController::class, 'eliminar']);
+
 Route::middleware('auth:sanctum')->get('/pedidos/error/{codigo_asesor}', [PedidoController::class, 'pedidosConError']);
 
 Route::middleware('auth:sanctum')->get('/pedidos/erp/{codigo_asesor}', [PedidoController::class, 'pedidosErp']);
