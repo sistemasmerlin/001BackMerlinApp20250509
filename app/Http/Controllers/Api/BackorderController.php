@@ -22,9 +22,14 @@ class BackorderController extends Controller
             ->whereHas('detalles', function ($q) {
                 $q->where('cantidad', '>', 0);
             })
+            ->where(function ($query) {
+            $query->where('estado_backorder', '<>', 'eliminado')
+                    ->orWhereNull('estado_backorder');
+            })
             ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->orderBy('id', 'desc')
             ->get();
+
 
 
             return response()->json([
