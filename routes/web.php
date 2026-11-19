@@ -50,7 +50,7 @@ use App\Livewire\Admin\Meli\EventosIndex;
 use App\Livewire\Admin\ImagenesProductos\Index as ImagenesProductosIndex;
 use App\Http\Controllers\Admin\ProductosController;
 use App\Livewire\Admin\ProductosEmpaques\Index as ProductosEmpaquesIndex;
-
+use App\Livewire\Admin\Rutero\Asignaciones as RuteroAsignaciones;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -234,5 +234,9 @@ Route::get('/fletes/unidades-por-empaque', ProductosEmpaquesIndex::class)
         'can:Administrar fletes',
     ])
     ->name('fletes.empaques.index');
+
+    Route::get('/admin/rutero/asignaciones', RuteroAsignaciones::class)
+    ->middleware(['auth', 'can:rutero.asignar-asesores'])
+    ->name('rutero.asignaciones');
 
 require __DIR__ . '/auth.php';

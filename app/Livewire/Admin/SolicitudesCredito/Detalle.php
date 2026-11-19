@@ -748,6 +748,35 @@ public function subirDocumento($tipoDocumentoId): void
         return count($this->pendientesParaAprobacion) === 0;
     }
 
+
+    public function pasarARecibido(): void
+{
+    // Solo permite la transición desde radicada.
+    $actualizada = SolicitudCredito::whereKey($this->solicitud->id)
+        ->whereRaw('LOWER(TRIM(estado)) = ?', ['radicada'])
+        ->update([
+            'estado' => 'recibido',
+            'updated_at' => now(),
+        ]);
+
+    $this->solicitud->refresh();
+    $this->cargarDatos();
+
+    if (!$actualizada) {
+        session()->flash(
+            'error',
+            'Solo se pueden pasar a recibido las solicitudes en estado radicada.'
+        );
+
+        return;
+    }
+
+    session()->flash(
+        'success',
+        'Solicitud cambiada de radicada a recibido correctamente.'
+    );
+}
+
     public function guardarComentario(): void
     {
         $this->validate([

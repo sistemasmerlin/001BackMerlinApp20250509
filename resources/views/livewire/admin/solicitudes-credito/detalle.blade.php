@@ -79,7 +79,16 @@
                 @endphp
 
                 <div class="mt-2">
-                    @if ($estadoActual === 'en_revision' || $estadoActual === 'recibido')
+                    @if ($estadoActual === 'radicada')
+    <button type="button"
+        onclick="confirm('¿Pasar esta solicitud a recibido? Este cambio no reenvía el documento a AUCO.') || event.stopImmediatePropagation()"
+        wire:click="pasarARecibido"
+        wire:loading.attr="disabled"
+        wire:target="pasarARecibido"
+        class="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50">
+        Pasar a recibido
+    </button>
+@elseif ($estadoActual === 'en_revision' || $estadoActual === 'recibido')
                         <button type="button"
                             onclick="confirm('¿Seguro que deseas pasar esta solicitud a pendiente?') || event.stopImmediatePropagation()"
                             wire:click="pasarAPendiente"
@@ -129,6 +138,7 @@
         'referencias' => 'Referencias',
         'direcciones' => 'Direcciones',
         'centrales' => 'Centrales de riesgo',
+        'auco' => 'Estado AUCO',
     ] as $key => $label)
                     <button type="button" @click="tab = '{{ $key }}'"
                         class="rounded-full px-4 py-2 text-xs font-bold"
@@ -469,6 +479,106 @@
                     @endif
                 </div>
             </div>
+
+            <div x-show="tab === 'auco'" x-cloak
+    class="rounded-2xl bg-white shadow-sm">
+
+    @php
+        $estadoAuco = trim((string) ($solicitud->auco_status ?? ''));
+
+        $etiquetaAuco = match ($estadoAuco) {
+            '' => 'Sin estado registrado',
+            'enviado_a_firma' => 'Enviado a firma',
+            'error_envio' => 'Error de envío',
+            default => ucfirst(str_replace('_', ' ', $estadoAuco)),
+        };
+
+        $colorAuco = match ($estadoAuco) {
+            'error_envio' => 'bg-red-100 text-red-700',
+            'enviado_a_firma' => 'bg-blue-100 text-blue-700',
+            default => 'bg-gray-100 text-gray-700',
+        };
+
+        $respuestaAuco = $solicitud->auco_response;
+
+        if (is_string($respuestaAuco)) {
+            $respuestaDecodificada = json_decode($respuestaAuco, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $respuestaAuco = $respuestaDecodificada;
+            }
+        }
+
+        $respuestaFormateada = is_array($respuestaAuco)
+            || is_object($respuestaAuco)
+                ? json_encode(
+                    $respuestaAuco,
+                    JSON_PRETTY_PRINT
+                        | JSON_UNESCAPED_UNICODE
+                        | JSON_UNESCAPED_SLASHES
+                        | JSON_INVALID_UTF8_SUBSTITUTE
+                )
+                : (string) $respuestaAuco;
+
+        $datosAuco = [
+            'Estado de la solicitud' => $solicitud->estado,
+            'Código AUCO' => $solicitud->auco_code,
+            'Paquete AUCO' => $solicitud->auco_package,
+            'Documento enviado' => $solicitud->pdf_unificado_nombre,
+        ];
+    @endphp
+
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+        <h3 class="text-sm font-bold text-gray-800">
+            Información de AUCO
+        </h3>
+
+        <span class="rounded-full px-3 py-1 text-xs font-bold {{ $colorAuco }}">
+            {{ $etiquetaAuco }}
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2">
+        @foreach ($datosAuco as $etiqueta => $valor)
+            <div class="border-b border-gray-100 px-5 py-3">
+                <p class="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                    {{ $etiqueta }}
+                </p>
+
+                <p class="mt-1 break-all text-sm font-semibold text-gray-800">
+                    {{ $valor ?: '—' }}
+                </p>
+            </div>
+        @endforeach
+    </div>
+
+    <div class="p-5">
+        @if ($estadoAuco === 'error_envio')
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                El envío a firma presentó un error.
+                Revise el detalle de la respuesta almacenada.
+            </div>
+        @endif
+
+        <h4 class="text-sm font-bold text-gray-800">
+            Respuesta almacenada de AUCO
+        </h4>
+
+        @if (filled($respuestaFormateada))
+            <pre class="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700">{{ $respuestaFormateada }}</pre>
+        @else
+            <p class="mt-3 text-sm text-gray-400">
+                No hay una respuesta de AUCO registrada.
+            </p>
+        @endif
+
+        <p class="mt-4 text-xs text-gray-500">
+            Esta información corresponde al último registro guardado.
+            No consulta AUCO en tiempo real.
+        </p>
+    </div>
+</div>
+
             <div x-show="tab === 'direcciones'" class="rounded-2xl bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-3">
                     <h3 class="text-sm font-bold text-gray-800">
