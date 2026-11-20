@@ -811,7 +811,7 @@ public function enviarAAuco(): void
 
         if (!in_array(
             strtolower(trim($solicitud->estado ?? '')),
-            ['radicada', 'recibido'],
+            ['radicada', 'recibido', 'pendiente'],
             true
         )) {
             session()->flash(
