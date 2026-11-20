@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SolicitudCreditoReferencia;
 use App\Models\FleteCiudad;
 use App\Models\SolicitudCreditoComentario;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 
 class Detalle extends Component
 {
@@ -775,6 +778,252 @@ public function subirDocumento($tipoDocumentoId): void
         'success',
         'Solicitud cambiada de radicada a recibido correctamente.'
     );
+}
+
+public function enviarAAuco(): void
+{
+    $lock = Cache::lock(
+        'solicitud-credito-envio-auco-' . $this->solicitud->id,
+        120
+    );
+
+    if (!$lock->get()) {
+        session()->flash('error', 'Esta solicitud ya se está enviando a AUCO.');
+        return;
+    }
+
+    try {
+        $this->solicitud->refresh();
+        $solicitud = $this->solicitud;
+
+        // Evitar reenviar solicitudes que ya tienen un envío registrado.
+        if (
+            filled($solicitud->auco_code)
+            || filled($solicitud->auco_package)
+            || $solicitud->auco_status === 'enviado_a_firma'
+        ) {
+            session()->flash(
+                'error',
+                'La solicitud ya tiene un envío registrado en AUCO.'
+            );
+            return;
+        }
+
+        if (!in_array(
+            strtolower(trim($solicitud->estado ?? '')),
+            ['radicada', 'recibido'],
+            true
+        )) {
+            session()->flash(
+                'error',
+                'Solo puede enviar solicitudes radicadas o recibidas.'
+            );
+            return;
+        }
+
+        $firmantes = [
+            [
+                'type' => 'firmante1',
+                'name' => $solicitud->representante_legal,
+                'email' => $solicitud->correo_electronico
+                    ?: $solicitud->autorizacion_correo,
+                'identification' => $solicitud->identificacion_representante,
+                'phone' => $solicitud->celular
+                    ?: $solicitud->telefono_fijo,
+            ],
+            [
+                'type' => 'firmante2',
+                'name' => $solicitud->nombre_asesor,
+                'email' => $solicitud->email_asesor,
+                'identification' => $solicitud->cedula_asesor,
+                'phone' => $solicitud->celular_asesor,
+            ],
+        ];
+
+        $validator = Validator::make(
+            ['firmantes' => $firmantes],
+            [
+                'firmantes.*.name' => 'required|string',
+                'firmantes.*.email' => 'required|email',
+                'firmantes.*.identification' => 'required',
+                'firmantes.*.phone' => 'required',
+            ],
+            [
+                'required' => 'Falta el dato :attribute.',
+                'email' => 'El correo :attribute no es válido.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            session()->flash('error', $validator->errors()->first());
+            return;
+        }
+
+        $disk = $solicitud->pdf_unificado_disk ?: 'public';
+        $path = $solicitud->pdf_unificado_path;
+
+        if (!$path || !Storage::disk($disk)->exists($path)) {
+            session()->flash(
+                'error',
+                'No se encontró el PDF unificado de esta solicitud.'
+            );
+            return;
+        }
+
+        $baseUrl = trim((string) config('services.auco.base_url'));
+        $privateKey = config('services.auco.private_key');
+        $ownerEmail = config('services.auco.owner_email');
+
+        if (!$baseUrl || !$privateKey || !$ownerEmail) {
+            session()->flash(
+                'error',
+                'Falta configurar la URL, la clave o el correo de AUCO.'
+            );
+            return;
+        }
+
+        $perfiles = [];
+        $lectores = [];
+
+        foreach ($firmantes as $firmante) {
+            $telefono = preg_replace('/\D+/', '', $firmante['phone']);
+
+            if (strlen($telefono) === 10) {
+                $telefono = '57' . $telefono;
+            }
+
+            $perfiles[] = [
+                'type' => $firmante['type'],
+                'name' => $firmante['name'],
+                'email' => $firmante['email'],
+                'camera' => true,
+                'otpCode' => true,
+                'identification' => (string) $firmante['identification'],
+                'identificationType' => 'CC',
+                'country' => 'CO',
+                'options' => [
+                    'camera' => 'identification',
+                    'whatsapp' => true,
+                    'otpCode' => 'email',
+                    'identificationCardBack' => true,
+                    'flow' => true,
+                ],
+                'phone' => '+' . $telefono,
+            ];
+
+            $lectores[] = [
+                'email' => $firmante['email'],
+                'name' => $firmante['name'],
+            ];
+        }
+
+        $lectores[] = [
+            'email' => $ownerEmail,
+            'name' => 'Cartera Merlin',
+        ];
+
+        $payload = [
+            'name' => 'Solicitud de crédito - '
+                . ($solicitud->razon_social ?: 'Cliente'),
+            'subject' => 'Firma solicitud de crédito',
+            'message' => 'Por favor revisa y firma el documento adjunto.',
+            'remember' => 3,
+            'email' => $ownerEmail,
+            'signProfile' => $perfiles,
+            'readers' => $lectores,
+        ];
+
+        // Compatible también si aún no ha creado auco_payload.
+        if ($solicitud->getConnection()->getSchemaBuilder()->hasColumn(
+            $solicitud->getTable(),
+            'auco_payload'
+        )) {
+            $solicitud->auco_payload = $payload;
+            $solicitud->save();
+        }
+
+        $payload['file'] = base64_encode(
+            Storage::disk($disk)->get($path)
+        );
+
+        // Sin reintentos automáticos para evitar duplicar documentos.
+        $response = Http::withHeaders([
+            'Authorization' => $privateKey,
+            'Accept' => 'application/json',
+        ])
+            ->connectTimeout(15)
+            ->timeout(60)
+            ->post(rtrim($baseUrl, '/') . '/document/upload', $payload);
+
+        if (!$response->successful()) {
+            $solicitud->update([
+                'auco_status' => 'error_envio',
+                'auco_response' => [
+                    'status' => $response->status(),
+                    'body' => $response->json() ?: $response->body(),
+                ],
+            ]);
+
+            session()->flash(
+                'error',
+                'AUCO rechazó el envío. Revise la respuesta en la pestaña AUCO.'
+            );
+            return;
+        }
+
+        $respuesta = $response->json();
+
+        if (!is_array($respuesta) || empty($respuesta['code'])) {
+            $solicitud->update([
+                'auco_status' => 'envio_por_verificar',
+                'auco_response' => [
+                    'status' => $response->status(),
+                    'body' => $respuesta ?: $response->body(),
+                ],
+            ]);
+
+            session()->flash(
+                'error',
+                'AUCO respondió sin código de documento. Verifique en AUCO antes de reenviar.'
+            );
+            return;
+        }
+
+        $solicitud->update([
+            'auco_code' => $respuesta['code'],
+            'auco_package' => $respuesta['package'] ?? null,
+            'auco_status' => 'enviado_a_firma',
+            'auco_response' => $respuesta,
+            'estado' => 'recibido',
+        ]);
+
+        session()->flash(
+            'success',
+            'Solicitud enviada a firma en AUCO correctamente.'
+        );
+    } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        $this->solicitud->update([
+            'auco_status' => 'envio_por_verificar',
+            'auco_response' => [
+                'exception' => $e->getMessage(),
+            ],
+        ]);
+
+        session()->flash(
+            'error',
+            'No se pudo confirmar la respuesta. Verifique en AUCO si recibió el documento antes de reenviar.'
+        );
+    } catch (\Throwable $e) {
+        report($e);
+
+        session()->flash(
+            'error',
+            'No fue posible completar el proceso. Revise el registro de Laravel y el estado del documento en AUCO.'
+        );
+    } finally {
+        $lock->release();
+        $this->solicitud->refresh();
+    }
 }
 
     public function guardarComentario(): void
