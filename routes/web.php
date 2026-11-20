@@ -236,7 +236,7 @@ Route::get('/fletes/unidades-por-empaque', ProductosEmpaquesIndex::class)
     ->name('fletes.empaques.index');
 
     Route::get('/admin/rutero/asignaciones', RuteroAsignaciones::class)
-    ->middleware(['auth', 'can:rutero.asignar-asesores'])
+    ->middleware(['auth', 'can:Administrar reporte visitas'])
     ->name('rutero.asignaciones');
 
 require __DIR__ . '/auth.php';

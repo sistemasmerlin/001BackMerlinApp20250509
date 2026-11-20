@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
 use App\Http\Controllers\Api\ListaPreciosController;
 use App\Http\Controllers\Api\ProductosEmpaquesController;
+use App\Http\Controllers\Api\CalendarioRuteroController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -166,3 +167,7 @@ Route::middleware('auth:sanctum')
     ->get('/productos-empaques', [ProductosEmpaquesController::class, 'index'])
     ->name('api.productos-empaques.index');
 });
+
+Route::get('/rutero/calendario/{mes}', CalendarioRuteroController::class)
+    ->where('mes', '[1-9][0-9]{3}-(0[1-9]|1[0-2])')
+    ->middleware('auth:sanctum');

@@ -105,6 +105,21 @@
                         </flux:navlist.item>
                     </div>
                 @endcan
+
+
+@can('Administrar reporte visitas')
+    <div x-show="open" class="ms-6 mt-1 space-y-1">
+        <flux:navlist.item
+            icon="map"
+            :href="route('rutero.asignaciones')"
+            :current="request()->routeIs('rutero.asignaciones')"
+            wire:navigate
+        >
+            {{ __('Rutero comercial') }}
+        </flux:navlist.item>
+    </div>
+@endcan
+
                 @can('Administrar backorder')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('backOrder.index')" :current="request()->routeIs('backOrder.*')"
@@ -121,6 +136,7 @@
                         </flux:navlist.item>
                     </div>
                 @endcan
+
                 @can('Administrar noticias')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
                         <flux:navlist.item :href="route('presupuesto.index')" :current="request()->routeIs('presupuesto.*')"
