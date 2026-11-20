@@ -226,7 +226,8 @@ class SolicitudCreditoController extends Controller
         // 4. enviar a firmar
         $nombreFirmante = $solicitud->representante_legal ?: $solicitud->autorizacion_nombre_1;
         $emailFirmante = $solicitud->correo_electronico ?: $solicitud->autorizacion_correo;
-        $nitFirmante = $solicitud->nit_cc;
+        //$nitFirmante = $solicitud->nit_cc;
+        $nitFirmante = $solicitud->identificacion_representante;
         $celularFirmante = $solicitud->celular ?? $solicitud->telefono_fijo;
 
         $nombreFirmanteAsesor = $solicitud->nombre_asesor;
