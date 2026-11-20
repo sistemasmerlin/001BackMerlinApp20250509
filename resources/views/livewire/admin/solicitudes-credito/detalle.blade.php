@@ -580,7 +580,7 @@
                         </div>
                     @endif
 
-                    @if (in_array(strtolower(trim($solicitud->estado ?? '')), ['radicada', 'recibido'], true) &&
+                    @if (in_array(strtolower(trim($solicitud->estado ?? '')), ['radicada', 'recibido', 'pendiente'], true) &&
                             blank($solicitud->auco_code) &&
                             blank($solicitud->auco_package) &&
                             in_array($solicitud->auco_status, [null, '', 'error_envio', 'pendiente_datos_firma'], true))
