@@ -12,7 +12,7 @@ class CalendarioRuteroController extends Controller
 {
     public function __invoke(Request $request, string $mes): JsonResponse
     {
-        abort_unless($request->user()->hasRole('Asesor'), 403);
+        //abort_unless($request->user()->hasRole('Asesor'), 403);
 
         $inicio = CarbonImmutable::createFromFormat(
             '!Y-m',
