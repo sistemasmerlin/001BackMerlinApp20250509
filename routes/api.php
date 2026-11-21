@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\SolicitudCreditoDocumentoController;
 use App\Http\Controllers\Api\ListaPreciosController;
 use App\Http\Controllers\Api\ProductosEmpaquesController;
 use App\Http\Controllers\Api\CalendarioRuteroController;
+use App\Http\Controllers\Api\PlanRuteroController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -161,7 +162,15 @@ Route::middleware('auth:sanctum')->group(function () {
         'consultar',
     ]);
 
+Route::middleware('auth:sanctum')->prefix('rutero')->group(function () {
+    $formatoMes = '[1-9][0-9]{3}-(0[1-9]|1[0-2])';
 
+    Route::get('/planes/{mes}', [PlanRuteroController::class, 'consultar'])
+        ->where('mes', $formatoMes);
+
+    Route::put('/planes/{mes}', [PlanRuteroController::class, 'crear'])
+        ->where('mes', $formatoMes);
+});
 
 Route::middleware('auth:sanctum')
     ->get('/productos-empaques', [ProductosEmpaquesController::class, 'index'])
