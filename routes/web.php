@@ -51,6 +51,7 @@ use App\Livewire\Admin\ImagenesProductos\Index as ImagenesProductosIndex;
 use App\Http\Controllers\Admin\ProductosController;
 use App\Livewire\Admin\ProductosEmpaques\Index as ProductosEmpaquesIndex;
 use App\Livewire\Admin\Rutero\Asignaciones as RuteroAsignaciones;
+use App\Livewire\Admin\Rutero\Planes as RuteroPlanes;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -238,5 +239,9 @@ Route::get('/fletes/unidades-por-empaque', ProductosEmpaquesIndex::class)
     Route::get('/admin/rutero/asignaciones', RuteroAsignaciones::class)
     ->middleware(['auth', 'can:Administrar reporte visitas'])
     ->name('rutero.asignaciones');
+
+    Route::get('/admin/rutero/planes', RuteroPlanes::class)
+    ->middleware('auth')
+    ->name('rutero.planes');
 
 require __DIR__ . '/auth.php';

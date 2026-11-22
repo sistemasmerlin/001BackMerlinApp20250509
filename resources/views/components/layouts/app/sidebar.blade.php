@@ -107,18 +107,26 @@
                 @endcan
 
 
-@can('Administrar reporte visitas')
-    <div x-show="open" class="ms-6 mt-1 space-y-1">
-        <flux:navlist.item
-            icon="map"
-            :href="route('rutero.asignaciones')"
-            :current="request()->routeIs('rutero.asignaciones')"
-            wire:navigate
-        >
-            {{ __('Rutero comercial') }}
-        </flux:navlist.item>
-    </div>
-@endcan
+                @can('Administrar reporte visitas')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist.item icon="map" :href="route('rutero.asignaciones')"
+                            :current="request()->routeIs('rutero.asignaciones')" wire:navigate>
+                            {{ __('Rutero comercial') }}
+                        </flux:navlist.item>
+                    </div>
+                @endcan
+
+                @can('Administrar reporte visitas')
+                    <div x-show="open" class="ms-6 mt-1 space-y-1">
+                        <flux:navlist variant="outline" class="px-4">
+                            <flux:navlist.item icon="map" :href="route('rutero.planes')"
+                                :current="request()->routeIs('rutero.planes')" wire:navigate>
+                                Planes de ruta
+                            </flux:navlist.item>
+                        </flux:navlist>
+                    </div>
+                @endcan
+
 
                 @can('Administrar backorder')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
@@ -213,11 +221,8 @@
 
                 @can('Ver unidades por empaque')
                     <div x-show="open" class="ms-6 mt-1 space-y-1">
-                        <flux:navlist.item
-                            :href="route('fletes.empaques.index')"
-                            :current="request()->routeIs('fletes.empaques.*')"
-                            wire:navigate
-                        >
+                        <flux:navlist.item :href="route('fletes.empaques.index')"
+                            :current="request()->routeIs('fletes.empaques.*')" wire:navigate>
                             {{ __('Unidades por empaque') }}
                         </flux:navlist.item>
                     </div>
