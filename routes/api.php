@@ -186,4 +186,17 @@ Route::middleware('auth:sanctum')->prefix('rutero')->group(function () {
 
     Route::put('/dias/{fecha}', [PlanRuteroController::class, 'guardarDia'])
         ->where('fecha', $formatoFecha);
+        Route::get('/planes/{mes}/gastos', [PlanRuteroController::class, 'consultarGastos'])
+    ->where('mes', $formatoMes);
+
+Route::put('/planes/{mes}/gastos/{lunes}', [PlanRuteroController::class, 'guardarGastosSemana'])
+    ->where(['mes' => $formatoMes, 'lunes' => $formatoFecha]);
+
+Route::get('/planes/{mes}/pdf', [PlanRuteroController::class, 'descargarPdf'])
+    ->where('mes', $formatoMes);
+
+Route::post('/planes/{mes}/enviar-revision', [PlanRuteroController::class, 'enviarRevision'])
+    ->where('mes', $formatoMes);
+    
 });
+
