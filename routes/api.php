@@ -175,6 +175,9 @@ Route::middleware('auth:sanctum')->prefix('rutero')->group(function () {
     $formatoMes = '[1-9][0-9]{3}-(0[1-9]|1[0-2])';
     $formatoFecha = $formatoMes . '-(0[1-9]|[12][0-9]|3[01])';
 
+    Route::get('/calendario/{mes}', CalendarioRuteroController::class)
+        ->where('mes', $formatoMes);
+
     Route::get('/planes/{mes}', [PlanRuteroController::class, 'consultar'])
         ->where('mes', $formatoMes);
 
@@ -186,17 +189,16 @@ Route::middleware('auth:sanctum')->prefix('rutero')->group(function () {
 
     Route::put('/dias/{fecha}', [PlanRuteroController::class, 'guardarDia'])
         ->where('fecha', $formatoFecha);
-        Route::get('/planes/{mes}/gastos', [PlanRuteroController::class, 'consultarGastos'])
-    ->where('mes', $formatoMes);
 
-Route::put('/planes/{mes}/gastos/{lunes}', [PlanRuteroController::class, 'guardarGastosSemana'])
-    ->where(['mes' => $formatoMes, 'lunes' => $formatoFecha]);
+    Route::get('/planes/{mes}/gastos', [PlanRuteroController::class, 'consultarGastos'])
+        ->where('mes', $formatoMes);
 
-Route::get('/planes/{mes}/pdf', [PlanRuteroController::class, 'descargarPdf'])
-    ->where('mes', $formatoMes);
+    Route::put('/planes/{mes}/gastos/{lunes}', [PlanRuteroController::class, 'guardarGastosSemana'])
+        ->where(['mes' => $formatoMes, 'lunes' => $formatoFecha]);
 
-Route::post('/planes/{mes}/enviar-revision', [PlanRuteroController::class, 'enviarRevision'])
-    ->where('mes', $formatoMes);
-    
+    Route::get('/planes/{mes}/pdf', [PlanRuteroController::class, 'descargarPdf'])
+        ->where('mes', $formatoMes);
+
+    Route::post('/planes/{mes}/enviar-revision', [PlanRuteroController::class, 'enviarRevision'])
+        ->where('mes', $formatoMes);
 });
-
