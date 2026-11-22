@@ -145,30 +145,37 @@ class PlanRuteroController extends Controller
         }, 3);
     }
 
-    private function respuestaMes(string $mes, ?object $plan): JsonResponse
-    {
-        $dias = $plan
-            ? DB::table('rutero_dias')
-                ->where('plan_id', $plan->id)
-                ->orderBy('fecha')
-                ->get(['fecha', 'dia_semana', 'habilitado'])
-                ->map(fn (object $dia) => [
-                    'fecha' => $dia->fecha,
-                    'dia_semana' => (int) $dia->dia_semana,
-                    'habilitado' => (bool) $dia->habilitado,
-                ])
-                ->all()
-            : [];
+   private function respuestaMes(string $mes, ?object $plan): JsonResponse
+{
+    $dias = $plan
+        ? DB::table('rutero_dias as d')
+            ->where('d.plan_id', $plan->id)
+            ->select(['d.fecha', 'd.dia_semana', 'd.habilitado'])
+            ->selectSub(
+                DB::table('rutero_dia_ciudades as c')
+                    ->whereColumn('c.dia_id', 'd.id')
+                    ->selectRaw('COUNT(*)'),
+                'ciudades_programadas'
+            )
+            ->orderBy('d.fecha')
+            ->get()
+            ->map(fn (object $dia) => [
+                'fecha' => $dia->fecha,
+                'dia_semana' => (int) $dia->dia_semana,
+                'habilitado' => (bool) $dia->habilitado,
+                'tiene_ruta' => (int) $dia->ciudades_programadas > 0,
+            ])
+            ->all()
+        : [];
 
-        return response()->json([
-            'mes' => $mes,
-            'existe' => $plan !== null,
-            'plan_id' => $plan ? (int) $plan->id : null,
-            'estado' => $plan?->estado,
-            'dias' => $dias,
-        ]);
-    }
-
+    return response()->json([
+        'mes' => $mes,
+        'existe' => $plan !== null,
+        'plan_id' => $plan ? (int) $plan->id : null,
+        'estado' => $plan?->estado,
+        'dias' => $dias,
+    ]);
+}
     private function validarFecha(string $fecha): void
     {
         Validator::make(
