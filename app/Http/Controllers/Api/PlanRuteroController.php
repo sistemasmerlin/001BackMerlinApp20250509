@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class PlanRuteroController extends Controller
 {
@@ -37,7 +41,6 @@ class PlanRuteroController extends Controller
         return DB::transaction(function () use ($asesorId, $mes, $inicio, $periodo) {
             $ahora = now();
 
-            // Si el mes ya existe, conserva su estado y programación.
             DB::table('rutero_planes')->upsert([
                 [
                     'asesor_id' => $asesorId,
@@ -54,17 +57,15 @@ class PlanRuteroController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            $dias = DB::table('rutero_dias')->where('plan_id', $plan->id);
-
-            if (! $dias->exists()) {
-                $filas = [];
+            if (! DB::table('rutero_dias')->where('plan_id', $plan->id)->exists()) {
+                $dias = [];
 
                 for ($numero = 1; $numero <= $inicio->daysInMonth; $numero++) {
                     $fecha = $inicio->day($numero);
                     $ultimoSabado = $fecha->isSaturday()
                         && $numero + 7 > $inicio->daysInMonth;
 
-                    $filas[] = [
+                    $dias[] = [
                         'plan_id' => $plan->id,
                         'fecha' => $fecha->toDateString(),
                         'dia_semana' => $fecha->dayOfWeekIso,
@@ -74,10 +75,73 @@ class PlanRuteroController extends Controller
                     ];
                 }
 
-                DB::table('rutero_dias')->insert($filas);
+                DB::table('rutero_dias')->insert($dias);
             }
 
             return $this->respuestaMes($mes, $plan);
+        }, 3);
+    }
+
+    public function consultarDia(Request $request, string $fecha): JsonResponse
+    {
+        $asesor = $request->user();
+
+        abort_unless($asesor->hasRole('Asesor'), 403, 'Se requiere el rol Asesor.');
+
+        $this->validarFecha($fecha);
+
+        $dia = $this->consultaDia($asesor->getKey(), $fecha)->first();
+
+        abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
+
+        return $this->respuestaDia($dia, $fecha);
+    }
+
+    public function guardarDia(Request $request, string $fecha): JsonResponse
+    {
+        $asesor = $request->user();
+
+        abort_unless($asesor->hasRole('Asesor'), 403, 'Se requiere el rol Asesor.');
+
+        $this->validarFecha($fecha);
+
+        $datos = $request->validate([
+            'ciudades' => ['present', 'array', 'list'],
+            'ciudades.*' => ['required', 'array:codigo_departamento,codigo_ciudad,paradas'],
+            'ciudades.*.codigo_departamento' => ['required', 'string', 'max:20'],
+            'ciudades.*.codigo_ciudad' => ['required', 'string', 'max:20'],
+            'ciudades.*.paradas' => ['present', 'array', 'list'],
+            'ciudades.*.paradas.*' => ['required', 'array:nit,id_sucursal,punto_envio_id'],
+            'ciudades.*.paradas.*.nit' => ['required', 'string', 'max:32'],
+            'ciudades.*.paradas.*.id_sucursal' => ['required', 'string', 'max:32'],
+            'ciudades.*.paradas.*.punto_envio_id' => ['required', 'string', 'max:32'],
+        ]);
+
+        $asesorId = $asesor->getKey();
+        $dia = $this->consultaDia($asesorId, $fecha)->first();
+
+        abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
+        $this->validarDiaEditable($dia);
+
+        $ciudades = [];
+
+        if ($datos['ciudades'] !== []) {
+            $codigoAsesor = trim((string) $asesor->codigo_asesor);
+
+            abort_if($codigoAsesor === '', 422, 'El usuario no tiene código de asesor.');
+
+            $ciudades = $this->resolverProgramacion($datos['ciudades'], $codigoAsesor);
+        }
+
+        return DB::transaction(function () use ($asesorId, $fecha, $ciudades) {
+            $dia = $this->consultaDia($asesorId, $fecha)->lockForUpdate()->first();
+
+            abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
+            $this->validarDiaEditable($dia);
+
+            $this->guardarCiudades((int) $dia->dia_id, $ciudades);
+
+            return $this->respuestaDia($dia, $fecha);
         }, 3);
     }
 
@@ -103,5 +167,311 @@ class PlanRuteroController extends Controller
             'estado' => $plan?->estado,
             'dias' => $dias,
         ]);
+    }
+
+    private function validarFecha(string $fecha): void
+    {
+        Validator::make(
+            ['fecha' => $fecha],
+            ['fecha' => ['required', 'date_format:Y-m-d']]
+        )->validate();
+    }
+
+    private function consultaDia(int $asesorId, string $fecha): Builder
+    {
+        return DB::table('rutero_dias as dias')
+            ->join('rutero_planes as planes', 'planes.id', '=', 'dias.plan_id')
+            ->where('planes.asesor_id', $asesorId)
+            ->where('planes.periodo', substr($fecha, 0, 7) . '-01')
+            ->where('dias.fecha', $fecha)
+            ->select([
+                'dias.id as dia_id',
+                'dias.plan_id',
+                'dias.habilitado',
+                'planes.estado',
+            ]);
+    }
+
+    private function validarDiaEditable(object $dia): void
+    {
+        abort_unless(
+            (bool) $dia->habilitado,
+            422,
+            'Esta fecha está bloqueada para programar.'
+        );
+
+        abort_unless(
+            in_array($dia->estado, ['borrador', 'devuelto'], true),
+            409,
+            'Este plan no se puede editar en su estado actual. Actualice el calendario.'
+        );
+    }
+
+    private function puntosDelAsesor(string $codigoAsesor): Collection
+    {
+        return DB::connection('sqlsrv')
+            ->table('t200_mm_terceros as t200')
+            ->join('t201_mm_clientes as t201', function ($join): void {
+                $join->on('t201.f201_rowid_tercero', '=', 't200.f200_rowid')
+                    ->on('t201.f201_id_cia', '=', 't200.f200_id_cia');
+            })
+            ->join('t215_mm_puntos_envio_cliente as t215', function ($join): void {
+                $join->on('t215.f215_rowid_tercero', '=', 't201.f201_rowid_tercero')
+                    ->on('t215.f215_id_sucursal', '=', 't201.f201_id_sucursal')
+                    ->on('t215.f215_id_cia', '=', 't201.f201_id_cia');
+            })
+            ->join(
+                't015_mm_contactos as t015',
+                't015.f015_rowid',
+                '=',
+                't215.f215_rowid_contacto'
+            )
+            ->join('t012_mm_deptos as t012', function ($join): void {
+                $join->on('t012.f012_id', '=', 't015.f015_id_depto')
+                    ->on('t012.f012_id_pais', '=', 't015.f015_id_pais');
+            })
+            ->join('t013_mm_ciudades as t013', function ($join): void {
+                $join->on('t013.f013_id', '=', 't015.f015_id_ciudad')
+                    ->on('t013.f013_id_depto', '=', 't015.f015_id_depto')
+                    ->on('t013.f013_id_pais', '=', 't015.f015_id_pais');
+            })
+            ->where('t200.f200_id_cia', 3)
+            ->where('t200.f200_ind_cliente', 1)
+            ->where('t200.f200_ind_estado', 1)
+            ->where('t201.f201_ind_estado_activo', 1)
+            ->where('t201.f201_id_sucursal', '<>', '001')
+            ->where('t201.f201_id_vendedor', $codigoAsesor)
+            ->where('t215.f215_ind_estado', 1)
+            ->where('t015.f015_id_pais', 169)
+            ->get([
+                't200.f200_nit as nit',
+                't200.f200_razon_social as razon_social',
+                't201.f201_id_sucursal as id_sucursal',
+                't215.f215_id as punto_envio_id',
+                't015.f015_id_depto as codigo_departamento',
+                't015.f015_id_ciudad as codigo_ciudad',
+                't012.f012_descripcion as departamento',
+                't013.f013_descripcion as ciudad',
+                't015.f015_direccion1 as direccion',
+            ]);
+    }
+
+    private function resolverProgramacion(array $seleccion, string $codigoAsesor): array
+    {
+        $catalogo = [];
+
+        foreach ($this->puntosDelAsesor($codigoAsesor) as $fila) {
+            $codigoDepartamento = trim((string) $fila->codigo_departamento);
+            $codigoCiudad = trim((string) $fila->codigo_ciudad);
+            $nit = trim((string) $fila->nit);
+            $sucursal = trim((string) $fila->id_sucursal);
+            $puntoEnvio = trim((string) $fila->punto_envio_id);
+            $direccion = trim((string) $fila->direccion);
+
+            if ($codigoDepartamento === '' || $codigoCiudad === '') {
+                continue;
+            }
+
+            $claveCiudad = $this->clave($codigoDepartamento, $codigoCiudad);
+
+            $catalogo[$claveCiudad] ??= [
+                'ciudad' => [
+                    'codigo_departamento' => $codigoDepartamento,
+                    'codigo_ciudad' => $codigoCiudad,
+                    'departamento' => trim((string) $fila->departamento),
+                    'ciudad' => trim((string) $fila->ciudad),
+                ],
+                'paradas' => [],
+            ];
+
+            $claveParada = $this->clave($nit, $sucursal, $puntoEnvio);
+
+            $catalogo[$claveCiudad]['paradas'][$claveParada] = [
+                'nit' => $nit,
+                'id_sucursal' => $sucursal,
+                'punto_envio_id' => $puntoEnvio,
+                'razon_social' => trim((string) $fila->razon_social),
+                'direccion' => $direccion === '' ? null : $direccion,
+            ];
+        }
+
+        $resultado = [];
+
+        foreach ($seleccion as $indice => $ciudad) {
+            $claveCiudad = $this->clave(
+                $ciudad['codigo_departamento'],
+                $ciudad['codigo_ciudad']
+            );
+
+            if (! isset($catalogo[$claveCiudad]) || isset($resultado[$claveCiudad])) {
+                throw ValidationException::withMessages([
+                    "ciudades.$indice" => 'La ciudad está repetida o no pertenece a su cartera.',
+                ]);
+            }
+
+            $resultado[$claveCiudad] = [
+                'ciudad' => $catalogo[$claveCiudad]['ciudad'],
+                'paradas' => [],
+            ];
+
+            foreach ($ciudad['paradas'] as $posicion => $parada) {
+                $claveParada = $this->clave(
+                    $parada['nit'],
+                    $parada['id_sucursal'],
+                    $parada['punto_envio_id']
+                );
+
+                $punto = $catalogo[$claveCiudad]['paradas'][$claveParada] ?? null;
+
+                if ($punto === null || isset($resultado[$claveCiudad]['paradas'][$claveParada])) {
+                    throw ValidationException::withMessages([
+                        "ciudades.$indice.paradas.$posicion" =>
+                            'El punto de envío está repetido o no corresponde a esta ciudad y asesor.',
+                    ]);
+                }
+
+                $resultado[$claveCiudad]['paradas'][$claveParada] = $punto;
+            }
+        }
+
+        return $resultado;
+    }
+
+    private function guardarCiudades(int $diaId, array $ciudades): void
+    {
+        $ahora = now();
+        $idsCiudades = [];
+
+        foreach ($ciudades as $grupo) {
+            $datosCiudad = $grupo['ciudad'];
+            $consultaCiudad = DB::table('rutero_dia_ciudades')->where('dia_id', $diaId);
+
+            $ciudadId = (clone $consultaCiudad)
+                ->where('codigo_departamento', $datosCiudad['codigo_departamento'])
+                ->where('codigo_ciudad', $datosCiudad['codigo_ciudad'])
+                ->value('id');
+
+            // Reutilizar una ciudad guardada antes de incorporar los códigos.
+            $ciudadId ??= (clone $consultaCiudad)
+                ->whereNull('codigo_departamento')
+                ->whereNull('codigo_ciudad')
+                ->where('departamento', $datosCiudad['departamento'])
+                ->where('ciudad', $datosCiudad['ciudad'])
+                ->value('id');
+
+            if ($ciudadId === null) {
+                $ciudadId = DB::table('rutero_dia_ciudades')->insertGetId([
+                    ...$datosCiudad,
+                    'dia_id' => $diaId,
+                    'created_at' => $ahora,
+                    'updated_at' => $ahora,
+                ]);
+            } else {
+                (clone $consultaCiudad)->where('id', $ciudadId)->update([
+                    ...$datosCiudad,
+                    'updated_at' => $ahora,
+                ]);
+            }
+
+            $idsCiudades[] = $ciudadId;
+
+            $paradas = DB::table('rutero_paradas')->where('dia_ciudad_id', $ciudadId);
+
+            $idsRetirar = (clone $paradas)
+                ->get(['id', 'nit', 'id_sucursal', 'punto_envio_id'])
+                ->reject(fn (object $fila) => isset($grupo['paradas'][
+                    $this->clave($fila->nit, $fila->id_sucursal, $fila->punto_envio_id)
+                ]))
+                ->pluck('id');
+
+            foreach ($idsRetirar->chunk(100) as $ids) {
+                (clone $paradas)->whereIn('id', $ids)->delete();
+            }
+
+            foreach (array_chunk($grupo['paradas'], 100) as $lote) {
+                $filas = array_map(fn (array $parada) => [
+                    ...$parada,
+                    'dia_ciudad_id' => $ciudadId,
+                    'created_at' => $ahora,
+                    'updated_at' => $ahora,
+                ], $lote);
+
+                DB::table('rutero_paradas')->upsert(
+                    $filas,
+                    ['dia_ciudad_id', 'nit', 'id_sucursal', 'punto_envio_id'],
+                    ['razon_social', 'direccion', 'updated_at']
+                );
+            }
+        }
+
+        DB::table('rutero_dia_ciudades')
+            ->where('dia_id', $diaId)
+            ->whereNotIn('id', $idsCiudades)
+            ->delete();
+    }
+
+    private function respuestaDia(object $dia, string $fecha): JsonResponse
+    {
+        $filas = DB::table('rutero_dia_ciudades as c')
+            ->leftJoin('rutero_paradas as p', 'p.dia_ciudad_id', '=', 'c.id')
+            ->where('c.dia_id', $dia->dia_id)
+            ->orderBy('c.ciudad')
+            ->orderBy('p.razon_social')
+            ->get([
+                'c.id as ciudad_id',
+                'c.codigo_departamento',
+                'c.codigo_ciudad',
+                'c.departamento',
+                'c.ciudad',
+                'p.id as parada_id',
+                'p.nit',
+                'p.razon_social',
+                'p.id_sucursal',
+                'p.punto_envio_id',
+                'p.direccion',
+            ]);
+
+        $ciudades = $filas->groupBy('ciudad_id')->map(function (Collection $grupo): array {
+            $ciudad = $grupo->first();
+
+            return [
+                'id' => (int) $ciudad->ciudad_id,
+                'codigo_departamento' => $ciudad->codigo_departamento,
+                'codigo_ciudad' => $ciudad->codigo_ciudad,
+                'departamento' => $ciudad->departamento,
+                'ciudad' => $ciudad->ciudad,
+                'paradas' => $grupo
+                    ->whereNotNull('parada_id')
+                    ->map(fn (object $fila) => [
+                        'id' => (int) $fila->parada_id,
+                        'nit' => $fila->nit,
+                        'razon_social' => $fila->razon_social,
+                        'id_sucursal' => $fila->id_sucursal,
+                        'punto_envio_id' => $fila->punto_envio_id,
+                        'direccion' => $fila->direccion,
+                    ])
+                    ->values()
+                    ->all(),
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'fecha' => $fecha,
+            'dia_id' => (int) $dia->dia_id,
+            'plan_id' => (int) $dia->plan_id,
+            'estado' => $dia->estado,
+            'habilitado' => (bool) $dia->habilitado,
+            'editable' => (bool) $dia->habilitado
+                && in_array($dia->estado, ['borrador', 'devuelto'], true),
+            'ciudades' => $ciudades,
+        ]);
+    }
+
+    private function clave(string|int ...$partes): string
+    {
+        return json_encode(
+            array_map(fn (string|int $parte) => trim((string) $parte), $partes),
+            JSON_THROW_ON_ERROR
+        );
     }
 }
