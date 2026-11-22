@@ -11,6 +11,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\CarbonInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class PlanRuteroController extends Controller
 {
@@ -97,58 +100,86 @@ class PlanRuteroController extends Controller
         return $this->respuestaDia($dia, $fecha);
     }
 
-    public function guardarDia(Request $request, string $fecha): JsonResponse
-    {
-        $asesor = $request->user();
+public function guardarDia(Request $request, string $fecha): JsonResponse
+{
+    $asesor = $request->user();
 
-        abort_unless($asesor->hasRole('Asesor'), 403, 'Se requiere el rol Asesor.');
+    abort_unless($asesor->hasRole('Asesor'), 403, 'Se requiere el rol Asesor.');
 
-        $this->validarFecha($fecha);
+    $this->validarFecha($fecha);
 
-        $datos = $request->validate([
-            'ciudades' => ['present', 'array', 'list'],
-            'ciudades.*' => ['required', 'array:codigo_departamento,codigo_ciudad,paradas'],
-            'ciudades.*.codigo_departamento' => ['required', 'string', 'max:20'],
-            'ciudades.*.codigo_ciudad' => ['required', 'string', 'max:20'],
-            'ciudades.*.paradas' => ['present', 'array', 'list'],
-            'ciudades.*.paradas.*' => ['required', 'array:nit,id_sucursal,punto_envio_id'],
-            'ciudades.*.paradas.*.nit' => ['required', 'string', 'max:32'],
-            'ciudades.*.paradas.*.id_sucursal' => ['required', 'string', 'max:32'],
-            'ciudades.*.paradas.*.punto_envio_id' => ['required', 'string', 'max:32'],
-        ]);
+    $datos = $request->validate([
+        'ciudades' => ['present', 'array', 'list'],
+        'ciudades.*' => [
+            'required',
+            'array:codigo_departamento,codigo_ciudad,paradas',
+        ],
+        'ciudades.*.codigo_departamento' => ['required', 'string', 'max:20'],
+        'ciudades.*.codigo_ciudad' => ['required', 'string', 'max:20'],
+        'ciudades.*.paradas' => ['present', 'array', 'list'],
+        'ciudades.*.paradas.*' => [
+            'required',
+            'array:nit,id_sucursal,punto_envio_id',
+        ],
+        'ciudades.*.paradas.*.nit' => ['required', 'string', 'max:32'],
+        'ciudades.*.paradas.*.id_sucursal' => ['required', 'string', 'max:32'],
+        'ciudades.*.paradas.*.punto_envio_id' => ['required', 'string', 'max:32'],
+    ]);
 
-        $asesorId = $asesor->getKey();
-        $dia = $this->consultaDia($asesorId, $fecha)->first();
+    $asesorId = $asesor->getKey();
+    $periodo = substr($fecha, 0, 7) . '-01';
 
-        abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
-        $this->validarDiaEditable($dia);
+    $dia = $this->consultaDia($asesorId, $fecha)->first();
 
-        $ciudades = [];
+    abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
 
-        if ($datos['ciudades'] !== []) {
-            $codigoAsesor = trim((string) $asesor->codigo_asesor);
+    $this->validarDiaEditable($dia);
 
-            abort_if($codigoAsesor === '', 422, 'El usuario no tiene código de asesor.');
+    $ciudades = [];
 
-            $ciudades = $this->resolverProgramacion($datos['ciudades'], $codigoAsesor);
-        }
+    if ($datos['ciudades'] !== []) {
+        $codigoAsesor = trim((string) $asesor->codigo_asesor);
 
-        return DB::transaction(function () use ($asesorId, $fecha, $ciudades) {
-            $dia = $this->consultaDia($asesorId, $fecha)->lockForUpdate()->first();
+        abort_if(
+            $codigoAsesor === '',
+            422,
+            'El usuario no tiene código de asesor.'
+        );
 
-            abort_if($dia === null, 404, 'Primero debe crear el mes en su rutero.');
-            $this->validarDiaEditable($dia);
-
-            $this->guardarCiudades((int) $dia->dia_id, $ciudades);
-
-            return $this->respuestaDia($dia, $fecha);
-        }, 3);
+        $ciudades = $this->resolverProgramacion(
+            $datos['ciudades'],
+            $codigoAsesor
+        );
     }
 
-   private function respuestaMes(string $mes, ?object $plan): JsonResponse
-{
-    $dias = $plan
-        ? DB::table('rutero_dias as d')
+    return DB::transaction(function () use ($asesorId, $periodo, $fecha, $ciudades) {
+        // Tomar el mismo bloqueo que usa enviarRevision().
+        $plan = DB::table('rutero_planes')
+            ->where('asesor_id', $asesorId)
+            ->where('periodo', $periodo)
+            ->lockForUpdate()
+            ->first();
+
+        abort_if($plan === null, 404, 'Primero debe crear el mes en su rutero.');
+
+        $dia = $this->consultaDia($asesorId, $fecha)
+            ->lockForUpdate()
+            ->first();
+
+        abort_if($dia === null, 404, 'La fecha no existe en su rutero.');
+
+        $this->validarDiaEditable($dia);
+
+        $this->guardarCiudades((int) $dia->dia_id, $ciudades);
+
+        return $this->respuestaDia($dia, $fecha);
+    }, 3);
+}
+
+    private function respuestaMes(string $mes, ?object $plan): JsonResponse
+    {
+        $dias = $plan
+            ? DB::table('rutero_dias as d')
             ->where('d.plan_id', $plan->id)
             ->select(['d.fecha', 'd.dia_semana', 'd.habilitado'])
             ->selectSub(
@@ -159,23 +190,23 @@ class PlanRuteroController extends Controller
             )
             ->orderBy('d.fecha')
             ->get()
-            ->map(fn (object $dia) => [
+            ->map(fn(object $dia) => [
                 'fecha' => $dia->fecha,
                 'dia_semana' => (int) $dia->dia_semana,
                 'habilitado' => (bool) $dia->habilitado,
                 'tiene_ruta' => (int) $dia->ciudades_programadas > 0,
             ])
             ->all()
-        : [];
+            : [];
 
-    return response()->json([
-        'mes' => $mes,
-        'existe' => $plan !== null,
-        'plan_id' => $plan ? (int) $plan->id : null,
-        'estado' => $plan?->estado,
-        'dias' => $dias,
-    ]);
-}
+        return response()->json([
+            'mes' => $mes,
+            'existe' => $plan !== null,
+            'plan_id' => $plan ? (int) $plan->id : null,
+            'estado' => $plan?->estado,
+            'dias' => $dias,
+        ]);
+    }
     private function validarFecha(string $fecha): void
     {
         Validator::make(
@@ -333,7 +364,7 @@ class PlanRuteroController extends Controller
                 if ($punto === null || isset($resultado[$claveCiudad]['paradas'][$claveParada])) {
                     throw ValidationException::withMessages([
                         "ciudades.$indice.paradas.$posicion" =>
-                            'El punto de envío está repetido o no corresponde a esta ciudad y asesor.',
+                        'El punto de envío está repetido o no corresponde a esta ciudad y asesor.',
                     ]);
                 }
 
@@ -386,9 +417,7 @@ class PlanRuteroController extends Controller
 
             $idsRetirar = (clone $paradas)
                 ->get(['id', 'nit', 'id_sucursal', 'punto_envio_id'])
-                ->reject(fn (object $fila) => isset($grupo['paradas'][
-                    $this->clave($fila->nit, $fila->id_sucursal, $fila->punto_envio_id)
-                ]))
+                ->reject(fn(object $fila) => isset($grupo['paradas'][$this->clave($fila->nit, $fila->id_sucursal, $fila->punto_envio_id)]))
                 ->pluck('id');
 
             foreach ($idsRetirar->chunk(100) as $ids) {
@@ -396,7 +425,7 @@ class PlanRuteroController extends Controller
             }
 
             foreach (array_chunk($grupo['paradas'], 100) as $lote) {
-                $filas = array_map(fn (array $parada) => [
+                $filas = array_map(fn(array $parada) => [
                     ...$parada,
                     'dia_ciudad_id' => $ciudadId,
                     'created_at' => $ahora,
@@ -449,7 +478,7 @@ class PlanRuteroController extends Controller
                 'ciudad' => $ciudad->ciudad,
                 'paradas' => $grupo
                     ->whereNotNull('parada_id')
-                    ->map(fn (object $fila) => [
+                    ->map(fn(object $fila) => [
                         'id' => (int) $fila->parada_id,
                         'nit' => $fila->nit,
                         'razon_social' => $fila->razon_social,
@@ -477,8 +506,235 @@ class PlanRuteroController extends Controller
     private function clave(string|int ...$partes): string
     {
         return json_encode(
-            array_map(fn (string|int $parte) => trim((string) $parte), $partes),
+            array_map(fn(string|int $parte) => trim((string) $parte), $partes),
             JSON_THROW_ON_ERROR
         );
+    }
+
+
+    private const CAMPOS_GASTOS = [
+        'hospedaje',
+        'alimentacion',
+        'transporte_intermunicipal',
+        'transporte_urbano_combustible',
+    ];
+
+    public function consultarGastos(Request $request, string $mes): JsonResponse
+    {
+        $plan = $this->planDelAsesor($request, $mes)->first();
+
+        abort_if($plan === null, 404, 'Primero debe crear el mes en su rutero.');
+
+        return response()->json([
+            'editable' => $this->planEditable($plan->estado),
+            'dias' => $this->gastosDelPlan((int) $plan->id),
+        ]);
+    }
+
+    public function guardarGastosSemana(
+        Request $request,
+        string $mes,
+        string $lunes
+    ): JsonResponse {
+        $planes = $this->planDelAsesor($request, $mes);
+
+        $this->validarFecha($lunes);
+
+        $inicio = CarbonImmutable::parse($lunes, 'America/Bogota');
+
+        abort_unless($inicio->isMonday(), 422, 'Seleccione el lunes de la semana.');
+
+        $reglas = [
+            'dias' => ['required', 'array', 'list', 'max:7'],
+            'dias.*' => ['required', 'array:fecha,' . implode(',', self::CAMPOS_GASTOS)],
+            'dias.*.fecha' => ['required', 'date_format:Y-m-d', 'distinct'],
+        ];
+
+        foreach (self::CAMPOS_GASTOS as $campo) {
+            $reglas["dias.*.$campo"] = ['required', 'integer', 'min:0', 'max:2147483647'];
+        }
+
+        $datos = $request->validate($reglas);
+
+        return DB::transaction(function () use ($planes, $inicio, $datos) {
+            $plan = $planes->lockForUpdate()->first();
+
+            abort_if($plan === null, 404, 'Primero debe crear el mes en su rutero.');
+            abort_unless(
+                $this->planEditable($plan->estado),
+                409,
+                'El plan está en revisión o publicado. Los gastos están bloqueados.'
+            );
+
+            $fechasPermitidas = DB::table('rutero_dias')
+                ->where('plan_id', $plan->id)
+                ->where('habilitado', true)
+                ->whereBetween('fecha', [
+                    $inicio->toDateString(),
+                    $inicio->addDays(6)->toDateString(),
+                ])
+                ->pluck('id', 'fecha');
+
+            $ahora = now();
+            $filas = [];
+
+            foreach ($datos['dias'] as $indice => $dia) {
+                $diaId = $fechasPermitidas->get($dia['fecha']);
+
+                if ($diaId === null) {
+                    throw ValidationException::withMessages([
+                        "dias.$indice.fecha" => 'La fecha no está habilitada en esta semana del plan.',
+                    ]);
+                }
+
+                $fila = [
+                    'dia_id' => $diaId,
+                    'created_at' => $ahora,
+                    'updated_at' => $ahora,
+                ];
+
+                foreach (self::CAMPOS_GASTOS as $campo) {
+                    $fila[$campo] = (int) $dia[$campo];
+                }
+
+                $filas[] = $fila;
+            }
+
+            DB::table('rutero_gastos')->upsert(
+                $filas,
+                ['dia_id'],
+                [...self::CAMPOS_GASTOS, 'updated_at']
+            );
+
+            return response()->json([
+                'editable' => true,
+                'dias' => $this->gastosDelPlan((int) $plan->id),
+            ]);
+        }, 3);
+    }
+
+    public function enviarRevision(Request $request, string $mes): JsonResponse
+    {
+        $planes = $this->planDelAsesor($request, $mes);
+
+        return DB::transaction(function () use ($planes) {
+            $plan = $planes->lockForUpdate()->first();
+
+            abort_if($plan === null, 404, 'El plan mensual no existe.');
+
+            if ($plan->estado === 'en_revision') {
+                return response()->json(['estado' => 'en_revision']);
+            }
+
+            abort_unless(
+                $this->planEditable($plan->estado),
+                409,
+                'El plan no se puede enviar en su estado actual.'
+            );
+
+            $ahora = now();
+
+            DB::table('rutero_planes')->where('id', $plan->id)->update([
+                'estado' => 'en_revision',
+                'enviado_revision_at' => $ahora,
+                'updated_at' => $ahora,
+            ]);
+
+            return response()->json(['estado' => 'en_revision']);
+        }, 3);
+    }
+
+    public function descargarPdf(Request $request, string $mes): Response
+    {
+        $planes = $this->planDelAsesor($request, $mes);
+
+        $datos = DB::transaction(function () use ($planes, $request, $mes) {
+            $plan = $planes->lockForUpdate()->first();
+
+            abort_if($plan === null, 404, 'El plan mensual no existe.');
+
+            $filas = DB::table('rutero_dias as d')
+                ->join('rutero_dia_ciudades as c', 'c.dia_id', '=', 'd.id')
+                ->leftJoin('rutero_paradas as p', 'p.dia_ciudad_id', '=', 'c.id')
+                ->where('d.plan_id', $plan->id)
+                ->orderBy('d.fecha')
+                ->orderBy('c.ciudad')
+                ->orderBy('p.razon_social')
+                ->get([
+                    'd.fecha',
+                    'c.id as ciudad_id',
+                    'c.ciudad',
+                    'c.departamento',
+                    'p.id as parada_id',
+                    'p.razon_social',
+                    'p.nit',
+                    'p.id_sucursal',
+                    'p.punto_envio_id',
+                    'p.direccion',
+                ]);
+
+            $gastos = $this->gastosDelPlan((int) $plan->id)
+                ->filter(fn(array $dia) => $dia['total'] > 0);
+
+            return [
+                'mes' => $mes,
+                'plan' => $plan,
+                'asesor' => $request->user(),
+                'ruta' => $filas->groupBy('fecha'),
+                'gastosPorSemana' => $gastos->groupBy(
+                    fn(array $dia) =>
+                    CarbonImmutable::parse($dia['fecha'])
+                        ->startOfWeek(CarbonInterface::MONDAY)
+                        ->toDateString()
+                ),
+                'totalMes' => $gastos->sum('total'),
+            ];
+        }, 3);
+
+        return Pdf::loadView('pdf.rutero-plan', $datos)
+            ->setPaper('a4')
+            ->download("rutero-{$mes}.pdf");
+    }
+
+    private function planDelAsesor(Request $request, string $mes): Builder
+    {
+        $asesor = $request->user();
+
+        abort_unless($asesor->hasRole('Asesor'), 403, 'Se requiere el rol Asesor.');
+
+        return DB::table('rutero_planes')
+            ->where('asesor_id', $asesor->getKey())
+            ->where('periodo', $mes . '-01');
+    }
+
+    private function planEditable(string $estado): bool
+    {
+        return in_array($estado, ['borrador', 'devuelto'], true);
+    }
+
+    private function gastosDelPlan(int $planId): Collection
+    {
+        return DB::table('rutero_dias as d')
+            ->leftJoin('rutero_gastos as g', 'g.dia_id', '=', 'd.id')
+            ->where('d.plan_id', $planId)
+            ->where('d.habilitado', true)
+            ->orderBy('d.fecha')
+            ->get([
+                'd.fecha',
+                'g.hospedaje',
+                'g.alimentacion',
+                'g.transporte_intermunicipal',
+                'g.transporte_urbano_combustible',
+            ])
+            ->map(function (object $fila): array {
+                $dia = ['fecha' => (string) $fila->fecha, 'total' => 0];
+
+                foreach (self::CAMPOS_GASTOS as $campo) {
+                    $dia[$campo] = (int) ($fila->{$campo} ?? 0);
+                    $dia['total'] += $dia[$campo];
+                }
+
+                return $dia;
+            });
     }
 }
