@@ -19,6 +19,7 @@
                     <th class="px-4 py-3">Asesor</th>
                     <th class="px-4 py-3">Estado</th>
                     <th class="px-4 py-3">Días programados</th>
+                    <th class="px-4 py-3">Códigos de ciudad</th>
                     <th class="px-4 py-3">Visitas programadas</th>
                     <th class="px-4 py-3"><span class="sr-only">Acciones</span></th>
                 </tr>
@@ -35,6 +36,9 @@
                             {{ ucfirst(str_replace('_', ' ', $fila->estado)) }}
                         </td>
                         <td class="px-4 py-3">{{ $fila->dias_programados }}</td>
+                        <td class="px-4 py-3 tabular-nums">
+                            {{ $codigosCiudades->get($fila->id, '—') }}
+                        </td>
                         <td class="px-4 py-3">{{ $fila->visitas_programadas }}</td>
                         <td class="px-4 py-3">
                             <button type="button"

@@ -105,9 +105,25 @@ class Planes extends Component
             )
             ->orderBy('u.name')
             ->orderBy('p.id')
-            ->paginate(25);
+            ->paginate(50);
 
-        return view('livewire.admin.rutero.planes', compact('planes', 'plan', 'dias'));
+            $codigosCiudades = DB::table('rutero_dias as d')
+    ->join('rutero_dia_ciudades as c', 'c.dia_id', '=', 'd.id')
+    ->whereIn('d.plan_id', $planes->getCollection()->pluck('id'))
+    ->whereNotNull('c.codigo_departamento')
+    ->whereNotNull('c.codigo_ciudad')
+    ->select('d.plan_id', 'c.codigo_departamento', 'c.codigo_ciudad')
+    ->distinct()
+    ->orderBy('c.codigo_departamento')
+    ->orderBy('c.codigo_ciudad')
+    ->get()
+    ->groupBy('plan_id')
+    ->map(fn ($ciudades) => $ciudades
+        ->map(fn ($ciudad) => $ciudad->codigo_departamento . '-' . $ciudad->codigo_ciudad)
+        ->implode(', ')
+    );
+
+        return view('livewire.admin.rutero.planes', compact('planes', 'plan', 'dias', 'codigosCiudades'));
     }
 
     private function planesDelMes(): Builder
